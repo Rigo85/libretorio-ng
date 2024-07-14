@@ -6,22 +6,55 @@ import { LeftPanelComponent } from "(src)/app/components/left-panel/left-panel.c
 import { HeaderPanelComponent } from "(src)/app/components/header-panel/header-panel.component";
 import { BooksPanelComponent } from "(src)/app/components/books-panel/books-panel.component";
 import { FooterPanelComponent } from "(src)/app/components/footer-panel/footer-panel.component";
+import { BooksService } from "(src)/app/services/books.service";
+import { map, Observable, startWith, take, tap } from "rxjs";
+import { Directory, ScanResult, File } from "(src)/app/core/headers";
+import { AsyncPipe, NgIf } from "@angular/common";
+import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 
 declare var bootstrap: any;
 
 @Component({
 	selector: "app-root",
 	standalone: true,
-	imports: [RouterOutlet, ThemeTogglerComponent, SidebarTogglerComponent, LeftPanelComponent, HeaderPanelComponent, BooksPanelComponent, FooterPanelComponent],
+	imports: [
+		RouterOutlet,
+		ThemeTogglerComponent,
+		SidebarTogglerComponent,
+		LeftPanelComponent,
+		HeaderPanelComponent,
+		BooksPanelComponent,
+		FooterPanelComponent,
+		NgIf,
+		AsyncPipe
+	],
 	templateUrl: "./app.component.html",
 	styleUrl: "./app.component.scss"
 })
 export class AppComponent implements OnInit {
-	title = "Libretorio-ng";
+	title = "Libretorio";
+
+	public scanResult$!: Observable<ScanResult>;
+	private initialized: boolean = false;
+
+	constructor(private bookService: BooksService, private collapseStateService: CollapseStateService) {
+		this.bookService.onBooksList();
+	}
 
 	ngOnInit(): void {
 		this.handleSidebar();
 		this.initializeTooltips();
+
+		this.scanResult$ = this.bookService.incomingMessage$.pipe(
+			map((msg) => msg.data as ScanResult),
+			tap((scanResult) => {
+				if (!this.initialized) {
+					this.collapseStateService.initializeCollapseStates(scanResult.directories);
+					this.initialized = true;
+				}
+			}),
+			startWith({files: []})
+		);
 	}
 
 	@HostListener("window:resize", ["$event"])

@@ -177,3 +177,21 @@ footer {
 .bd-mode-toggle .dropdown-menu .active .bi {
 	display: block !important;
 }
+
+#sidebar {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1; /* Permite que sidebar crezca para ocupar el espacio disponible */
+	width: 280px;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.list-container {
+	flex-grow: 1;
+	overflow-y: auto; /* Mantiene el desplazamiento si el contenido es demasiado largo */
+}
+
+.list-unstyled {
+	height: 100%;
+}

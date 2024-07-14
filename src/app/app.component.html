@@ -22,11 +22,11 @@
 <sidebar-toggler (click)="toggleSidebar()"></sidebar-toggler>
 
 <main class="d-flex flex-nowrap">
-	<left-panel></left-panel>
+	<left-panel *ngIf="scanResult$ | async as scanResult" [directory]="scanResult.directories"></left-panel>
 	<div class="b-example-divider b-example-vr"></div>
 	<div class="content-container">
 		<header-panel></header-panel>
-		<books-panel></books-panel>
+		<books-panel *ngIf="scanResult$ | async as scanResult" [files]="scanResult.files"></books-panel>
 	</div>
 </main>
 <footer-panel></footer-panel>
