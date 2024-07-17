@@ -37,6 +37,7 @@
 						"scripts": [
 							"public/js/color-modes.js",
 							"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+							"node_modules/string-similarity/umd/string-similarity.min.js"
 						]
 					},
 					"configurations": {

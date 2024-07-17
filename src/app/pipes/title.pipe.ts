@@ -1,5 +1,7 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { File } from "(src)/app/core/headers";
+import { cleanFilename, cleanTitle, File } from "(src)/app/core/headers";
+
+declare var stringSimilarity: any;
 
 @Pipe({
 	name: "title",
@@ -7,10 +9,21 @@ import { File } from "(src)/app/core/headers";
 })
 export class TitlePipe implements PipeTransform {
 
-	transform(value: File): string {
+	transform(file: File): string {
+		let title = "";
+		const filename = cleanFilename(file.name);
+		const localTitle = cleanTitle(file.localDetails?.title ?? "");
+		const webTitle = cleanTitle(file.webDetails?.title ?? "");
 
-		// si tiene desconocido de autor y tiene webDetails entonces retorna el título de webDetails.
-		return value.localDetails?.title ?? value.name;
+		if (stringSimilarity.compareTwoStrings(filename, localTitle) >= 0.5) {
+			title = cleanTitle(file.localDetails?.title ?? "", false);
+		} else if (stringSimilarity.compareTwoStrings(filename, webTitle) >= 0.5) {
+			title = cleanTitle(file.webDetails?.title ?? "", false);
+		} else {
+			title = cleanFilename(file.name, false);
+		}
+
+		return title;
 	}
 
 }

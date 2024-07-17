@@ -19,7 +19,7 @@ export class BooksService {
 	public incomingMessage$: Observable<IncomingMessage> = this.incomingMessages.asObservable();
 
 	constructor() {
-		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://localhost:3005");
+		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
 
 		this.webSocket
 			.pipe(

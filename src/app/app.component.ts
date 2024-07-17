@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from "@angular/core";
+import { AfterViewInit, Component, HostListener, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { ThemeTogglerComponent } from "(src)/app/components/theme-toggler/theme-toggler.component";
 import { SidebarTogglerComponent } from "(src)/app/components/sidebar-toggler/sidebar-toggler.component";
@@ -31,7 +31,7 @@ declare var bootstrap: any;
 	templateUrl: "./app.component.html",
 	styleUrl: "./app.component.scss"
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
 	title = "Libretorio";
 
 	public scanResult$!: Observable<ScanResult>;
@@ -41,8 +41,11 @@ export class AppComponent implements OnInit {
 		this.bookService.onBooksList();
 	}
 
-	ngOnInit(): void {
+	ngAfterViewInit(): void {
 		this.handleSidebar();
+    }
+
+	ngOnInit(): void {
 		this.initializeTooltips();
 
 		this.scanResult$ = this.bookService.incomingMessage$.pipe(

@@ -3,7 +3,7 @@
 		<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
 			@for (file of files; track file.id) {
 				<div class="col">
-					<div class="card shadow-sm">
+					<div class="card shadow-sm clickable-area" (click)="onSelectFile(file)">
 						<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
 							 xmlns="http://www.w3.org/2000/svg" role="img"
 							 aria-label="Placeholder: Thumbnail"
@@ -20,13 +20,40 @@
 							</p>
 
 							<small
-								class="text-body-secondary">{{ file | author }}</small>
+								class="text-body-secondary">{{ file | author }}
+							</small>
 						</div>
 					</div>
 				</div>
 			} @empty {
-				<div class="container" style="height: 50%; width: 50%;" > There are no files in the current directory.</div>
+				<div class="container" style="height: 50%; width: 50%;"> There are no files in the current directory.
+				</div>
 			}
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="bookDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+	 aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="staticBackdropLabel">Book Details</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@if (selectedFile) {
+					<book-details-panel [file]="selectedFile"></book-details-panel>
+				} @else {
+					<div class="container" style="height: 50%; width: 50%;">
+						No book selected.
+					</div>
+				}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary">Edit Metadata</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
 		</div>
 	</div>
 </div>

@@ -7,11 +7,26 @@ import { File } from "(src)/app/core/headers";
 })
 export class AuthorPipe implements PipeTransform {
 
-	transform(value: File): string {
+	transform(file: File): string {
 
-		const result = (value.localDetails ?? {"author(s)": "Desconocido"})["author(s)"];
+		let localAuthor = (file.localDetails ?? {"author(s)": undefined})["author(s)"] ?? "";
+		localAuthor = (localAuthor.replace(/\s*\[.+]/, "")).trim();
+		localAuthor = ["desconocido", "unknown"].includes(localAuthor.toLowerCase()) ? "" : localAuthor;
+		const webAuthor = (file.webDetails?.author_name?.join(", ") || "").trim();
 
-		return result.replace(/\s*\[.+]/, "");
+		let author;
+
+		if (!localAuthor && !webAuthor) {
+			author = "Unknown author";
+		} else if (!localAuthor) {
+			author = webAuthor;
+		} else if (!webAuthor) {
+			author = localAuthor;
+		} else {
+			author = `${localAuthor} (${webAuthor})`;
+		}
+
+		return author;
 	}
 
 }
