@@ -1,0 +1,56 @@
+.container-flex {
+	display: flex;
+	flex-direction: row;
+	align-items: start;
+	padding: 20px;
+}
+
+.container-flex img {
+	max-width: 150px;
+	margin-right: 20px;
+}
+
+.container-flex form {
+	flex-grow: 1;
+}
+
+.invalid {
+    width: 100%;
+    margin-top: .25rem;
+    font-size: .875em;
+    color: #ea868f;
+}
+
+@media (max-width: 768px) {
+	.container-flex {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.container-flex img {
+		margin-right: 0;
+		margin-bottom: 20px;
+	}
+}
+
+.additional-images-indicator {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background-color: rgba(0, 0, 0, 0.5);
+	color: white;
+	padding: 5px;
+	border-radius: 5px;
+}
+
+/* Asegúrate de que el contenedor tenga un tamaño definido o esté configurado para expandirse */
+.container-flex form {
+	width: 100%; /* Ocupa todo el ancho disponible */
+	flex-grow: 1; /* Permite que el formulario crezca para ocupar el espacio disponible en flexbox */
+}
+
+/* Estilo para que el form-control ocupe todo el espacio disponible */
+.form-control {
+	width: 100%; /* Ocupa todo el ancho disponible */
+	height: 100%; /* Ocupa todo el alto disponible, asegúrate de que este comportamiento es deseado */
+}

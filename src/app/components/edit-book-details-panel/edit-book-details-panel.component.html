@@ -1,0 +1,24 @@
+<div class="container-flex">
+	<ng-container *ngIf="checkFileExists(file) | async; else noCover">
+		<img [attr.src]="'/covers/' + file.coverId + '.jpg'" alt="{{ file | title }}" width="100%" height="225"
+			 class="bd-placeholder-img card-img-top">
+	</ng-container>
+	<ng-template #noCover>
+		<img src="https://via.placeholder.com/150" alt="Imagen">
+	</ng-template>
+	<form [formGroup]="form">
+		<div formArrayName="fields">
+			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
+				<div class="mb-3">
+					<label for="field" class="form-label">{{ field.get('name')?.value.toUpperCase() }}</label>
+					@if (field.get('name')?.value === "description") {
+						<textarea class="form-control" id="field" formControlName="value"></textarea>
+					} @else {
+						<input type="text" class="form-control" id="field" formControlName="value">
+					}
+				</div>
+			</div>
+		</div>
+		<div id="feedback" class="invalid"></div>
+	</form>
+</div>

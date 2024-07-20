@@ -4,16 +4,23 @@
 			@for (file of files; track file.id) {
 				<div class="col">
 					<div class="card shadow-sm clickable-area" (click)="onSelectFile(file)">
-						<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
-							 xmlns="http://www.w3.org/2000/svg" role="img"
-							 aria-label="Placeholder: Thumbnail"
-							 preserveAspectRatio="xMidYMid slice" focusable="false">
-							<title>Placeholder</title>
-							<rect width="100%" height="100%" fill="#55595c"/>
-							<text x="50%" y="50%" fill="#eceeef" dy=".3em">
-								{{ file | ext }}
-							</text>
-						</svg>
+						<ng-container *ngIf="checkFileExists(file) | async; else noCover">
+							<img [attr.src]="'/covers/' + file.coverId + '.jpg'" alt="{{ file | title }}"
+								 width="100%" height="225"
+								 class="bd-placeholder-img card-img-top">
+						</ng-container>
+						<ng-template #noCover>
+							<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
+								 xmlns="http://www.w3.org/2000/svg" role="img"
+								 aria-label="Placeholder: Thumbnail"
+								 preserveAspectRatio="xMidYMid slice" focusable="false">
+								<title>Placeholder</title>
+								<rect width="100%" height="100%" fill="#55595c"/>
+								<text x="50%" y="50%" fill="#eceeef" dy=".3em">
+									{{ file | ext }}
+								</text>
+							</svg>
+						</ng-template>
 						<div class="card-body">
 							<p class="card-text">
 								{{ file | title }}
@@ -38,7 +45,7 @@
 	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="staticBackdropLabel">Book Details</h1>
+				<h1 class="modal-title fs-5" id="bookDetailsModalLabel">Book Details</h1>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
@@ -51,7 +58,35 @@
 				}
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-primary">Edit Metadata</button>
+				<button type="button" class="btn btn-primary" (click)="openEditModal()">
+					Edit Metadata
+				</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="editBookDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+	 aria-labelledby="editBookDetailsModalLabel" tabindex="-1">
+	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="editBookDetailsModalLabel">Edit Book Details</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@if (selectedFile) {
+					<edit-book-details-panel [file]="selectedFile"></edit-book-details-panel>
+				} @else {
+					<div class="container" style="height: 50%; width: 50%;">
+						No book selected.
+					</div>
+				}
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-info">Fetch Metadata</button>
+				<button class="btn btn-primary">Save Metadata</button>
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>

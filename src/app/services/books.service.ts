@@ -35,7 +35,7 @@ export class BooksService {
 			.subscribe({
 				next: (msg: IncomingMessage) => {
 					if (msg.event === "list") {
-						console.log("------------------> incoming message!", msg.data);
+						// console.log("------------------> incoming message!", msg.data);
 						this.incomingMessages.next(msg);
 					}
 				},
