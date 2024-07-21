@@ -85,10 +85,37 @@
 				}
 			</div>
 			<div class="modal-footer">
-				<button class="btn btn-info">Fetch Metadata</button>
+				<button class="btn btn-info" (click)="onSearchDetails()">Fetch Metadata</button>
 				<button class="btn btn-primary">Save Metadata</button>
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>
 </div>
+
+<div class="modal fade" id="searchDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+	 aria-labelledby="searchDetailsModalLabel" tabindex="-1">
+	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="searchDetailsModalLabel">Search Book Details</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@if (selectedFile) {
+					<search-details-panel (searchOptions)="onSearchOptions($event)"
+										  [file]="selectedFile"></search-details-panel>
+				} @else {
+					<div class="container" style="height: 50%; width: 50%;">
+						No book selected.
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
+	<p style="color: white"> Loading... </p>
+</ngx-spinner>
+

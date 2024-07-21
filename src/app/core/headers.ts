@@ -1,3 +1,5 @@
+declare var stringSimilarity: any;
+
 export interface File {
 	id: number;
 	name: string;
@@ -35,4 +37,21 @@ export function cleanTitle(title: string, lowerCase: boolean = true): string {
 		.replace(/\s+/g, " ");
 
 	return lowerCase ? _title.toLowerCase() : _title;
+}
+
+export function getTitle(file: File): string {
+	let title = "";
+	const filename = cleanFilename(file.name);
+	const localTitle = cleanTitle(file.localDetails?.title ?? "");
+	const webTitle = cleanTitle(file.webDetails?.title ?? "");
+
+	if (stringSimilarity.compareTwoStrings(filename, localTitle) >= 0.5) {
+		title = cleanTitle(file.localDetails?.title ?? "", false);
+	} else if (stringSimilarity.compareTwoStrings(filename, webTitle) >= 0.5) {
+		title = cleanTitle(file.webDetails?.title ?? "", false);
+	} else {
+		title = cleanFilename(file.name, false);
+	}
+
+	return title;
 }

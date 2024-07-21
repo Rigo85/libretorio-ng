@@ -1,5 +1,8 @@
-import { AfterViewInit, Component, HostListener, OnInit } from "@angular/core";
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
+import { map, Observable, startWith, tap } from "rxjs";
+import { AsyncPipe, NgIf } from "@angular/common";
+
 import { ThemeTogglerComponent } from "(src)/app/components/theme-toggler/theme-toggler.component";
 import { SidebarTogglerComponent } from "(src)/app/components/sidebar-toggler/sidebar-toggler.component";
 import { LeftPanelComponent } from "(src)/app/components/left-panel/left-panel.component";
@@ -7,9 +10,7 @@ import { HeaderPanelComponent } from "(src)/app/components/header-panel/header-p
 import { BooksPanelComponent } from "(src)/app/components/books-panel/books-panel.component";
 import { FooterPanelComponent } from "(src)/app/components/footer-panel/footer-panel.component";
 import { BooksService } from "(src)/app/services/books.service";
-import { map, Observable, startWith, take, tap } from "rxjs";
-import { Directory, ScanResult, File } from "(src)/app/core/headers";
-import { AsyncPipe, NgIf } from "@angular/common";
+import { ScanResult } from "(src)/app/core/headers";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 
 declare var bootstrap: any;
@@ -43,7 +44,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
 	ngAfterViewInit(): void {
 		this.handleSidebar();
-    }
+	}
 
 	ngOnInit(): void {
 		this.initializeTooltips();
