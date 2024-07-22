@@ -3,6 +3,8 @@ import { catchError, Observable, retry, Subject, throwError } from "rxjs";
 import { WebSocketSubject } from "rxjs/internal/observable/dom/WebSocketSubject";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
+import { File } from "(src)/app/core/headers";
+
 interface IncomingMessage {
 	event: string;
 	data: any;
@@ -20,6 +22,9 @@ export class BooksService {
 
 	private searchDetailsIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
 	public searchDetailsIncomingMessage$: Observable<IncomingMessage> = this.searchDetailsIncomingMessages.asObservable();
+
+	private updateIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
+	public updateIncomingMessage$: Observable<IncomingMessage> = this.updateIncomingMessages.asObservable();
 
 	constructor() {
 		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
@@ -41,6 +46,8 @@ export class BooksService {
 						this.incomingMessages.next(msg);
 					} else if (msg.event === "search_details") {
 						this.searchDetailsIncomingMessages.next(msg);
+					} else if (msg.event === "update") {
+						this.updateIncomingMessages.next(msg);
 					}
 				},
 				error: err => console.error(err),
@@ -58,5 +65,9 @@ export class BooksService {
 
 	public onSearchOptions($event: { title: string; author: string }) {
 		this.sendMessage({event: "search", data: $event});
+	}
+
+	public updateBookDetails(file: File) {
+		this.sendMessage({event: "update", data: file});
 	}
 }

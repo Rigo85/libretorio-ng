@@ -1,0 +1,91 @@
+<div class="container mt-5">
+	<div class="panel-details">
+		<ng-container *ngIf="checkFileExists(openLibraryBook) | async; else noCover">
+			<img [attr.src]="'/temp_covers/' + openLibraryBook.cover_i + '.jpg'"
+				 alt="{{ openLibraryBook.title ?? '' }}" width="100%" height="225"
+				 class="bd-placeholder-img card-img-top">
+		</ng-container>
+		<ng-template #noCover>
+			<img src="https://via.placeholder.com/150" alt="Imagen">
+		</ng-template>
+		<div class="panel-info">
+			<div class="info-item">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+					 style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;">
+					<style>
+						.dark-bg {
+							fill: white;
+						}
+
+						.light-bg {
+							fill: black;
+						}
+					</style>
+					<path class="dark-bg"
+						  d="M8.707 19.707 18 10.414 13.586 6l-9.293 9.293a1.003 1.003 0 0 0-.263.464L3 21l5.242-1.03c.176-.044.337-.135.465-.263zM21 7.414a2 2 0 0 0 0-2.828L19.414 3a2 2 0 0 0-2.828 0L15 4.586 19.414 9 21 7.414z"></path>
+				</svg>
+				<h2>{{ openLibraryBook.title ?? 'No title' }}</h2>
+			</div>
+			<div class="info-divider"></div>
+			<div class="info-item">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+					 style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;">
+					<style>
+						.dark-bg {
+							fill: white;
+						}
+
+						.light-bg {
+							fill: black;
+						}
+					</style>
+					<path class="dark-bg"
+						  d="M6 22h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h1zm6-17.001c1.647 0 3 1.351 3 3C15 9.647 13.647 11 12 11S9 9.647 9 7.999c0-1.649 1.353-3 3-3zM6 17.25c0-2.219 2.705-4.5 6-4.5s6 2.281 6 4.5V18H6v-.75z"></path>
+				</svg>
+				<h6>{{ (openLibraryBook.author_name ?? []).join(", ") }}</h6>
+			</div>
+			<div class="info-divider"></div>
+			<div class="info-item">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+					 style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;">
+					<style>
+						.dark-bg {
+							fill: white;
+						}
+
+						.light-bg {
+							fill: black;
+						}
+					</style>
+
+					<path class="dark-bg" d="M11 12h6v6h-6z"></path>
+					<path class="dark-bg"
+						d="M19 4h-2V2h-2v2H9V2H7v2H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zm.001 16H5V8h14l.001 12z"></path>
+				</svg>
+				<h6>{{ publishDate }}</h6>
+			</div>
+			<div class="info-divider"></div>
+			<div class="info-item">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+					 style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;">
+					<style>
+						.dark-bg {
+							fill: white;
+						}
+
+						.light-bg {
+							fill: black;
+						}
+					</style>
+					<path class="dark-bg"
+						  d="M11.707 2.293A.997.997 0 0 0 11 2H6a.997.997 0 0 0-.707.293l-3 3A.996.996 0 0 0 2 6v5c0 .266.105.52.293.707l10 10a.997.997 0 0 0 1.414 0l8-8a.999.999 0 0 0 0-1.414l-10-10zM13 19.586l-9-9V6.414L6.414 4h4.172l9 9L13 19.586z"></path>
+					<circle class="dark-bg" cx="8.353" cy="8.353" r="1.647"></circle>
+				</svg>
+				<h6>{{ (openLibraryBook.subject ?? []).join(", ") }}</h6>
+			</div>
+			<br>
+			<h2 class="fs-4">Description:</h2>
+			<p class="fw-lighter">{{ openLibraryBook.description ?? openLibraryBook.first_sentence?.at(0) ?? "" }}</p>
+		</div>
+	</div>
+</div>

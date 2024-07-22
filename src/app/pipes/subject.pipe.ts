@@ -8,10 +8,16 @@ import { File } from "(src)/app/core/headers";
 export class SubjectPipe implements PipeTransform {
 
 	transform(file: File): string {
-		const localSubject = (file.localDetails?.tags || "").trim();
-		const webSubject = (file.webDetails?.subject || []).join(", ").trim();
+		if (file.customDetails) {
+			const webSubject = (file.webDetails?.subject || []).join(", ").trim();
 
-		return localSubject || webSubject || "";
+			return webSubject || "";
+		} else {
+			const localSubject = (file.localDetails?.tags || "").trim();
+			const webSubject = (file.webDetails?.subject || []).join(", ").trim();
+
+			return localSubject || webSubject || "";
+		}
 	}
 
 }

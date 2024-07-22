@@ -41,7 +41,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	bookDetailsModal: any;
 	editBookDetailsModal: any;
 	searchDetailsModal: any;
+	confirmationModal: any;
 	public searchDetails$!: Observable<any[]>;
+	updateMessage?: string = undefined;
 
 	constructor(
 		private bookService: BooksService,
@@ -64,17 +66,34 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			}),
 			startWith([])
 		);
+
+		this.bookService.updateIncomingMessage$
+			.pipe(
+				map((msg) => msg.data),
+				catchError((error) => {
+						console.error("Error receiving data:", error);
+						return of({response: false});
+					}
+				))
+			.subscribe((msg) => {
+				this.spinner.hide();
+				this.updateMessage = msg["response"] ? "Update successful." : "Update failed.";
+				this.confirmationModal.show();
+			});
+
 	}
 
 	ngAfterViewInit(): void {
 		const bookDetailsModalElement = document.getElementById("bookDetailsModal");
 		const editBookDetailsModalElement = document.getElementById("editBookDetailsModal");
 		const searchDetailsModalElement = document.getElementById("searchDetailsModal");
+		const confirmationModalElement = document.getElementById("confirmationModal");
 
-		if (bookDetailsModalElement && editBookDetailsModalElement && searchDetailsModalElement) {
+		if (bookDetailsModalElement && editBookDetailsModalElement && searchDetailsModalElement && confirmationModalElement) {
 			this.bookDetailsModal = new bootstrap.Modal(bookDetailsModalElement);
 			this.editBookDetailsModal = new bootstrap.Modal(editBookDetailsModalElement);
 			this.searchDetailsModal = new bootstrap.Modal(searchDetailsModalElement);
+			this.confirmationModal = new bootstrap.Modal(confirmationModalElement);
 		}
 	}
 
@@ -89,7 +108,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file))
+		return from(this.fileCheckService.checkFileExists(file.coverId))
 			.pipe(catchError(() => of(false)));
 	}
 
@@ -107,4 +126,14 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		return file.id;
 	}
 
+	onUpdateOptions($event: File) {
+		this.searchDetailsModal.hide();
+		this.spinner.show();
+		this.bookService.updateBookDetails($event);
+	}
+
+	clearUpdateMessage() {
+		this.updateMessage = undefined;
+		this.bookService.onBooksList();
+	}
 }

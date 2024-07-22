@@ -13,6 +13,12 @@ import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } f
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { FileCheckService } from "(src)/app/services/file-check.service";
 import { catchError, from, Observable, of } from "rxjs";
+import {
+	BookWebDetailsPanelComponent
+} from "(src)/app/components/book-web-details-panel/book-web-details-panel.component";
+import { BooksService } from "(src)/app/services/books.service";
+
+declare var bootstrap: any;
 
 @Component({
 	selector: "search-details-panel",
@@ -22,7 +28,8 @@ import { catchError, from, Observable, of } from "rxjs";
 		NgForOf,
 		NgIf,
 		ReactiveFormsModule,
-		TitlePipe
+		TitlePipe,
+		BookWebDetailsPanelComponent
 	],
 	templateUrl: "./search-details-panel.component.html",
 	styleUrl: "./search-details-panel.component.scss"
@@ -31,8 +38,10 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	@Input() file!: File;
 	form!: FormGroup;
 	@Output() searchOptions = new EventEmitter<{ title: string; author: string; }>();
+	@Output() updateOptions = new EventEmitter<File>();
 	errorMsg: string = "";
 	@Input() searchDetails = [] as any[];
+	radioForm: FormGroup;
 
 	constructor(
 		private fb: FormBuilder,
@@ -41,10 +50,13 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 		this.form = this.fb.group({
 			fields: this.fb.array([])
 		});
+		this.radioForm = this.fb.group({
+			selectedOpenLibraryBook: new FormControl(undefined)
+		});
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
-		if (changes["file"] && !changes["file"].firstChange) {
+		if (changes["file"] && !changes["file"].currentValue !== changes["file"].previousValue) {
 			const obj = {
 				name: this.file.name,
 				"current title": getTitle(this.file),
@@ -52,6 +64,11 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 				"author name": ""
 			};
 			this.setFieldsFromObject(obj);
+
+			this.radioForm.reset({
+				selectedOpenLibraryBook: undefined
+			})
+			this.searchDetails = [];
 		}
 	}
 
@@ -84,7 +101,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file))
+		return from(this.fileCheckService.checkFileExists(file.coverId))
 			.pipe(
 				catchError(error => of(false))
 			);
@@ -102,6 +119,31 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 		} else {
 			this.errorMsg = "";
 			this.searchOptions.emit({title, author});
+		}
+	}
+
+	openConfirmModal() {
+		const modalElement = document.getElementById("confirmUpdateModal");
+		if (modalElement) {
+			const modal = new bootstrap.Modal(modalElement);
+			modal.show();
+		}
+	}
+
+	confirmUpdate() {
+		const selectedOpenLibraryBook = this.radioForm.get("selectedOpenLibraryBook")?.value;
+		if (selectedOpenLibraryBook) {
+			this.file.webDetails = JSON.stringify(selectedOpenLibraryBook);
+			this.file.customDetails = true;
+
+			this.updateOptions.emit(this.file);
+		}
+
+		// Ocultar el modal después de confirmar la actualización
+		const modalElement = document.getElementById("confirmUpdateModal");
+		if (modalElement) {
+			const modal = bootstrap.Modal.getInstance(modalElement);
+			modal.hide();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 import { File } from "(src)/app/core/headers";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
@@ -22,13 +22,17 @@ import { catchError, from, Observable, of } from "rxjs";
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
 })
-export class BookDetailsPanelComponent {
+export class BookDetailsPanelComponent implements OnChanges {
 	@Input() file!: File;
 
 	constructor(private fileCheckService: FileCheckService) {}
 
+	ngOnChanges(changes: SimpleChanges): void {
+		//
+    }
+
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file))
+		return from(this.fileCheckService.checkFileExists(file.coverId))
 			.pipe(
 				catchError(error => of(false))
 			);

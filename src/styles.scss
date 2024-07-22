@@ -214,3 +214,15 @@ footer {
 	margin-bottom: 20px;
 }
 
+.img-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 225px; /* altura del contenedor */
+}
+
+.img-container img {
+	max-width: 180px;
+	max-height: 225px;
+}
+

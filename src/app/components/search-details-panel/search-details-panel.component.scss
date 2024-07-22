@@ -54,3 +54,9 @@
 	width: 100%; /* Ocupa todo el ancho disponible */
 	height: 100%; /* Ocupa todo el alto disponible, asegúrate de que este comportamiento es deseado */
 }
+
+.radio-form-container {
+	max-height: 300px; /* Ajusta esta altura según tus necesidades */
+	overflow-y: auto;
+	margin-top: 10px;
+}

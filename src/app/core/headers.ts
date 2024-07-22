@@ -9,6 +9,7 @@ export interface File {
 	coverId: string;
 	localDetails?: any;
 	webDetails?: any;
+	customDetails?: boolean;
 }
 
 export interface Directory {
@@ -20,6 +21,64 @@ export interface Directory {
 export interface ScanResult {
 	directories?: Directory;
 	files: File[];
+}
+
+export interface OpenLibraryBook {
+	key: string;
+	redirects?: string;
+	title?: string;
+	subtitle?: string;
+	alternative_title?: string;
+	alternative_subtitle?: string;
+	cover_i?: number;
+	ebook_access?: string;
+	edition_count?: number;
+	edition_key?: string[];
+	format?: string;
+	by_statement?: string;
+	publish_date?: string | string[];
+	lccn?: string;
+	ia?: string[];
+	oclc?: string;
+	isbn?: string;
+	contributor?: string[];
+	publish_place?: string[];
+	publisher?: string[];
+	first_sentence?: string;
+	author_key?: string[];
+	author_name?: string[];
+	author_alternative_name?: string[];
+	subject?: string[];
+	person?: string[];
+	place?: string[];
+	time?: string[];
+	has_fulltext?: boolean;
+	title_suggest?: string;
+	publish_year?: number[];
+	language?: string[];
+	number_of_pages_median?: number;
+	ia_count?: number;
+	publisher_facet?: string[];
+	author_facet?: string[];
+	first_publish_year?: number;
+	ratings_count?: number;
+	readinglog_count?: number;
+	want_to_read_count?: number;
+	currently_reading_count?: number;
+	already_read_count?: number;
+	subject_key?: string[];
+	person_key?: string[];
+	place_key?: string[];
+	time_key?: string[];
+	lcc?: string[];
+	ddc?: string[];
+	lcc_sort?: string;
+	ddc_sort?: string;
+	id_project_gutenberg?: string[];
+	id_librivox?: string[];
+	id_standard_ebooks?: string[];
+	id_openstax?: string[];
+	description?: string;
 }
 
 export function cleanFilename(filename: string, lowerCase: boolean = true): string {
@@ -41,16 +100,21 @@ export function cleanTitle(title: string, lowerCase: boolean = true): string {
 
 export function getTitle(file: File): string {
 	let title = "";
-	const filename = cleanFilename(file.name);
-	const localTitle = cleanTitle(file.localDetails?.title ?? "");
-	const webTitle = cleanTitle(file.webDetails?.title ?? "");
 
-	if (stringSimilarity.compareTwoStrings(filename, localTitle) >= 0.5) {
-		title = cleanTitle(file.localDetails?.title ?? "", false);
-	} else if (stringSimilarity.compareTwoStrings(filename, webTitle) >= 0.5) {
+	if (file.customDetails) {
 		title = cleanTitle(file.webDetails?.title ?? "", false);
 	} else {
-		title = cleanFilename(file.name, false);
+		const filename = cleanFilename(file.name);
+		const localTitle = cleanTitle(file.localDetails?.title ?? "");
+		const webTitle = cleanTitle(file.webDetails?.title ?? "");
+
+		if (stringSimilarity.compareTwoStrings(filename, localTitle) >= 0.5) {
+			title = cleanTitle(file.localDetails?.title ?? "", false);
+		} else if (stringSimilarity.compareTwoStrings(filename, webTitle) >= 0.5) {
+			title = cleanTitle(file.webDetails?.title ?? "", false);
+		} else {
+			title = cleanFilename(file.name, false);
+		}
 	}
 
 	return title;

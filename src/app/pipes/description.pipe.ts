@@ -8,11 +8,18 @@ import { File } from "(src)/app/core/headers";
 export class DescriptionPipe implements PipeTransform {
 
 	transform(file: File): string {
-		const localDescription = file.localDetails?.comments ?? "";
-		const webDescription = file.webDetails?.description ?? "";
-		const webFirstSentence = file.webDetails?.first_sentence?.at(0) ?? "";
+		if(file.customDetails){
+			const webDescription = file.webDetails?.description ?? "";
+			const webFirstSentence = file.webDetails?.first_sentence?.at(0) ?? "";
 
-		return localDescription || webDescription || webFirstSentence;
+			return webDescription || webFirstSentence;
+		}else{
+			const localDescription = file.localDetails?.comments ?? "";
+			const webDescription = file.webDetails?.description ?? "";
+			const webFirstSentence = file.webDetails?.first_sentence?.at(0) ?? "";
+
+			return localDescription || webDescription || webFirstSentence;
+		}
 	}
 
 }

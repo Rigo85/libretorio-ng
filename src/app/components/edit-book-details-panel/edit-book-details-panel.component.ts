@@ -94,9 +94,7 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file))
-			.pipe(
-				catchError(error => of(false))
-			);
+		return from(this.fileCheckService.checkFileExists(file.coverId))
+			.pipe(catchError(error => of(false)));
 	}
 }
