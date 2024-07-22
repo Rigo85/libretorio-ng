@@ -1,3 +1,5 @@
+import CryptoJS from "crypto-js";
+
 declare var stringSimilarity: any;
 
 export interface File {
@@ -118,4 +120,18 @@ export function getTitle(file: File): string {
 	}
 
 	return title;
+}
+
+export function filterObjectFields(objToFilter: Record<string, any>, fieldFilter: string[]): any {
+	const obj = objToFilter ?? {};
+	const filter = fieldFilter ?? [];
+
+	return Object.fromEntries(
+		Object.entries(obj)
+			.filter(entry => filter.includes(entry[0]))
+	);
+}
+
+export function hash(str: string): string {
+	return CryptoJS.SHA256(str).toString(CryptoJS.enc.Hex);
 }

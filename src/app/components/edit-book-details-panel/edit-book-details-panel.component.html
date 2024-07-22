@@ -11,11 +11,12 @@
 			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
 				<div class="mb-3">
 					<label for="field" class="form-label">{{ field.get('name')?.value.toUpperCase() }}</label>
-					@if (field.get('name')?.value === "description") {
-						<textarea class="form-control" id="field" formControlName="value"></textarea>
-					} @else {
-						<input type="text" class="form-control" id="field" formControlName="value">
-					}
+					<textarea *ngIf="field.get('name')?.value === 'description'" class="form-control" id="field"
+							  formControlName="value" (input)="onInput($event)">
+					</textarea>
+					<input *ngIf="field.get('name')?.value !== 'description'" type="text" class="form-control"
+						   id="field" formControlName="value"
+						   (input)="onInput($event)">
 				</div>
 			</div>
 		</div>

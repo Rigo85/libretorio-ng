@@ -1,10 +1,11 @@
-import { AfterViewInit, Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-import { File } from "(src)/app/core/headers";
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
-import { FileCheckService } from "(src)/app/services/file-check.service";
 import { catchError, from, Observable, of } from "rxjs";
+
+import { FileCheckService } from "(src)/app/services/file-check.service";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
+import { File, filterObjectFields } from "(src)/app/core/headers";
 
 @Component({
 	selector: "edit-book-details-panel",
@@ -22,6 +23,7 @@ import { TitlePipe } from "(src)/app/pipes/title.pipe";
 export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	@Input() file!: File;
 	form!: FormGroup;
+	@Output() updateOptions = new EventEmitter<any>();
 
 	stepFields: any = {
 		title: "",
@@ -81,20 +83,60 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	setFieldsFromObject(obj: any) {
 		this.fields.clear();
 		for (const key of Object.keys(obj)) {
-			this.addField(key, Array.isArray(obj[key]) ? obj[key].join(" · ") : obj[key]);
-			// "Sep 29, 2016 · Apr 09, 2019 · Oct 24, 2016".split(" · ").filter(s => s).map(s => s.trim())
+			const value = Array.isArray(obj[key]) ? obj[key].join("; ") : obj[key];
+			this.addField(key, value);
 		}
 	}
 
 	filterWebDetails(webDetails: Record<string, any>): any {
-		return Object.fromEntries(
-			Object.entries(webDetails)
-				.filter(entry => this.webDetailsFields.includes(entry[0]))
-		);
+		return filterObjectFields(webDetails, this.webDetailsFields);
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
 		return from(this.fileCheckService.checkFileExists(file.coverId))
 			.pipe(catchError(error => of(false)));
+	}
+
+	onInput($event: Event) {
+		let objectFromFields = this.getObjectFromFields();
+
+		const webDetailsOptions: any = {
+			title: "",
+			cover_i: "", // number
+			publisher: [], // string[]
+			author_name: [], // string[]
+			publish_date: [], // string[]
+			publish_year: [], // number[]
+			subject: [], // string[]
+			description: "",
+			first_sentence: [] // string[]
+		};
+
+		for (const field of this.webDetailsFields) {
+			if (Array.isArray(this.stepFields[field])) {
+				webDetailsOptions[field] = objectFromFields[field].split("; ").filter((s: string) => s).map((s: string) => s.trim());
+			} else {
+				webDetailsOptions[field] = objectFromFields[field];
+			}
+		}
+
+		if (webDetailsOptions["cover_i"] && typeof webDetailsOptions["cover_i"] === "string") {
+			webDetailsOptions["cover_i"] = parseInt(webDetailsOptions["cover_i"], 10);
+		}
+
+		if (webDetailsOptions["publish_year"].length) {
+			webDetailsOptions["publish_year"] = webDetailsOptions["publish_year"].map((s: any) => parseInt(`${s.trim()}`, 10));
+		}
+
+		this.updateOptions.emit(webDetailsOptions);
+	}
+
+	private getObjectFromFields(): Record<string, any> {
+		const obj = {} as Record<string, any>;
+		for (const field of this.fields.controls) {
+			const name = field.get("name")?.value;
+			obj[name] = field.get("value")?.value ?? "";
+		}
+		return obj;
 	}
 }

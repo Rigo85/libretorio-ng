@@ -3,7 +3,7 @@ import { catchError, from, map, Observable, of, startWith, tap } from "rxjs";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
 
-import { File } from "(src)/app/core/headers";
+import { File, filterObjectFields, hash } from "(src)/app/core/headers";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
@@ -44,6 +44,30 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	confirmationModal: any;
 	public searchDetails$!: Observable<any[]>;
 	updateMessage?: string = undefined;
+	webDetailsFields: string[] = [
+		"title",
+		"author_name",
+		"subject",
+		"description",
+		"publisher",
+		"cover_i",
+		"publish_date",
+		"publish_year",
+		"first_sentence"
+	];
+	isEnabledSaveButton: boolean = true;
+	stepFields: any = {
+		title: "",
+		cover_i: "", // number
+		publisher: [], // string[]
+		author_name: [], // string[]
+		publish_date: [], // string[]
+		publish_year: [], // number[]
+		subject: [], // string[]
+		description: "",
+		first_sentence: [] // string[]
+	};
+	editBookDetailsOptions: any = {};
 
 	constructor(
 		private bookService: BooksService,
@@ -135,5 +159,44 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	clearUpdateMessage() {
 		this.updateMessage = undefined;
 		this.bookService.onBooksList();
+	}
+
+	onEditBookDetails($event: any) {
+		if (this.selectedFile) {
+			const selectedFileDetails = filterObjectFields(
+				{...this.stepFields, ...(this.selectedFile.webDetails ?? {})},
+				this.webDetailsFields
+			);
+			this.isEnabledSaveButton = hash(JSON.stringify(selectedFileDetails)) === hash(JSON.stringify($event));
+			if (!this.isEnabledSaveButton) {
+				this.editBookDetailsOptions = $event;
+
+			}
+		}
+	}
+
+	onSaveMetadata() {
+		const modalElement = document.getElementById("confirmBookEditModal");
+		if (modalElement) {
+			const modal = new bootstrap.Modal(modalElement);
+			modal.show();
+		}
+	}
+
+	confirmUpdate() {
+		if (this.selectedFile) {
+			const temp = this.selectedFile.webDetails ?? {};
+			this.selectedFile.webDetails = JSON.stringify({...temp, ...this.editBookDetailsOptions});
+
+			const modalElement = document.getElementById("confirmBookEditModal");
+			if (modalElement) {
+				const modal = bootstrap.Modal.getInstance(modalElement);
+				modal.hide();
+			}
+
+			this.editBookDetailsModal.hide();
+			this.spinner.show();
+			this.bookService.updateBookDetails(this.selectedFile);
+		}
 	}
 }

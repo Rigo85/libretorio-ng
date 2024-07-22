@@ -31,7 +31,7 @@ export class BookWebDetailsPanelComponent {
 		const dates = this.openLibraryBook.publish_date ?? [];
 
 		if(Array.isArray(dates)) {
-			return dates.join(" · ");
+			return dates.join("; ");
 		} else {
 			return dates;
 		}

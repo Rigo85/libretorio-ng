@@ -67,7 +67,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 
 			this.radioForm.reset({
 				selectedOpenLibraryBook: undefined
-			})
+			});
 			this.searchDetails = [];
 		}
 	}
@@ -96,7 +96,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	setFieldsFromObject(obj: any) {
 		this.fields.clear();
 		for (const key of Object.keys(obj)) {
-			this.addField(key, Array.isArray(obj[key]) ? obj[key].join(" · ") : obj[key]);
+			this.addField(key, Array.isArray(obj[key]) ? obj[key].join("; ") : obj[key]);
 		}
 	}
 
