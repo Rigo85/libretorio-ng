@@ -101,7 +101,7 @@ export function cleanTitle(title: string, lowerCase: boolean = true): string {
 }
 
 export function getTitle(file: File): string {
-	let title = "";
+	let title;
 
 	if (file.customDetails) {
 		title = cleanTitle(file.webDetails?.title ?? "", false);

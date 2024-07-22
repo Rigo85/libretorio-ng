@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from "@angular/core";
+import { AfterViewInit, Component, HostListener, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { map, Observable, startWith, tap } from "rxjs";
 import { AsyncPipe, NgIf } from "@angular/common";
@@ -62,7 +62,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 	}
 
 	@HostListener("window:resize", ["$event"])
-	onResize(event: Event): void {
+	onResize(): void {
 		this.handleSidebar();
 	}
 

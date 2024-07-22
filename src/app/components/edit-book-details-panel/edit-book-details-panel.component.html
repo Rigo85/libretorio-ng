@@ -4,19 +4,19 @@
 			 class="bd-placeholder-img card-img-top">
 	</ng-container>
 	<ng-template #noCover>
-		<img src="https://via.placeholder.com/150" alt="Imagen">
+		<img ngSrc="/images/150.png" width="150" height="150" alt="Imagen">
 	</ng-template>
 	<form [formGroup]="form">
 		<div formArrayName="fields">
 			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
 				<div class="mb-3">
-					<label for="field" class="form-label">{{ field.get('name')?.value.toUpperCase() }}</label>
+					<label for="field" class="form-label">{{ toUpperCase(field.get('name')?.value) }}</label>
 					<textarea *ngIf="field.get('name')?.value === 'description'" class="form-control" id="field"
-							  formControlName="value" (input)="onInput($event)">
+							  formControlName="value" (input)="onInput()">
 					</textarea>
 					<input *ngIf="field.get('name')?.value !== 'description'" type="text" class="form-control"
 						   id="field" formControlName="value"
-						   (input)="onInput($event)">
+						   (input)="onInput()">
 				</div>
 			</div>
 		</div>

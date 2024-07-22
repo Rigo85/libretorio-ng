@@ -14,7 +14,7 @@ export class CacheService {
 		this.cache.set(url, exists);
 	}
 
-	removeFromCache(url: string): void {
-		this.cache.delete(url);
-	}
+	// removeFromCache(url: string): void {
+	// 	this.cache.delete(url);
+	// }
 }

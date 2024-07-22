@@ -15,10 +15,10 @@
 }
 
 .invalid {
-    width: 100%;
-    margin-top: .25rem;
-    font-size: .875em;
-    color: #ea868f;
+	width: 100%;
+	margin-top: .25rem;
+	font-size: .875em;
+	color: #ea868f;
 }
 
 @media (max-width: 768px) {
@@ -33,24 +33,13 @@
 	}
 }
 
-.additional-images-indicator {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	background-color: rgba(0, 0, 0, 0.5);
-	color: white;
-	padding: 5px;
-	border-radius: 5px;
-}
 
-/* Asegúrate de que el contenedor tenga un tamaño definido o esté configurado para expandirse */
 .container-flex form {
-	width: 100%; /* Ocupa todo el ancho disponible */
-	flex-grow: 1; /* Permite que el formulario crezca para ocupar el espacio disponible en flexbox */
+	width: 100%;
+	flex-grow: 1;
 }
 
-/* Estilo para que el form-control ocupe todo el espacio disponible */
 .form-control {
-	width: 100%; /* Ocupa todo el ancho disponible */
-	height: 100%; /* Ocupa todo el alto disponible, asegúrate de que este comportamiento es deseado */
+	width: 100%;
+	height: 100%;
 }

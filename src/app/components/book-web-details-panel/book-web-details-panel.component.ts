@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { AsyncPipe, NgIf } from "@angular/common";
+import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
 
 import { OpenLibraryBook } from "(src)/app/core/headers";
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -10,7 +10,8 @@ import { catchError, from, Observable, of } from "rxjs";
 	standalone: true,
 	imports: [
 		NgIf,
-		AsyncPipe
+		AsyncPipe,
+		NgOptimizedImage
 	],
 	templateUrl: "./book-web-details-panel.component.html",
 	styleUrl: "./book-web-details-panel.component.scss"
@@ -23,7 +24,7 @@ export class BookWebDetailsPanelComponent {
 	checkFileExists(openLibraryBook: OpenLibraryBook): Observable<boolean> {
 		return from(this.fileCheckService.checkFileExists(openLibraryBook.cover_i ?? "no_cover_i", true))
 			.pipe(
-				catchError(error => of(false))
+				catchError(() => of(false))
 			);
 	}
 

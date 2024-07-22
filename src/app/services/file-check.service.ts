@@ -1,8 +1,7 @@
 import { Injectable } from "@angular/core";
 import { catchError, map, Observable, of } from "rxjs";
 
-import { File } from "(src)/app/core/headers";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { CacheService } from "(src)/app/services/cache.service";
 
 @Injectable({
@@ -32,7 +31,7 @@ export class FileCheckService {
 					this.cacheService.addToCache(url, exists);
 					return exists;
 				}),
-				catchError((error: HttpErrorResponse) => {
+				catchError(() => {
 					this.cacheService.addToCache(url, false);
 					return of(false);
 				})

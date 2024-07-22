@@ -3,12 +3,11 @@ import {
 	Component,
 	EventEmitter,
 	Input,
-	OnChanges, OnInit,
-	Output,
+	OnChanges, Output,
 	SimpleChanges
 } from "@angular/core";
 import { File, getTitle } from "(src)/app/core/headers";
-import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
+import { AsyncPipe, NgForOf, NgIf, NgOptimizedImage } from "@angular/common";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -16,7 +15,6 @@ import { catchError, from, Observable, of } from "rxjs";
 import {
 	BookWebDetailsPanelComponent
 } from "(src)/app/components/book-web-details-panel/book-web-details-panel.component";
-import { BooksService } from "(src)/app/services/books.service";
 
 declare var bootstrap: any;
 
@@ -29,7 +27,8 @@ declare var bootstrap: any;
 		NgIf,
 		ReactiveFormsModule,
 		TitlePipe,
-		BookWebDetailsPanelComponent
+		BookWebDetailsPanelComponent,
+		NgOptimizedImage
 	],
 	templateUrl: "./search-details-panel.component.html",
 	styleUrl: "./search-details-panel.component.scss"
@@ -103,7 +102,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	checkFileExists(file: File): Observable<boolean> {
 		return from(this.fileCheckService.checkFileExists(file.coverId))
 			.pipe(
-				catchError(error => of(false))
+				catchError(() => of(false))
 			);
 	}
 
@@ -145,5 +144,9 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 			const modal = bootstrap.Modal.getInstance(modalElement);
 			modal.hide();
 		}
+	}
+
+	toUpperCase(value: any): string {
+		return value ? value.toString().toUpperCase() : "";
 	}
 }

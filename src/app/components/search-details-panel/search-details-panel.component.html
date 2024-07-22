@@ -23,13 +23,13 @@
 			 class="bd-placeholder-img card-img-top">
 	</ng-container>
 	<ng-template #noCover>
-		<img src="https://via.placeholder.com/150" alt="Imagen">
+		<img ngSrc="/images/150.png" width="150" height="150" alt="Imagen">
 	</ng-template>
 	<form [formGroup]="form">
 		<div formArrayName="fields">
 			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
 				<div class="mb-3">
-					<label for="field" class="form-label">{{ field.get('name')?.value.toUpperCase() }}</label>
+					<label for="field" class="form-label">{{ toUpperCase(field.get('name')?.value) }}</label>
 					<input type="text" class="form-control" id="field"
 						   [readonly]="['name', 'current title'].includes(field.get('name')?.value)"
 						   formControlName="value"
@@ -48,7 +48,7 @@
 
 <div class="radio-form-container">
 	<form [formGroup]="radioForm">
-		<ng-container *ngFor="let detail of searchDetails; let i = index">
+		<ng-container *ngFor="let detail of searchDetails">
 			<div class="form-check">
 				<input class="form-check-input" type="radio" [formControlName]="'selectedOpenLibraryBook'"
 					   [value]="detail">

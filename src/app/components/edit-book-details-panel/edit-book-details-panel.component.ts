@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
+import { AsyncPipe, NgForOf, NgIf, NgOptimizedImage } from "@angular/common";
 import { catchError, from, Observable, of } from "rxjs";
 
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -15,7 +15,8 @@ import { File, filterObjectFields } from "(src)/app/core/headers";
 		NgForOf,
 		AsyncPipe,
 		TitlePipe,
-		NgIf
+		NgIf,
+		NgOptimizedImage
 	],
 	templateUrl: "./edit-book-details-panel.component.html",
 	styleUrl: "./edit-book-details-panel.component.scss"
@@ -76,9 +77,9 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 		}));
 	}
 
-	removeField(index: number) {
-		this.fields.removeAt(index);
-	}
+	// removeField(index: number) {
+	// 	this.fields.removeAt(index);
+	// }
 
 	setFieldsFromObject(obj: any) {
 		this.fields.clear();
@@ -94,10 +95,10 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 
 	checkFileExists(file: File): Observable<boolean> {
 		return from(this.fileCheckService.checkFileExists(file.coverId))
-			.pipe(catchError(error => of(false)));
+			.pipe(catchError(() => of(false)));
 	}
 
-	onInput($event: Event) {
+	onInput() {
 		let objectFromFields = this.getObjectFromFields();
 
 		const webDetailsOptions: any = {
@@ -138,5 +139,9 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 			obj[name] = field.get("value")?.value ?? "";
 		}
 		return obj;
+	}
+
+	toUpperCase(value: any): string {
+		return value ? value.toString().toUpperCase() : "";
 	}
 }
