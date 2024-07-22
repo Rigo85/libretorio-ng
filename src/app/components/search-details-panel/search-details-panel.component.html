@@ -25,3 +25,10 @@
 	<button class="btn btn-primary" (click)="onSearch()">Search</button>
 	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
+
+<ul>
+	<li *ngFor="let detail of searchDetails">
+		{{ "--------------" }}
+		{{ detail.title }}
+	</li>
+</ul>

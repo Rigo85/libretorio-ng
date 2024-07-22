@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import {
+	AfterViewInit,
+	Component,
+	EventEmitter,
+	Input,
+	OnChanges, OnInit,
+	Output,
+	SimpleChanges
+} from "@angular/core";
 import { File, getTitle } from "(src)/app/core/headers";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
@@ -24,8 +32,12 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	form!: FormGroup;
 	@Output() searchOptions = new EventEmitter<{ title: string; author: string; }>();
 	errorMsg: string = "";
+	@Input() searchDetails = [] as any[];
 
-	constructor(private fb: FormBuilder, private fileCheckService: FileCheckService) {
+	constructor(
+		private fb: FormBuilder,
+		private fileCheckService: FileCheckService
+	) {
 		this.form = this.fb.group({
 			fields: this.fb.array([])
 		});
@@ -89,9 +101,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 			this.errorMsg = "You must specify a title or the author.";
 		} else {
 			this.errorMsg = "";
-			console.info("onSearch", {title, author});
 			this.searchOptions.emit({title, author});
 		}
-
 	}
 }

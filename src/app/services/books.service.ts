@@ -18,6 +18,9 @@ export class BooksService {
 	private incomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
 	public incomingMessage$: Observable<IncomingMessage> = this.incomingMessages.asObservable();
 
+	private searchDetailsIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
+	public searchDetailsIncomingMessage$: Observable<IncomingMessage> = this.searchDetailsIncomingMessages.asObservable();
+
 	constructor() {
 		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
 
@@ -35,8 +38,9 @@ export class BooksService {
 			.subscribe({
 				next: (msg: IncomingMessage) => {
 					if (msg.event === "list") {
-						// console.log("------------------> incoming message!", msg.data);
 						this.incomingMessages.next(msg);
+					} else if (msg.event === "search_details") {
+						this.searchDetailsIncomingMessages.next(msg);
 					}
 				},
 				error: err => console.error(err),
@@ -50,5 +54,9 @@ export class BooksService {
 
 	public onBooksList(parentHash?: string): void {
 		this.sendMessage({event: "ls", data: {parentHash}}); // Send message to server
+	}
+
+	public onSearchOptions($event: { title: string; author: string }) {
+		this.sendMessage({event: "search", data: $event});
 	}
 }

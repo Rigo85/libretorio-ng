@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, Input } from "@angular/core";
-import { catchError, from, Observable, of } from "rxjs";
-import { AsyncPipe, NgIf } from "@angular/common";
+import { AfterViewInit, Component, Input, OnInit } from "@angular/core";
+import { catchError, from, map, Observable, of, startWith, tap } from "rxjs";
+import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
 
 import { File } from "(src)/app/core/headers";
@@ -13,6 +13,7 @@ import {
 } from "(src)/app/components/edit-book-details-panel/edit-book-details-panel.component";
 import { FileCheckService } from "(src)/app/services/file-check.service";
 import { SearchDetailsPanelComponent } from "(src)/app/components/search-details-panel/search-details-panel.component";
+import { BooksService } from "(src)/app/services/books.service";
 
 declare var bootstrap: any;
 
@@ -28,19 +29,42 @@ declare var bootstrap: any;
 		AsyncPipe,
 		NgIf,
 		SearchDetailsPanelComponent,
-		NgxSpinnerModule
+		NgxSpinnerModule,
+		NgForOf
 	],
 	templateUrl: "./books-panel.component.html",
 	styleUrls: ["./books-panel.component.scss"]
 })
-export class BooksPanelComponent implements AfterViewInit {
+export class BooksPanelComponent implements AfterViewInit, OnInit {
 	@Input() files!: File[];
 	selectedFile?: File;
 	bookDetailsModal: any;
 	editBookDetailsModal: any;
 	searchDetailsModal: any;
+	public searchDetails$!: Observable<any[]>;
 
-	constructor(private fileCheckService: FileCheckService, private spinner: NgxSpinnerService) { }
+	constructor(
+		private bookService: BooksService,
+		private fileCheckService: FileCheckService,
+		private spinner: NgxSpinnerService
+	) { }
+
+	ngOnInit(): void {
+		this.searchDetails$ = this.bookService.searchDetailsIncomingMessage$.pipe(
+			map((msg) => {
+				return msg.data as any[];
+			}),
+			tap(() => {
+				this.spinner.hide();
+			}),
+			catchError((error) => {
+				console.error("Error receiving data:", error);
+				this.spinner.hide();
+				return of([]);
+			}),
+			startWith([])
+		);
+	}
 
 	ngAfterViewInit(): void {
 		const bookDetailsModalElement = document.getElementById("bookDetailsModal");
@@ -65,22 +89,22 @@ export class BooksPanelComponent implements AfterViewInit {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file)).pipe(
-			catchError(() => of(false))
-		);
+		return from(this.fileCheckService.checkFileExists(file))
+			.pipe(catchError(() => of(false)));
 	}
 
-	onSearchDetails(): void {
+	openSearchDetails(): void {
 		this.editBookDetailsModal.hide();
 		this.searchDetailsModal.show();
 	}
 
 	onSearchOptions($event: { title: string; author: string }): void {
-		console.log($event);
 		this.spinner.show();
-
-		setTimeout(() => {
-			this.spinner.hide();
-		}, 3000);
+		this.bookService.onSearchOptions($event);
 	}
+
+	trackById(index: number, file: File): number {
+		return file.id;
+	}
+
 }
