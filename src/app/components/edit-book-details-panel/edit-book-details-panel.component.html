@@ -19,6 +19,11 @@
 						   (input)="onInput()">
 				</div>
 			</div>
+			<div class="mb-3 form-check">
+				<input type="checkbox" class="form-check-input" id="customDetailsCheckBox"
+					   (change)="onCustomDetailsChange($event)" [checked]="file.customDetails">
+				<label class="form-check-label" for="customDetailsCheckBox">Use custom details</label>
+			</div>
 		</div>
 		<div id="feedback" class="invalid"></div>
 	</form>

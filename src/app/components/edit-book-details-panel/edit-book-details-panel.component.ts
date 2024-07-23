@@ -99,37 +99,10 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	onInput() {
-		let objectFromFields = this.getObjectFromFields();
-
-		const webDetailsOptions: any = {
-			title: "",
-			cover_i: "", // number
-			publisher: [], // string[]
-			author_name: [], // string[]
-			publish_date: [], // string[]
-			publish_year: [], // number[]
-			subject: [], // string[]
-			description: "",
-			first_sentence: [] // string[]
-		};
-
-		for (const field of this.webDetailsFields) {
-			if (Array.isArray(this.stepFields[field])) {
-				webDetailsOptions[field] = objectFromFields[field].split("; ").filter((s: string) => s).map((s: string) => s.trim());
-			} else {
-				webDetailsOptions[field] = objectFromFields[field];
-			}
+		const cbElement = document.getElementById("customDetailsCheckBox") as HTMLInputElement;
+		if (cbElement) {
+			this.updateChanges(cbElement.checked);
 		}
-
-		if (webDetailsOptions["cover_i"] && typeof webDetailsOptions["cover_i"] === "string") {
-			webDetailsOptions["cover_i"] = parseInt(webDetailsOptions["cover_i"], 10);
-		}
-
-		if (webDetailsOptions["publish_year"].length) {
-			webDetailsOptions["publish_year"] = webDetailsOptions["publish_year"].map((s: any) => parseInt(`${s.trim()}`, 10));
-		}
-
-		this.updateOptions.emit(webDetailsOptions);
 	}
 
 	private getObjectFromFields(): Record<string, any> {
@@ -143,5 +116,49 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 
 	toUpperCase(value: any): string {
 		return value ? value.toString().toUpperCase() : "";
+	}
+
+	onCustomDetailsChange($event: Event) {
+		const inputElement = $event.target as HTMLInputElement;
+		this.updateChanges(inputElement.checked);
+	}
+
+	updateChanges(customDetails: boolean) {
+		let objectFromFields = this.getObjectFromFields();
+
+		const webDetailsOptions: any = {
+			details: {
+				title: "",
+				cover_i: "", // number
+				publisher: [], // string[]
+				author_name: [], // string[]
+				publish_date: [], // string[]
+				publish_year: [], // number[]
+				subject: [], // string[]
+				description: "",
+				first_sentence: [] // string[]
+			},
+			customDetails: false
+		};
+
+		for (const field of this.webDetailsFields) {
+			if (Array.isArray(this.stepFields[field])) {
+				webDetailsOptions.details[field] = objectFromFields[field].split("; ").filter((s: string) => s).map((s: string) => s.trim());
+			} else {
+				webDetailsOptions.details[field] = objectFromFields[field];
+			}
+		}
+
+		if (webDetailsOptions.details["cover_i"] && typeof webDetailsOptions.details["cover_i"] === "string") {
+			webDetailsOptions.details["cover_i"] = parseInt(webDetailsOptions.details["cover_i"], 10);
+		}
+
+		if (webDetailsOptions.details["publish_year"].length) {
+			webDetailsOptions.details["publish_year"] = webDetailsOptions.details["publish_year"].map((s: any) => parseInt(`${s.trim()}`, 10));
+		}
+
+		webDetailsOptions.customDetails = customDetails;
+
+		this.updateOptions.emit(webDetailsOptions);
 	}
 }

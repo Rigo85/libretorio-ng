@@ -146,8 +146,24 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		this.bookService.onSearchOptions($event);
 	}
 
-	trackById(index: number, file: File): number {
-		return file.id;
+	trackById(index: number, file: File): string {
+		const webDetails: any = {
+			id: file.id,
+			details: {
+				title: file.webDetails?.title ?? "",
+				cover_i: file.webDetails?.cover_i ?? "",
+				publisher: file.webDetails?.publisher ?? [],
+				author_name: file.webDetails?.author_name ?? [], // string[]
+				publish_date: file.webDetails?.publish_date ?? [], // string[]
+				publish_year: file.webDetails?.publish_year ?? [], // number[]
+				subject: file.webDetails?.subject ?? [], // string[]
+				description: file.webDetails?.description ?? "",
+				first_sentence: file.webDetails?.first_sentence ?? [] // string[]
+			},
+			customDetails: false
+		};
+
+		return hash(JSON.stringify(webDetails));
 	}
 
 	onUpdateOptions($event: File) {
@@ -167,10 +183,22 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				{...this.stepFields, ...(this.selectedFile.webDetails ?? {})},
 				this.webDetailsFields
 			);
-			this.isEnabledSaveButton = hash(JSON.stringify(selectedFileDetails)) === hash(JSON.stringify($event));
+			this.isEnabledSaveButton =
+				hash(JSON.stringify(selectedFileDetails)) === hash(JSON.stringify($event["details"])) &&
+				this.selectedFile.customDetails === $event["customDetails"]
+			;
+
+			// console.info(hash(JSON.stringify(selectedFileDetails)));
+			// console.info(selectedFileDetails);
+			//
+			// console.info(hash(JSON.stringify($event["details"])));
+			// console.info($event["details"]);
+			//
+			// console.info(this.selectedFile.customDetails);
+			// console.info($event["customDetails"]);
+
 			if (!this.isEnabledSaveButton) {
 				this.editBookDetailsOptions = $event;
-
 			}
 		}
 	}
@@ -186,8 +214,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	confirmUpdate() {
 		if (this.selectedFile) {
 			const temp = this.selectedFile.webDetails ?? {};
-			this.selectedFile.webDetails = JSON.stringify({...temp, ...this.editBookDetailsOptions});
-
+			this.selectedFile.webDetails = JSON.stringify({...temp, ...this.editBookDetailsOptions["details"]});
+			this.selectedFile.customDetails = this.editBookDetailsOptions["customDetails"];
 			const modalElement = document.getElementById("confirmBookEditModal");
 			if (modalElement) {
 				const modal = bootstrap.Modal.getInstance(modalElement);
@@ -196,6 +224,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 			this.editBookDetailsModal.hide();
 			this.spinner.show();
+			this.isEnabledSaveButton = true;
 			this.bookService.updateBookDetails(this.selectedFile);
 		}
 	}
