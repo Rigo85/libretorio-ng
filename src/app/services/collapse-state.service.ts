@@ -6,13 +6,20 @@ import { Directory } from "(src)/app/core/headers";
 })
 export class CollapseStateService {
 	private _collapseStates: { [key: string]: boolean } = {};
+	private lastDirectory?: Directory;
 
-	initializeCollapseStates(directory?: Directory, nestingLevel: number = 0): void {
+	initializeCollapseStates(directory?: Directory): void {
 		if (directory) {
-			this._collapseStates[directory.hash] = nestingLevel >= 1;
-			directory.directories.forEach(dir => {
-				this.initializeCollapseStates(dir, nestingLevel + 1);
-			});
+			this.lastDirectory = directory;
+
+			function initialize(_collapseStates: Record<string, boolean>, directory: Directory, nestingLevel: number = 0) {
+				_collapseStates[directory.hash] = nestingLevel >= 1;
+				directory.directories.forEach(dir => {
+					initialize(_collapseStates, dir, nestingLevel + 1);
+				});
+			}
+
+			initialize(this._collapseStates, directory);
 		}
 	}
 
@@ -21,6 +28,36 @@ export class CollapseStateService {
 	}
 
 	toggleCollapseState(hash: string): void {
-		this._collapseStates[hash] = !this._collapseStates[hash];
+		let path = [] as string[];
+		if (this.lastDirectory) {
+			path = this.searchTreePath(this.lastDirectory, hash);
+		}
+
+		Object.keys(this._collapseStates)
+			.forEach((hash: string) => {
+				this._collapseStates[hash] = !path.find((dp: string) => dp === hash);
+			});
+	}
+
+	private searchTreePath(directory: Directory, hash: string): string[] {
+		function searchDirPath(directory: Directory, hash: string, path: string[]): string[] | undefined {
+			path.push(directory.hash);
+			if (directory.hash === hash) {
+				return path;
+			}
+
+			for (const dir of directory.directories) {
+				const result = searchDirPath(dir, hash, JSON.parse(JSON.stringify(path)));
+				if (result) {
+					return result;
+				}
+			}
+
+			return undefined;
+		}
+
+		const path = searchDirPath(directory, hash, []);
+
+		return path || [];
 	}
 }

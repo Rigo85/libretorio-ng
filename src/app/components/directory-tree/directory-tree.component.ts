@@ -19,7 +19,7 @@ export class DirectoryTreeComponent {
 
 	constructor(private bookService: BooksService, private collapseStateService: CollapseStateService) { }
 
-	onClick(hash: string | undefined) {
+	onClick(hash?: string) {
 		if (!hash) return;
 		this.collapseStateService.toggleCollapseState(hash);
 		this.bookService.onBooksList(hash);
