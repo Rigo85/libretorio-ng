@@ -29,9 +29,12 @@ export class BookDetailsPanelComponent {
 	constructor(private fileCheckService: FileCheckService) {}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file.coverId))
-			.pipe(
-				catchError(() => of(false))
-			);
+		return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
+			.pipe(catchError(() => of(false)));
+	}
+
+	getCoverId(file: File): string {
+		const coverId = `${file.webDetails?.cover_i ?? "no-cover"}`;
+		return !file.customDetails ? file.coverId : coverId;
 	}
 }

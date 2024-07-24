@@ -5,7 +5,7 @@
 				<div class="card shadow-sm clickable-area" (click)="onSelectFile(file)">
 					<ng-container *ngIf="checkFileExists(file) | async; else noCover">
 						<div class="img-container">
-							<img [attr.src]="'/covers/' + file.coverId + '.jpg'" alt="{{ file | title }}"
+							<img [attr.src]="'/covers/' + getCoverId(file) + '.jpg'" alt="{{ file | title }}"
 								 style="max-width: 180px; max-height: 225px;"
 								 class="bd-placeholder-img card-img-top">
 						</div>

@@ -132,8 +132,13 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(file.coverId))
+		return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
 			.pipe(catchError(() => of(false)));
+	}
+
+	getCoverId(file: File): string {
+		const coverId = `${file.webDetails?.cover_i ?? "no-cover"}`;
+		return !file.customDetails ? file.coverId : coverId;
 	}
 
 	openSearchDetails(): void {

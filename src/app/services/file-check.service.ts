@@ -12,7 +12,6 @@ export class FileCheckService {
 	constructor(private http: HttpClient, private cacheService: CacheService) { }
 
 	checkFileExists(id: string | number, webDetails: boolean = false): Observable<boolean> {
-		// const url = `/covers/${file.coverId}.jpg`;
 		let url: string;
 		if (webDetails) {
 			url = `/temp_covers/${id}.jpg`;
