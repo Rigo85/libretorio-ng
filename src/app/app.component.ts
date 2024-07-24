@@ -34,9 +34,7 @@ declare var bootstrap: any;
 })
 export class AppComponent implements OnInit, AfterViewInit {
 	title = "Libretorio";
-
 	public scanResult$!: Observable<ScanResult>;
-	private initialized: boolean = false;
 
 	constructor(private bookService: BooksService, private collapseStateService: CollapseStateService) {
 		this.bookService.onBooksList();
@@ -52,10 +50,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 		this.scanResult$ = this.bookService.incomingMessage$.pipe(
 			map((msg) => msg.data as ScanResult),
 			tap((scanResult) => {
-				if (!this.initialized) {
-					this.collapseStateService.initializeCollapseStates(scanResult.directories);
-					this.initialized = true;
-				}
+				this.collapseStateService.initializeCollapseStates(scanResult.directories);
 			}),
 			startWith({files: []})
 		);

@@ -7,10 +7,12 @@ import { Directory } from "(src)/app/core/headers";
 export class CollapseStateService {
 	private _collapseStates: { [key: string]: boolean } = {};
 	private lastDirectory?: Directory;
+	private _initialized: boolean = false;
 
 	initializeCollapseStates(directory?: Directory): void {
-		if (directory) {
+		if (directory && !this._initialized) {
 			this.lastDirectory = directory;
+			this._initialized = true;
 
 			function initialize(_collapseStates: Record<string, boolean>, directory: Directory, nestingLevel: number = 0) {
 				_collapseStates[directory.hash] = nestingLevel >= 1;
@@ -25,6 +27,14 @@ export class CollapseStateService {
 
 	get collapseStates(): { [key: string]: boolean } {
 		return this._collapseStates;
+	}
+
+	get initialized(): boolean {
+		return this._initialized;
+	}
+
+	set initialized(value: boolean) {
+		this._initialized = value;
 	}
 
 	toggleCollapseState(hash: string): void {

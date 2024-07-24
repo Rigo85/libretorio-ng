@@ -70,4 +70,8 @@ export class BooksService {
 	public updateBookDetails(file: File) {
 		this.sendMessage({event: "update", data: file});
 	}
+
+	onSearchText(searchText: string) {
+		this.sendMessage({event: "search_text", data: {searchText}});
+	}
 }
