@@ -10,7 +10,9 @@
 		<div class="panel-info">
 			<div class="btn-toolbar" role="toolbar" aria-label="">
 				<div class="btn-group button-group text-start" role="group" aria-label="">
-					<button type="button" class="btn btn-outline-secondary w-auto">Download ({{ file.size }})</button>
+					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onDownload(file)">
+						Download ({{ file.size }})
+					</button>
 					<button type="button" class="btn btn-outline-secondary w-auto">Read</button>
 				</div>
 			</div>
@@ -90,6 +92,25 @@
 			<br>
 			<h2 class="fs-4">Description:</h2>
 			<p class="fw-lighter">{{ file | desc }}</p>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="downloadConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+	 aria-labelledby="downloadConfirmationModalLabel" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="downloadConfirmationModalLabel">{{titleMessage}}</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				{{ downloadMessage }}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" (click)="clearDownloadMessage()" data-bs-dismiss="modal">
+					Close
+				</button>
+			</div>
 		</div>
 	</div>
 </div>
