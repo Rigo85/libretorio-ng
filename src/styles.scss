@@ -53,6 +53,11 @@ footer {
 	footer {
 		height: 80px;
 	}
+
+	main{
+		max-height: calc(100vh - 155px);
+		overflow: hidden;
+	}
 }
 
 .dropdown-toggle {
@@ -110,12 +115,6 @@ footer {
 	-moz-user-select: none;
 	user-select: none;
 }
-
-//@media (min-width: 768px) {
-//	.bd-placeholder-img-lg {
-//		font-size: 3.5rem;
-//	}
-//}
 
 .b-example-divider {
 	width: 100%;
