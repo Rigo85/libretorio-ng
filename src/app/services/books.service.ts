@@ -27,6 +27,7 @@ export class BooksService {
 	public updateIncomingMessage$: Observable<IncomingMessage> = this.updateIncomingMessages.asObservable();
 
 	constructor() {
+		// TODO: Change the IP address to the server's IP address.
 		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
 
 		this.webSocket

@@ -135,3 +135,15 @@ export function filterObjectFields(objToFilter: Record<string, any>, fieldFilter
 export function hash(str: string): string {
 	return CryptoJS.SHA256(str).toString(CryptoJS.enc.Hex);
 }
+
+export function getExtension(file: File): string {
+	const split = file.name.split(".");
+	let result;
+	if (file.name.includes(".") && split.length > 1 && split[split.length - 1].length < 5) {
+		result = split[split.length - 1].toLowerCase();
+	} else {
+		result = "N/A";
+	}
+
+	return result;
+}

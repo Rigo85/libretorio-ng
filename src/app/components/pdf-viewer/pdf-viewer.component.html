@@ -1,0 +1,52 @@
+<div *ngIf="pdfSrc" class="pdf-container">
+	<ngx-extended-pdf-viewer
+		[src]="pdfSrc"
+		[textLayer]="true"
+		height="100%"
+		[zoom]="'page-width'"
+		[theme]="'dark'"
+		backgroundColor="#5c5c5c"
+		(pdfLoadingFailed)="handleError($event)"
+		[showToolbar]="true"
+		[showSidebarButton]="true"
+		[showFindButton]="true"
+		[showPagingButtons]="true"
+		[showDrawEditor]="false"
+		[showStampEditor]="false"
+		[showTextEditor]="false"
+		[showZoomButtons]="true"
+		[showPresentationModeButton]="false"
+		[showOpenFileButton]="false"
+		[showPrintButton]="false"
+		[showDownloadButton]="false"
+		[showSecondaryToolbarButton]="true"
+		[showRotateButton]="false"
+		[showRotateCwButton]="false"
+		[showRotateCcwButton]="false"
+		[showHandToolButton]="false"
+		[showScrollingButton]="false"
+		[showSpreadButton]="true"
+		[showPropertiesButton]="false"
+	>
+	</ngx-extended-pdf-viewer>
+</div>
+<div class="modal fade" id="errorModal" data-bs-backdrop="static" data-bs-keyboard="false"
+	 aria-hidden="true"
+	 aria-labelledby="errorModalLabel" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="errorModalLabel">Error</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				{{ errorMessage }}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

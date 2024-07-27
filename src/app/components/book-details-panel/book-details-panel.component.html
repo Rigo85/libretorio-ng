@@ -13,7 +13,9 @@
 					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onDownload(file)">
 						Download ({{ file.size }})
 					</button>
-					<button type="button" class="btn btn-outline-secondary w-auto">Read</button>
+					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
+							[disabled]="isDisabled"> Read
+					</button>
 				</div>
 			</div>
 			<div class="info-item">
@@ -95,21 +97,37 @@
 		</div>
 	</div>
 </div>
-<div class="modal fade" id="downloadConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+<div class="modal fade" id="downloadConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false"
+	 aria-hidden="true"
 	 aria-labelledby="downloadConfirmationModalLabel" tabindex="-1">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="downloadConfirmationModalLabel">{{titleMessage}}</h1>
+				<h1 class="modal-title fs-5" id="downloadConfirmationModalLabel">{{ titleMessage }}</h1>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
 				{{ downloadMessage }}
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" (click)="clearDownloadMessage()" data-bs-dismiss="modal">
+				<button type="button" class="btn btn-secondary" (click)="clearDownloadMessage()"
+						data-bs-dismiss="modal">
 					Close
 				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="readModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+	 aria-labelledby="readModalLabel" tabindex="-1">
+	<div class="modal-dialog modal-fullscreen">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="readModalLabel">{{ file | title }}</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<pdf-viewer [pdfSrc]="stringSource"></pdf-viewer>
 			</div>
 		</div>
 	</div>

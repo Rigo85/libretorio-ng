@@ -1,14 +1,17 @@
-import { Component, Input } from "@angular/core";
-import { File } from "(src)/app/core/headers";
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
+import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
+import { catchError, from, Observable, of } from "rxjs";
+import { HttpErrorResponse } from "@angular/common/http";
+
+import { File, getExtension } from "(src)/app/core/headers";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { DescriptionPipe } from "(src)/app/pipes/description.pipe";
 import { SubjectPipe } from "(src)/app/pipes/subject.pipe";
-import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
 import { FileCheckService } from "(src)/app/services/file-check.service";
-import { catchError, from, Observable, of } from "rxjs";
 import { DownloadService } from "(src)/app/services/download.service";
-import { HttpErrorResponse } from "@angular/common/http";
+import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.component";
 
 declare var bootstrap: any;
 
@@ -22,17 +25,38 @@ declare var bootstrap: any;
 		SubjectPipe,
 		NgIf,
 		AsyncPipe,
-		NgOptimizedImage
+		NgOptimizedImage,
+		PdfViewerComponent,
+		NgxExtendedPdfViewerModule
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
 })
-export class BookDetailsPanelComponent {
+export class BookDetailsPanelComponent implements OnInit, OnChanges {
 	@Input() file!: File;
 	downloadMessage: string = "";
 	titleMessage: string = "Information";
+	stringSource: string = "";
+	extension: string = "N/A";
+	disabledExtensions: string[] = ["pdf"];
 
 	constructor(private fileCheckService: FileCheckService, private downloadService: DownloadService) {}
+
+	ngOnChanges(changes: SimpleChanges): void {
+		if (changes["file"]) {
+			this.extension = getExtension(this.file);
+		}
+    }
+
+	ngOnInit(): void {
+		if (this.file) {
+			this.extension = getExtension(this.file);
+		}
+	}
+
+	get isDisabled(): boolean {
+		return !this.disabledExtensions.includes(this.extension);
+	}
 
 	checkFileExists(file: File): Observable<boolean> {
 		return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
@@ -95,6 +119,19 @@ export class BookDetailsPanelComponent {
 		if (modalElement) {
 			const modal = new bootstrap.Modal(modalElement);
 			modal.show();
+		}
+	}
+
+	getStringSource(file: File): string {
+		return file ? (this.file.parentPath + "/" + this.file.name) : "";
+	}
+
+	onRead() {
+		const modalElement = document.getElementById("readModal");
+		if (modalElement) {
+			const modal = new bootstrap.Modal(modalElement);
+			modal.show();
+			setTimeout(() => this.stringSource = this.getStringSource(this.file), 500);
 		}
 	}
 }

@@ -137,7 +137,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	getCoverId(file: File): string {
-		const coverId = `${file.webDetails?.cover_i ?? "no-cover"}`;
+		const coverId = `${file.webDetails?.cover_i || "no-cover"}`;
 		return !file.customDetails ? file.coverId : coverId;
 	}
 
