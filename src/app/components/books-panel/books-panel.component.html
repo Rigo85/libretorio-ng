@@ -77,7 +77,9 @@
 			</div>
 			<div class="modal-body">
 				<div *ngIf="selectedFile; else noBookTemplate">
-					<edit-book-details-panel [file]="selectedFile" (updateOptions)="onEditBookDetails($event)"></edit-book-details-panel>
+					<edit-book-details-panel [file]="selectedFile"
+											 (updateOptions)="onEditBookDetails($event)">
+					</edit-book-details-panel>
 				</div>
 				<ng-template #noBookTemplate>
 					<div class="container" style="height: 50%; width: 50%;">
@@ -87,7 +89,9 @@
 			</div>
 			<div class="modal-footer">
 				<button class="btn btn-info" (click)="openSearchDetails()">Fetch Metadata</button>
-				<button class="btn btn-primary" [disabled]="isEnabledSaveButton" (click)="onSaveMetadata()">Save Metadata</button>
+				<button class="btn btn-primary" [disabled]="isEnabledSaveButton" (click)="onSaveMetadata()">
+					Save Metadata
+				</button>
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -142,7 +146,8 @@
 	</div>
 </div>
 
-<div class="modal fade" id="confirmBookEditModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="confirmUpdateModalLabel"
+<div class="modal fade" id="confirmBookEditModal" data-bs-backdrop="static" tabindex="-1"
+	 aria-labelledby="confirmUpdateModalLabel"
 	 aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">

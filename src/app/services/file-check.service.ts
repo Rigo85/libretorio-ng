@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { catchError, map, Observable, of } from "rxjs";
+import { catchError, map, Observable, of, throwError } from "rxjs";
 
 import { HttpClient } from "@angular/common/http";
 import { CacheService } from "(src)/app/services/cache.service";
@@ -17,6 +17,10 @@ export class FileCheckService {
 			url = `/temp_covers/${id}.jpg`;
 		} else {
 			url = `/covers/${id}.jpg`;
+		}
+
+		if (id === "no-cover") {
+			return of(false);
 		}
 
 		const cachedResult = this.cacheService.checkInCache(url);

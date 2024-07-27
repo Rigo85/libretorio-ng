@@ -67,9 +67,6 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges {
 
 	getCoverId(file: File): string {
 		const coverId = `${file.webDetails?.cover_i || "no-cover"}`;
-		if(file.name.includes("escador")){
-			console.log("Cover ID", coverId);
-		}
 		return !file.customDetails ? file.coverId : coverId;
 	}
 
