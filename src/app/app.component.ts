@@ -4,7 +4,6 @@ import { map, Observable, startWith, tap } from "rxjs";
 import { AsyncPipe, NgIf } from "@angular/common";
 
 import { ThemeTogglerComponent } from "(src)/app/components/theme-toggler/theme-toggler.component";
-import { SidebarTogglerComponent } from "(src)/app/components/sidebar-toggler/sidebar-toggler.component";
 import { LeftPanelComponent } from "(src)/app/components/left-panel/left-panel.component";
 import { HeaderPanelComponent } from "(src)/app/components/header-panel/header-panel.component";
 import { BooksPanelComponent } from "(src)/app/components/books-panel/books-panel.component";
@@ -21,7 +20,6 @@ declare var bootstrap: any;
 	imports: [
 		RouterOutlet,
 		ThemeTogglerComponent,
-		SidebarTogglerComponent,
 		LeftPanelComponent,
 		HeaderPanelComponent,
 		BooksPanelComponent,
