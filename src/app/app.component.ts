@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, OnInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { map, Observable, startWith, tap } from "rxjs";
 import { AsyncPipe, NgIf } from "@angular/common";
@@ -32,7 +32,7 @@ declare var bootstrap: any;
 	templateUrl: "./app.component.html",
 	styleUrl: "./app.component.scss"
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
 	title = "Libretorio";
 	public scanResult$!: Observable<ScanResult>;
 
@@ -40,13 +40,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 		this.bookService.onBooksList();
 	}
 
-	ngAfterViewInit(): void {
-		this.handleSidebar();
-	}
-
 	ngOnInit(): void {
-		this.initializeTooltips();
-
 		this.scanResult$ = this.bookService.incomingMessage$.pipe(
 			map((msg) => msg.data as ScanResult),
 			tap((scanResult) => {
@@ -54,35 +48,5 @@ export class AppComponent implements OnInit, AfterViewInit {
 			}),
 			startWith({files: []})
 		);
-	}
-
-	@HostListener("window:resize", ["$event"])
-	onResize(): void {
-		this.handleSidebar();
-	}
-
-	handleSidebar(): void {
-		const sidebar = document.getElementById("sidebar");
-		const sidebarToggle = document.getElementById("sidebarToggle");
-
-		if (window.innerWidth < 768) {
-			sidebar?.classList.add("d-none");
-			sidebarToggle?.classList.remove("d-none");
-		} else {
-			sidebar?.classList.remove("d-none");
-			sidebarToggle?.classList.add("d-none");
-		}
-	}
-
-	toggleSidebar(): void {
-		const sidebar = document.getElementById("sidebar");
-		sidebar?.classList.toggle("d-none");
-	}
-
-	initializeTooltips(): void {
-		const tooltipTriggerList = Array.from(document.querySelectorAll("[data-bs-toggle=\"tooltip\"]"));
-		tooltipTriggerList.forEach(tooltipTriggerEl => {
-			new bootstrap.Tooltip(tooltipTriggerEl);
-		});
 	}
 }

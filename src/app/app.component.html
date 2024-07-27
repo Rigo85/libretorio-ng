@@ -18,9 +18,6 @@
 	</symbol>
 </svg>
 
-<!--<theme-toggler></theme-toggler>-->
-<sidebar-toggler (click)="toggleSidebar()"></sidebar-toggler>
-
 <main class="d-flex flex-nowrap">
 	<left-panel *ngIf="scanResult$ | async as scanResult" [directory]="scanResult.directories"></left-panel>
 	<div class="content-container">

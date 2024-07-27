@@ -1,5 +1,13 @@
-<header class="p-3 mb-3 border-bottom">
-	<div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-end">
+<header class="p-3 mb-3 border-bottom d-flex align-items-baseline">
+	<button id="sidebarToggle" class="navbar-toggler" type="button" data-bs-toggle="collapse"
+			data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent"
+			aria-expanded="false" aria-label="Toggle navigation" style="margin-right: 17px;"
+			(click)="toggleSidebar()">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="d-flex flex-wrap justify-content-lg-end ms-auto"
+		 style="width: 100%;"
+	>
 		<form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3 ms-auto" role="search">
 			<input type="search" class="form-control" placeholder="Search..."
 				   [(ngModel)]="searchText"
