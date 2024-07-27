@@ -12,6 +12,7 @@ import { SubjectPipe } from "(src)/app/pipes/subject.pipe";
 import { FileCheckService } from "(src)/app/services/file-check.service";
 import { DownloadService } from "(src)/app/services/download.service";
 import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.component";
+import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 
 declare var bootstrap: any;
 
@@ -27,7 +28,8 @@ declare var bootstrap: any;
 		AsyncPipe,
 		NgOptimizedImage,
 		PdfViewerComponent,
-		NgxExtendedPdfViewerModule
+		NgxExtendedPdfViewerModule,
+		ExtensionPipe
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
@@ -64,7 +66,10 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges {
 	}
 
 	getCoverId(file: File): string {
-		const coverId = `${file.webDetails?.cover_i ?? "no-cover"}`;
+		const coverId = `${file.webDetails?.cover_i || "no-cover"}`;
+		if(file.name.includes("escador")){
+			console.log("Cover ID", coverId);
+		}
 		return !file.customDetails ? file.coverId : coverId;
 	}
 

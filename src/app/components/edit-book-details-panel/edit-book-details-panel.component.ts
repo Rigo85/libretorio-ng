@@ -6,6 +6,7 @@ import { catchError, from, Observable, of } from "rxjs";
 import { FileCheckService } from "(src)/app/services/file-check.service";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { File, filterObjectFields } from "(src)/app/core/headers";
+import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 
 @Component({
 	selector: "edit-book-details-panel",
@@ -16,7 +17,8 @@ import { File, filterObjectFields } from "(src)/app/core/headers";
 		AsyncPipe,
 		TitlePipe,
 		NgIf,
-		NgOptimizedImage
+		NgOptimizedImage,
+		ExtensionPipe
 	],
 	templateUrl: "./edit-book-details-panel.component.html",
 	styleUrl: "./edit-book-details-panel.component.scss"
@@ -99,7 +101,7 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	getCoverId(file: File): string {
-		const coverId = `${file.webDetails?.cover_i ?? "no-cover"}`;
+		const coverId = `${file.webDetails?.cover_i || "no-cover"}`;
 		return !file.customDetails ? file.coverId : coverId;
 	}
 
