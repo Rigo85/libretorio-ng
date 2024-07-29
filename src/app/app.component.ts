@@ -12,8 +12,6 @@ import { BooksService } from "(src)/app/services/books.service";
 import { ScanResult } from "(src)/app/core/headers";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 
-declare var bootstrap: any;
-
 @Component({
 	selector: "app-root",
 	standalone: true,

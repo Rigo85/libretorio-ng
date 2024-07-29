@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
 import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
 import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
 import { catchError, from, Observable, of } from "rxjs";
@@ -13,6 +13,7 @@ import { FileCheckService } from "(src)/app/services/file-check.service";
 import { DownloadService } from "(src)/app/services/download.service";
 import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.component";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
+import { EpubViewerComponent } from "(src)/app/components/epub-viewer/epub-viewer.component";
 
 declare var bootstrap: any;
 
@@ -29,18 +30,19 @@ declare var bootstrap: any;
 		NgOptimizedImage,
 		PdfViewerComponent,
 		NgxExtendedPdfViewerModule,
-		ExtensionPipe
+		ExtensionPipe,
+		EpubViewerComponent
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
 })
-export class BookDetailsPanelComponent implements OnInit, OnChanges {
+export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewInit {
 	@Input() file!: File;
 	downloadMessage: string = "";
 	titleMessage: string = "Information";
 	stringSource: string = "";
 	extension: string = "N/A";
-	disabledExtensions: string[] = ["pdf"];
+	disabledExtensions: string[] = ["pdf", "epub"];
 
 	constructor(private fileCheckService: FileCheckService, private downloadService: DownloadService) {}
 
@@ -48,11 +50,24 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges {
 		if (changes["file"]) {
 			this.extension = getExtension(this.file);
 		}
-    }
+	}
 
 	ngOnInit(): void {
 		if (this.file) {
 			this.extension = getExtension(this.file);
+		}
+	}
+
+	ngAfterViewInit(): void {
+		const modalElement = document.getElementById("readModal");
+		if (modalElement) {
+			modalElement.addEventListener("shown.bs.modal", () => {
+				this.stringSource = this.getStringSource(this.file);
+			});
+
+			modalElement.addEventListener("hidden.bs.modal", () => {
+				this.stringSource = "";
+			});
 		}
 	}
 
@@ -133,7 +148,6 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges {
 		if (modalElement) {
 			const modal = new bootstrap.Modal(modalElement);
 			modal.show();
-			setTimeout(() => this.stringSource = this.getStringSource(this.file), 500);
 		}
 	}
 }

@@ -83,6 +83,11 @@ export interface OpenLibraryBook {
 	description?: string;
 }
 
+export interface DialogMessage {
+	cmd: string;
+	caption: string;
+}
+
 export function cleanFilename(filename: string, lowerCase: boolean = true): string {
 	const _filename = filename
 		.replace(/\.[^/.]+$/, "")
@@ -94,7 +99,7 @@ export function cleanFilename(filename: string, lowerCase: boolean = true): stri
 
 export function cleanTitle(title: string, lowerCase: boolean = true): string {
 	const _title = title
-		.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ0-9 ]/g, " ")
+		.replace(/[^a-zA-Z'ñÑáéíóúÁÉÍÓÚ0-9 ]/g, " ")
 		.replace(/\s+/g, " ");
 
 	return lowerCase ? _title.toLowerCase() : _title;

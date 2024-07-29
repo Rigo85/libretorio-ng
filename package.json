@@ -25,6 +25,8 @@
 		"@docsearch/css": "^3.6.0",
 		"bootstrap": "^5.3.3",
 		"crypto-js": "^4.2.0",
+		"epubjs": "^0.3.93",
+		"jszip": "^3.10.1",
 		"ngx-extended-pdf-viewer": "^21.0.0-alpha.13",
 		"ngx-spinner": "^17.0.0",
 		"rxjs": "~7.8.0",

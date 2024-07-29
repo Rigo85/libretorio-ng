@@ -137,8 +137,9 @@
 				<h1 class="modal-title fs-5" id="readModalLabel">{{ file | title }}</h1>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body">
-				<pdf-viewer [pdfSrc]="stringSource"></pdf-viewer>
+			<div class="modal-body" style="padding: 0">
+				<pdf-viewer *ngIf="(file | ext) === 'PDF'" [pdfSrc]="stringSource"></pdf-viewer>
+				<epub-viewer *ngIf="(file | ext) === 'EPUB'" [epubSrc]="stringSource"></epub-viewer>
 			</div>
 		</div>
 	</div>
