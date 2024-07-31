@@ -1,5 +1,6 @@
 @import "@docsearch/css/dist/style";
 @import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 @import "../node_modules/ngx-spinner/animations/square-jelly-box.css";
 
 html, body {
@@ -54,7 +55,7 @@ footer {
 		height: 80px;
 	}
 
-	main{
+	main {
 		max-height: calc(100vh - 130px);
 		overflow: hidden;
 	}

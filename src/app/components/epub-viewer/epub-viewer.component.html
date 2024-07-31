@@ -1,2 +1,63 @@
-<div id="viewer"></div>
+<div class="epub-viewer">
+	<header class="navbar navbar-dark bg-dark">
+		<div class="container-fluid">
+			<button id="toc-toggle" class="navbar-toggler" type="button" aria-label="Toggle navigation"
+					(click)="toggleToc()">
+				<i class="bi bi-list-ol"></i>
+			</button>
+			<!--	mostrar la pagina actual y la cantida de paginas		-->
+			<div class="navbar-text"> {{ '' + percentage + '%' }}</div>
+			<button id="options-toggle" class="navbar-toggler" type="button" aria-label="Toggle navigation"
+					(click)="toggleOptions()">
+				<span class="bi bi-gear"></span>
+			</button>
+		</div>
+	</header>
+	<div id="toc-content" class="custom-offcanvas" [class.show]="!tocHidden">
+		<div class="custom-offcanvas-header">
+			<h5 class="custom-offcanvas-title">Table of Contents</h5>
+			<button type="button" class="btn-close text-reset" aria-label="Close" (click)="toggleToc()"></button>
+		</div>
+		<div class="custom-offcanvas-body">
+			<ul #tocList id="toc-list"></ul>
+		</div>
+	</div>
+	<div id="options-content" class="custom-offcanvas-right" [class.show]="!optionsHidden">
+		<div class="custom-offcanvas-header">
+			<h5 class="custom-offcanvas-title">Options</h5>
+			<button type="button" class="btn-close text-reset" aria-label="Close" (click)="toggleOptions()"></button>
+		</div>
+		<div class="custom-offcanvas-body">
+			<div class="mb-3">
+				<!--		<label for="themeFormGroupInput" class="form-label">Theme</label>
+						<div id="themeFormGroupInput" class="btn-group d-block mt-2" role="group"
+							 aria-label="Basic radio toggle button group">
+							<input type="radio" class="btn-check" id="light-btn" autocomplete="off"
+								   [checked]="theme==='light-theme'" (click)="onThemeChange('light-theme')">
+							<label class="btn btn-outline-primary" for="light-btn">
+								<i class="bi bi-sun-fill"></i>
+							</label>
+
+							<input type="radio" class="btn-check" id="dark-btn" autocomplete="off"
+								   [checked]="theme==='dark-theme'" (click)="onThemeChange('dark-theme')">
+							<label class="btn btn-outline-primary" for="dark-btn">
+								<i class="bi bi-moon-fill"></i>
+							</label>
+						</div>-->
+			</div>
+			<div class="mb-3">
+				<label for="fontSizeFormGroupInput" class="form-label">{{ "Font size (" + fontSize + "%)" }}</label>
+				<input type="range" class="form-range" min="100" max="200" step="5" [value]="fontSize"
+					   id="fontSizeFormGroupInput" (change)="onFontSizeChange($event)">
+			</div>
+		</div>
+	</div>
+	<div id="viewer" class="spreads" [class.full-width]="tocHidden"></div>
+	<div id="overlay" class="overlay"></div>
+</div>
+
 <error-message [onClose]="onClose"></error-message>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
+	<p style="color: white"> Loading... </p>
+</ngx-spinner>

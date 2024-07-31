@@ -1,8 +1,20 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from "@angular/core";
+import {
+	Component,
+	ElementRef,
+	HostListener,
+	Input,
+	OnChanges, OnInit,
+	Renderer2,
+	SimpleChanges,
+	ViewChild
+} from "@angular/core";
+import { NgForOf, NgIf } from "@angular/common";
+import Hammer from "hammerjs";
 
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
+import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 declare var ePub: any;
 
@@ -10,25 +22,47 @@ declare var ePub: any;
 	selector: "epub-viewer",
 	standalone: true,
 	imports: [
-		ErrorMessageComponent
+		ErrorMessageComponent,
+		NgForOf,
+		NgIf,
+		NgxSpinnerModule
 	],
 	templateUrl: "./epub-viewer.component.html",
 	styleUrl: "./epub-viewer.component.scss"
 })
-export class EpubViewerComponent implements OnChanges {
+export class EpubViewerComponent implements OnChanges, OnInit {
 	@Input() epubSrc!: string;
+	@ViewChild("tocList", {static: true}) tocList!: ElementRef;
 	onClose = onClose;
+	private book: any;
+	private rendition: any;
+	toc: any[] = [];
+	tocHidden = true;
+	optionsHidden = true;
+	theme = "dark-theme";
+	fontSize = 120;
+	percentage = 0;
 
-	constructor(private elementRef: ElementRef, private errorMessageService: ErrorMessageService) {}
+	constructor(
+		private elementRef: ElementRef,
+		private renderer: Renderer2,
+		private errorMessageService: ErrorMessageService,
+		private spinner: NgxSpinnerService) {}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["epubSrc"] && changes["epubSrc"].currentValue !== changes["epubSrc"].previousValue) {
-			console.info("epubSrc changed:", this.epubSrc);
-			this.loadEpub(this.epubSrc);
+			this.loadEpub(this.epubSrc).catch((error: any) => {
+				console.error("Error loading epub: ", error);
+				this.handleError(`Error loading epub: "${this.epubSrc}"`);
+			});
 		}
 	}
 
-	private loadEpub(src: string) {
+	ngOnInit() {
+		this.fontSize = localStorage.getItem("fontSize") ? parseInt(localStorage.getItem("fontSize") as string, 10) : 120;
+	}
+
+	private async loadEpub(src: string) {
 		if (!src) {
 			return;
 		}
@@ -41,48 +75,186 @@ export class EpubViewerComponent implements OnChanges {
 
 		viewerElement.innerHTML = "";
 
-		const book = ePub();
+		this.book = ePub();
 
-		book.open(src)
-			.then(() => {
-				const rendition = book.renderTo(viewerElement, {
-					width: "100%",
-					height: "100%"
-				});
-				rendition.display().then(() => {
-					console.log("Book displayed successfully.");
-				}).catch((err: any) => {
-					console.error("Error displaying book", err);
-					this.handleError("Error displaying book");
-				});
-			})
-			.catch((err: any) => {
-				console.error("Error opening book", err);
-				this.handleError("Error opening book: File not found or cannot be loaded.");
-			});
+		try {
+			await this.book.open(src);
+
+			this.spinner.show();
+			await this.book.locations.generate(1024);
+			this.spinner.hide();
+
+
+			await this.createAndDisplayRendition(viewerElement);
+			await this.book.ready;
+			this.bookReady();
+		} catch (error) {
+			this.spinner.hide();
+			console.error("Error opening book: ", error);
+			this.handleError("Error opening book: File not found or cannot be loaded.");
+		}
+	}
+
+	private async createAndDisplayRendition(viewerElement: HTMLElement) {
+		this.rendition = this.book.renderTo(viewerElement, {
+			manager: "default",
+			flow: "paginated",
+			spread: "none",
+			width: "100%",
+			height: "100%",
+			stylesheet: this.theme === "dark-theme" ? "/css/dark-theme.css" : "/css/light-theme.css"
+		});
+
+		try {
+			// NOTE: Ej. de como aplicar hooks al ePUB.js
+			// this.rendition.hooks.content.register(this.addSwipeDetection.bind(this));
+			// this.rendition.hooks.content.register(this.addClickEventListener.bind(this));
+
+			this.rendition.themes.register("dark-theme", "/css/themes.css");
+			// this.rendition.themes.register("light-theme", "/css/themes.css");
+
+			this.rendition.themes.select(this.theme);
+			this.rendition.themes.fontSize(`${this.fontSize}%`);
+
+			this.rendition.on("relocated", this.onRelocated.bind(this));
+
+			await this.rendition.display();
+		} catch (error) {
+			console.error("Error displaying book: ", error);
+			this.handleError("Error displaying book.");
+		}
+	}
+
+	private bookReady() {
+		const overlay = this.elementRef.nativeElement.querySelector("#overlay");
+
+		if (overlay) {
+			this.addSwipeDetection(overlay);
+		} else {
+			console.error("Overlay element not found.");
+		}
+
+		this.loadToc();
+	}
+
+	@HostListener("document:keyup", ["$event"])
+	handleKeyUp(event: KeyboardEvent) {
+		if (event.key === "ArrowLeft") {
+			this.rendition.prev();
+		} else if (event.key === "ArrowRight") {
+			this.rendition.next();
+		}
+	}
+
+	private addSwipeDetection(element: any) {
+		// if (element) {
+		// 	const hammer = new Hammer(element);
+		// 	hammer.get("swipe").set({direction: Hammer.DIRECTION_HORIZONTAL});
+		// 	// hammer.on("swipeleft", () => this.nextPage());
+		// 	// hammer.on("swiperight", () => this.prevPage());
+		// } else {
+		// 	console.error("Could not find the viewer element in iframe.");
+		// }
 	}
 
 	private handleError(message: string) {
 		this.errorMessageService.open(message);
 	}
-}
 
-// export interface RenditionOptions {
-// 	width?: number | string;
-// 	height?: number | string;
-// 	ignoreClass?: string;
-// 	manager?: string | Function | object;
-// 	view?: string | Function | object;
-// 	flow?: string;
-// 	layout?: string;
-// 	spread?: string;
-// 	minSpreadWidth?: number;
-// 	stylesheet?: string;
-// 	resizeOnOrientationChange?: boolean;
-// 	script?: string;
-// 	infinite?: boolean;
-// 	overflow?: string;
-// 	snap?: boolean | object;
-// 	defaultDirection?: string;
-// 	allowScriptedContent?: boolean;
-// }
+	private loadToc() {
+		this.book.loaded.navigation.then((toc: any) => {
+			this.toc = toc;
+			this.renderer.setProperty(this.tocList.nativeElement, "innerHTML", "");
+
+			toc.forEach((chapter: any) => {
+				const li = this.renderer.createElement("li");
+				const text = this.renderer.createText(chapter.label);
+				this.renderer.appendChild(li, text);
+				this.renderer.setAttribute(li, "data-href", chapter.href);
+				this.renderer.setStyle(li, "cursor", "pointer");
+				this.renderer.listen(li, "click", () => {
+					this.rendition.display(chapter.href);
+					this.toggleToc();
+				});
+				this.renderer.appendChild(this.tocList.nativeElement, li);
+			});
+
+			const tocToggle = this.elementRef.nativeElement.querySelector("#toc-toggle");
+			const tocContent = this.elementRef.nativeElement.querySelector("#toc-content");
+
+			if (tocToggle) {
+				this.renderer.listen(tocToggle, "click", () => {
+					this.renderer.addClass(tocContent, "open");
+				});
+			} else {
+				console.error("#toc-toggle element not found.");
+			}
+		});
+	}
+
+	toggleToc() {
+		this.tocHidden = !this.tocHidden;
+		if (!this.tocHidden) {
+			this.optionsHidden = true;
+		}
+	}
+
+	toggleOptions() {
+		this.optionsHidden = !this.optionsHidden;
+		if (!this.optionsHidden) {
+			this.tocHidden = true;
+		}
+	}
+
+	@HostListener("document:click", ["$event"])
+	onDocumentClick(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		const overlay = this.elementRef.nativeElement.querySelector("#overlay");
+
+		if (!target.closest(".navbar") && !target.closest(".custom-offcanvas") && !this.tocHidden) {
+			this.tocHidden = true;
+		}
+
+		if (overlay && overlay.contains(target)) {
+			const rect = overlay.getBoundingClientRect();
+			const clickX = event.clientX - rect.left;
+			const viewerWidth = rect.width;
+
+			if (clickX < viewerWidth / 2) {
+				this.prevPage();
+			} else {
+				this.nextPage();
+			}
+		}
+	}
+
+	private isMobileDevice(): boolean {
+		return window.matchMedia("(pointer: coarse)").matches;
+	}
+
+	private nextPage() {
+		if (this.rendition) {
+			this.rendition.next();
+		}
+	}
+
+	private prevPage() {
+		if (this.rendition) {
+			this.rendition.prev();
+		}
+	}
+
+	onFontSizeChange(event: Event) {
+		const inputElement = event.target as HTMLInputElement;
+		this.fontSize = parseInt(inputElement.value || "120", 10);
+		localStorage.setItem("fontSize", inputElement.value);
+		if (this.rendition) {
+			this.rendition.themes.fontSize(`${inputElement.value}%`);
+		}
+	}
+
+	private onRelocated(location: any) {
+		const percent = this.book.locations.percentageFromCfi(location.start.cfi);
+		this.percentage = Math.floor(percent * 100);
+	}
+}

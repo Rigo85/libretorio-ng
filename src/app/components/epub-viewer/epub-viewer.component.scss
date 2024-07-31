@@ -1,5 +1,111 @@
-#viewer {
-	width: 100%;
+.epub-viewer {
+	display: flex;
+	flex-direction: column;
 	height: 100%;
-	background: #5c5c5c
+	overflow: hidden;
+
+	.navbar {
+		flex: 0 0 auto;
+	}
+
+	.custom-offcanvas {
+		position: fixed;
+		top: 112px; // Ajusta esta posición según la altura de tu navbar
+		left: 0;
+		width: 300px;
+		height: calc(100% - 112px); // Ajusta esta altura según la altura de tu navbar
+		background-color: #343a40; // Fondo oscuro
+		color: white; // Texto claro
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		transition: transform 0.3s ease-in-out;
+		z-index: 1045;
+		transform: translateX(-100%);
+	}
+
+	.custom-offcanvas.show {
+		transform: translateX(0);
+	}
+
+	.custom-offcanvas-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem;
+		border-bottom: 1px solid #495057;
+		background-color: #343a40; // Fondo oscuro del header
+	}
+
+	.custom-offcanvas-body {
+		padding: 1rem;
+		overflow-y: auto;
+		height: calc(100% - 60px);
+	}
+
+	.custom-offcanvas-right {
+		position: fixed;
+		top: 112px; // Ajusta esta posición según la altura de tu navbar
+		right: 0;
+		width: 300px;
+		height: calc(100% - 112px); // Ajusta esta altura según la altura de tu navbar
+		background-color: #343a40; // Fondo oscuro
+		color: white; // Texto claro
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		transition: transform 0.3s ease-in-out;
+		z-index: 1045;
+		transform: translateX(100%);
+	}
+
+	.custom-offcanvas-right.show {
+		transform: translateX(0);
+	}
+
+	#viewer {
+		flex: 1 1 auto;
+		transition: margin-left 0.3s;
+	}
+
+	#viewer.full-width {
+		margin-left: 0;
+	}
+
+	#overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 10; // Ensure it is above the viewer
+		background-color: rgba(0, 0, 0, 0); // Invisible but receives events
+	}
+
+
+	.arrow {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		font-size: 2rem;
+		cursor: pointer;
+	}
+
+	#prev {
+		left: 10px;
+	}
+
+	#next {
+		right: 10px;
+	}
+
+	.form-range {
+		background-color: transparent;
+		appearance: none;
+	}
+
+	.form-range::-webkit-slider-runnable-track {
+		background-color: rgba(79, 76, 76, 0.877);
+	}
+
+	.form-range::-moz-range-track {
+		background-color: rgba(79, 76, 76, 0.877);
+	}
+
 }
