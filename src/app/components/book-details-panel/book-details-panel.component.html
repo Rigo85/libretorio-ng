@@ -129,7 +129,7 @@
 		</div>
 	</div>
 </div>
-<div class="modal fade" id="readModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+<div class="modal fade" id="readModal" data-bs-keyboard="false" aria-hidden="true"
 	 aria-labelledby="readModalLabel" tabindex="-1">
 	<div class="modal-dialog modal-fullscreen">
 		<div class="modal-content">
@@ -140,6 +140,8 @@
 			<div class="modal-body" style="padding: 0">
 				<pdf-viewer *ngIf="(file | ext) === 'PDF'" [pdfSrc]="stringSource"></pdf-viewer>
 				<epub-viewer *ngIf="(file | ext) === 'EPUB'" [epubSrc]="stringSource"></epub-viewer>
+				<comic-viewer *ngIf="(file | ext) === 'CBR'" [comicSrc]="stringSource"></comic-viewer>
+				<comic-viewer *ngIf="(file | ext) === 'CBZ'" [comicSrc]="stringSource"></comic-viewer>
 			</div>
 		</div>
 	</div>

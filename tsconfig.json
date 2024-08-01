@@ -4,6 +4,9 @@
 	"compileOnSave": false,
 	"compilerOptions": {
 		"paths": {
+			"*": [
+				"./src/types/*"
+			],
 			"(src)/*": [
 				"./src/*"
 			]

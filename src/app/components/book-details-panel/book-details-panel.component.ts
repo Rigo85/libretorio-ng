@@ -14,6 +14,7 @@ import { DownloadService } from "(src)/app/services/download.service";
 import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.component";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { EpubViewerComponent } from "(src)/app/components/epub-viewer/epub-viewer.component";
+import { ComicViewerComponent } from "(src)/app/components/comic-viewer/comic-viewer.component";
 
 declare var bootstrap: any;
 
@@ -31,7 +32,8 @@ declare var bootstrap: any;
 		PdfViewerComponent,
 		NgxExtendedPdfViewerModule,
 		ExtensionPipe,
-		EpubViewerComponent
+		EpubViewerComponent,
+		ComicViewerComponent
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
@@ -42,7 +44,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	titleMessage: string = "Information";
 	stringSource: string = "";
 	extension: string = "N/A";
-	disabledExtensions: string[] = ["pdf", "epub"];
+	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz"];
 
 	constructor(private fileCheckService: FileCheckService, private downloadService: DownloadService) {}
 

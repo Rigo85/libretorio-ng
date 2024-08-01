@@ -1,0 +1,16 @@
+<div id="image-container" class="d-flex justify-content-center align-items-center position-relative" style="height: 100%;">
+	<div class="page-counter">
+		<span class="page-number">{{ position }}</span>
+	</div>
+	<div class="d-flex justify-content-center align-items-center" style="height: 100%; width: 100%;">
+		<img [src]="pages[currentPage - 1]" alt=""/>
+	</div>
+<!--	<div class="arrow" id="prev" (click)="prevPage()">&#9664;</div>-->
+<!--	<div class="arrow" id="next" (click)="nextPage()">&#9654;</div>-->
+</div>
+
+<error-message [onClose]="onClose"></error-message>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
+	<p style="color: white"> Loading... </p>
+</ngx-spinner>

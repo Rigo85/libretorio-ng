@@ -34,6 +34,11 @@
 								"glob": "**/*",
 								"input": "node_modules/ngx-extended-pdf-viewer/assets/",
 								"output": "/assets/"
+							},
+							{
+								"glob": "**/*.wasm",
+								"input": "node_modules/node-unrar-js/esm/js",
+								"output": "/assets/"
 							}
 						],
 						"styles": [

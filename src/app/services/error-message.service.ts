@@ -16,4 +16,8 @@ export class ErrorMessageService {
 	public open(message: string) {
 		this.messageSubject.next({cmd: "OPEN", caption: message});
 	}
+
+	public clearMessage() {
+		this.messageSubject.next({cmd: "CLEAR", caption: ""});
+	}
 }
