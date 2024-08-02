@@ -26,6 +26,9 @@ export class BooksService {
 	private updateIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
 	public updateIncomingMessage$: Observable<IncomingMessage> = this.updateIncomingMessages.asObservable();
 
+	private decompressIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
+	public decompressIncomingMessage$: Observable<IncomingMessage> = this.decompressIncomingMessages.asObservable();
+
 	constructor() {
 		// TODO: Change the IP address to the server's IP address.
 		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
@@ -49,6 +52,8 @@ export class BooksService {
 						this.searchDetailsIncomingMessages.next(msg);
 					} else if (msg.event === "update") {
 						this.updateIncomingMessages.next(msg);
+					} else if (msg.event === "decompress") {
+						this.decompressIncomingMessages.next(msg);
 					}
 				},
 				error: err => console.error(err),
@@ -72,7 +77,11 @@ export class BooksService {
 		this.sendMessage({event: "update", data: file});
 	}
 
-	onSearchText(searchText: string) {
+	public onSearchText(searchText: string) {
 		this.sendMessage({event: "search_text", data: {searchText}});
+	}
+
+	public decompressFile(filePath: string) {
+		this.sendMessage({event: "decompress", data: {filePath}});
 	}
 }

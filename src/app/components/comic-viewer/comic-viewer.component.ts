@@ -1,4 +1,15 @@
-import { Component, ElementRef, HostListener, Input, OnChanges, SimpleChanges } from "@angular/core";
+import {
+	AfterViewInit,
+	Component,
+	ElementRef,
+	HostListener,
+	Input,
+	OnChanges,
+	OnDestroy,
+	OnInit,
+	SimpleChanges,
+	ViewChild
+} from "@angular/core";
 import { NgForOf } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import JSZip from "jszip";
@@ -11,6 +22,7 @@ import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
+import { BooksService } from "(src)/app/services/books.service";
 
 @Component({
 	selector: "comic-viewer",
@@ -23,19 +35,22 @@ import { ErrorMessageService } from "(src)/app/services/error-message.service";
 	templateUrl: "./comic-viewer.component.html",
 	styleUrl: "./comic-viewer.component.scss"
 })
-export class ComicViewerComponent implements OnChanges {
+export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@Input() comicSrc!: string;
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
 	totalPages: number = 0;
 	separator = " / ";
+	decompressing = false;
+	scrollElement?: HTMLElement;
 
 	constructor(
 		private http: HttpClient,
 		private errorMessageService: ErrorMessageService,
 		private elementRef: ElementRef,
-		private spinner: NgxSpinnerService) {}
+		private spinner: NgxSpinnerService,
+		private booksService: BooksService) {}
 
 	ngOnChanges(changes: SimpleChanges) {
 		if (changes["comicSrc"] && changes["comicSrc"].currentValue !== changes["comicSrc"].previousValue) {
@@ -44,6 +59,28 @@ export class ComicViewerComponent implements OnChanges {
 			this.currentPage = 1;
 			this.loadComic(this.comicSrc);
 		}
+	}
+
+	ngOnDestroy() {
+		this.pages = [];
+	}
+
+	ngOnInit() {
+		this.booksService.decompressIncomingMessage$.subscribe((message) => {
+			const {success, error, pages} = message.data;
+
+			this.decompressing = false;
+			this.spinner.hide();
+
+			if (success === "OK") {
+				this.pages = pages;
+				this.totalPages = pages.length;
+			} else {
+				this.handleError(error);
+			}
+		});
+
+		this.scrollElement = document.getElementById("body-scroll") ?? undefined;
 	}
 
 	private loadComic(url: string): void {
@@ -80,7 +117,9 @@ export class ComicViewerComponent implements OnChanges {
 		if (extension && dispatch[extension]) {
 			try {
 				await dispatch[extension](buffer);
-				await this.spinner.hide();
+				if (!this.decompressing) {
+					await this.spinner.hide();
+				}
 			} catch (error) {
 				await this.spinner.hide();
 				console.error(`Error extracting ${extension.toUpperCase()}:`, error);
@@ -107,7 +146,6 @@ export class ComicViewerComponent implements OnChanges {
 			this.handleError("Error opening CBZ file.");
 		}
 	}
-
 
 	private async extractRar(buffer: Buffer): Promise<void> {
 		try {
@@ -139,9 +177,10 @@ export class ComicViewerComponent implements OnChanges {
 					console.log(`Skipping non-image file: ${file.fileHeader.name}"`);
 				}
 			}
-		} catch (error) {
-			console.error("Failed to load WASM file or extract RAR:", error);
-			this.handleError("Error opening CBR file.");
+		} catch (error: any) {
+			console.error("Failed to load WASM file or extract RAR while attempting to decompress on the backend:", error.message);
+			this.decompressing = true;
+			this.booksService.decompressFile(this.comicSrc);
 		}
 	}
 
@@ -160,13 +199,23 @@ export class ComicViewerComponent implements OnChanges {
 	nextPage() {
 		if (this.currentPage < this.totalPages) {
 			this.currentPage++;
+			this.scrollToTop();
 		}
 	}
 
 	prevPage() {
 		if (this.currentPage > 1) {
 			this.currentPage--;
+			this.scrollToTop();
 		}
+	}
+
+	private scrollToTop() {
+		setTimeout(() => {
+			if (this.scrollElement) {
+				this.scrollElement.scrollTop = 0;
+			}
+		});
 	}
 
 	get position(): string {
