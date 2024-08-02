@@ -1,5 +1,4 @@
 import {
-	AfterViewInit,
 	Component,
 	ElementRef,
 	HostListener,
@@ -7,15 +6,12 @@ import {
 	OnChanges,
 	OnDestroy,
 	OnInit,
-	SimpleChanges,
-	ViewChild
+	SimpleChanges
 } from "@angular/core";
 import { NgForOf } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import JSZip from "jszip";
-import { ArcFile, createExtractorFromData } from "node-unrar-js";
-// import decompress from "decompress";
-// import * as decompressTar from "decompress-tar";
+import { createExtractorFromData } from "node-unrar-js";
 import { Buffer } from "buffer";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
@@ -40,10 +36,10 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
-	totalPages: number = 0;
-	separator = " / ";
-	decompressing = false;
-	scrollElement?: HTMLElement;
+	private totalPages: number = 0;
+	private separator = " / ";
+	private decompressing = false;
+	private scrollElement?: HTMLElement;
 
 	constructor(
 		private http: HttpClient,
@@ -107,9 +103,9 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	private async extractComic(fileName: string, buffer: Buffer) {
 		const dispatch: Record<string, (buffer: Buffer) => Promise<void>> = {
 			"cbz": this.extractZip.bind(this),
-			"cbr": this.extractRar.bind(this)
+			"cbr": this.extractRar.bind(this),
 			// "cbt": this.extractTar,
-			// "cb7": this.extract7z
+			"cb7": this.extract7z.bind(this)
 		};
 
 		const extension: string = fileName.split(".").pop() ?? "";
@@ -184,6 +180,11 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		}
 	}
 
+	private async extract7z(buffer: Buffer): Promise<void> {
+		this.decompressing = true;
+		this.booksService.decompressFile(this.comicSrc);
+	}
+
 	private getImageFormat(fileName: string): string {
 		if (fileName.endsWith(".png")) {
 			return "png";
@@ -196,14 +197,14 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		this.errorMessageService.open(message);
 	}
 
-	nextPage() {
+	private nextPage() {
 		if (this.currentPage < this.totalPages) {
 			this.currentPage++;
 			this.scrollToTop();
 		}
 	}
 
-	prevPage() {
+	private prevPage() {
 		if (this.currentPage > 1) {
 			this.currentPage--;
 			this.scrollToTop();
@@ -260,27 +261,5 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	// 	});
 	// }
 
-	// private extract7z(buffer: Buffer): void {
-	// 	const tempFilePath = "temp.7z";
-	// 	fs.writeFileSync(tempFilePath, buffer);
-	//
-	// 	seven.unpack(tempFilePath, "output", (err: any) => {
-	// 		if (err) {
-	// 			console.error(err);
-	// 			return;
-	// 		}
-	//
-	// 		fs.readdirSync("output").forEach((file: string) => {
-	// 			if (file.endsWith(".jpg") || file.endsWith(".png")) {
-	// 				const imageBuffer = fs.readFileSync(`output/${file}`);
-	// 				const base64 = `data:image/jpeg;base64,${imageBuffer.toString("base64")}`;
-	// 				this.pages.push(base64);
-	// 			}
-	// 		});
-	//
-	// 		// Clean up the temporary files
-	// 		fs.unlinkSync(tempFilePath);
-	// 		fs.rmSync("output", {recursive: true, force: true});
-	// 	});
-	// }
+
 }

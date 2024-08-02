@@ -44,7 +44,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	titleMessage: string = "Information";
 	stringSource: string = "";
 	extension: string = "N/A";
-	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz"];
+	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
 
 	constructor(private fileCheckService: FileCheckService, private downloadService: DownloadService) {}
 
