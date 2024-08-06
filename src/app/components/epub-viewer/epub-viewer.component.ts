@@ -97,9 +97,9 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 
 	private async createAndDisplayRendition(viewerElement: HTMLElement) {
 		this.rendition = this.book.renderTo(viewerElement, {
-			manager: "default",
-			flow: "paginated",
-			spread: "none",
+			manager: "continuous",
+			flow: "scrolled",
+			// spread: "none",
 			width: "100%",
 			height: "100%",
 			stylesheet: this.theme === "dark-theme" ? "/css/dark-theme.css" : "/css/light-theme.css"
@@ -126,13 +126,13 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 	}
 
 	private bookReady() {
-		const overlay = this.elementRef.nativeElement.querySelector("#overlay");
-
-		if (overlay) {
-			this.addSwipeDetection(overlay);
-		} else {
-			console.error("Overlay element not found.");
-		}
+		// const overlay = this.elementRef.nativeElement.querySelector("#overlay");
+		//
+		// if (overlay) {
+		// 	this.addSwipeDetection(overlay);
+		// } else {
+		// 	console.error("Overlay element not found.");
+		// }
 
 		this.loadToc();
 	}
@@ -209,23 +209,23 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 	@HostListener("document:click", ["$event"])
 	onDocumentClick(event: MouseEvent) {
 		const target = event.target as HTMLElement;
-		const overlay = this.elementRef.nativeElement.querySelector("#overlay");
+		// const overlay = this.elementRef.nativeElement.querySelector("#overlay");
 
 		if (!target.closest(".navbar") && !target.closest(".custom-offcanvas") && !this.tocHidden) {
 			this.tocHidden = true;
 		}
 
-		if (overlay && overlay.contains(target)) {
-			const rect = overlay.getBoundingClientRect();
-			const clickX = event.clientX - rect.left;
-			const viewerWidth = rect.width;
-
-			if (clickX < viewerWidth / 2) {
-				this.prevPage();
-			} else {
-				this.nextPage();
-			}
-		}
+		// if (overlay && overlay.contains(target)) {
+		// 	const rect = overlay.getBoundingClientRect();
+		// 	const clickX = event.clientX - rect.left;
+		// 	const viewerWidth = rect.width;
+		//
+		// 	if (clickX < viewerWidth / 2) {
+		// 		this.prevPage();
+		// 	} else {
+		// 		this.nextPage();
+		// 	}
+		// }
 	}
 
 	private isMobileDevice(): boolean {

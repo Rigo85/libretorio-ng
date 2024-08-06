@@ -10,10 +10,10 @@
 
 	.custom-offcanvas {
 		position: fixed;
-		top: 112px; // Ajusta esta posición según la altura de tu navbar
+		top: 120px; // Ajusta esta posición según la altura de tu navbar
 		left: 0;
 		width: 300px;
-		height: calc(100% - 112px); // Ajusta esta altura según la altura de tu navbar
+		height: calc(100% - 120px); // Ajusta esta altura según la altura de tu navbar
 		background-color: #343a40; // Fondo oscuro
 		color: white; // Texto claro
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -43,10 +43,10 @@
 
 	.custom-offcanvas-right {
 		position: fixed;
-		top: 112px; // Ajusta esta posición según la altura de tu navbar
+		top: 120px; // Ajusta esta posición según la altura de tu navbar
 		right: 0;
 		width: 300px;
-		height: calc(100% - 112px); // Ajusta esta altura según la altura de tu navbar
+		height: calc(100% - 120px); // Ajusta esta altura según la altura de tu navbar
 		background-color: #343a40; // Fondo oscuro
 		color: white; // Texto claro
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -62,6 +62,7 @@
 	#viewer {
 		flex: 1 1 auto;
 		transition: margin-left 0.3s;
+		overflow-y: auto;
 	}
 
 	#viewer.full-width {
