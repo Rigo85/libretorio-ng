@@ -144,10 +144,21 @@
 			</div>
 			<div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
 				<pdf-viewer *ngIf="(file | ext) === 'PDF' || isUsingPdfConversion" [pdfSrc]="stringSource"></pdf-viewer>
-				<epub-viewer *ngIf="(file | ext) === 'EPUB' && !isUsingPdfConversion" [epubSrc]="stringSource"></epub-viewer>
-				<comic-viewer *ngIf="(file | ext) === 'CBR'" [comicSrc]="stringSource"></comic-viewer>
-				<comic-viewer *ngIf="(file | ext) === 'CBZ'" [comicSrc]="stringSource"></comic-viewer>
-				<comic-viewer *ngIf="(file | ext) === 'CB7'" [comicSrc]="stringSource"></comic-viewer>
+				<epub-viewer *ngIf="(file | ext) === 'EPUB' && !isUsingPdfConversion"
+							 [epubSrc]="stringSource">
+				</epub-viewer>
+				<comic-viewer *ngIf="(file | ext) === 'CBR'"
+							  [comicSrc]="stringSource"
+							  [id]="file.coverId">
+				</comic-viewer>
+				<comic-viewer *ngIf="(file | ext) === 'CBZ'"
+							  [comicSrc]="stringSource"
+							  [id]="file.coverId">
+				</comic-viewer>
+				<comic-viewer *ngIf="(file | ext) === 'CB7'"
+							  [comicSrc]="stringSource"
+							  [id]="file.coverId">
+				</comic-viewer>
 			</div>
 		</div>
 	</div>

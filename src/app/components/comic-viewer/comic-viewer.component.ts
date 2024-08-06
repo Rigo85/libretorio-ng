@@ -33,6 +33,7 @@ import { BooksService } from "(src)/app/services/books.service";
 })
 export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@Input() comicSrc!: string;
+	@Input() id!: string;
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
@@ -176,13 +177,13 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		} catch (error: any) {
 			console.error("Failed to load WASM file or extract RAR while attempting to decompress on the backend:", error.message);
 			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc);
+			this.booksService.decompressFile(this.comicSrc, this.id);
 		}
 	}
 
 	private async extract7z(buffer: Buffer): Promise<void> {
 		this.decompressing = true;
-		this.booksService.decompressFile(this.comicSrc);
+		this.booksService.decompressFile(this.comicSrc, this.id);
 	}
 
 	private getImageFormat(fileName: string): string {

@@ -86,8 +86,8 @@ export class BooksService {
 		this.sendMessage({event: "search_text", data: {searchText}});
 	}
 
-	public decompressFile(filePath: string) {
-		this.sendMessage({event: "decompress", data: {filePath}});
+	public decompressFile(filePath: string, id: string) {
+		this.sendMessage({event: "decompress", data: {filePath, id}});
 	}
 
 	public convertToPdf(filePath: string, coverId: string) {
