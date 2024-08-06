@@ -137,7 +137,7 @@
 				<h1 class="modal-title fs-5 text-truncate" id="readModalLabel">{{ file | title }}</h1>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div id="body-scroll" class="modal-body" style="padding: 0">
+			<div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
 				<pdf-viewer *ngIf="(file | ext) === 'PDF'" [pdfSrc]="stringSource"></pdf-viewer>
 				<epub-viewer *ngIf="(file | ext) === 'EPUB'" [epubSrc]="stringSource"></epub-viewer>
 				<comic-viewer *ngIf="(file | ext) === 'CBR'" [comicSrc]="stringSource"></comic-viewer>
