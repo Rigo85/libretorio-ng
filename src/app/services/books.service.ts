@@ -17,17 +17,20 @@ export class BooksService {
 
 	private webSocket!: WebSocketSubject<IncomingMessage>;
 
-	private incomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
-	public incomingMessage$: Observable<IncomingMessage> = this.incomingMessages.asObservable();
+	private incomingMessages = new Subject<IncomingMessage>();
+	public incomingMessage$ = this.incomingMessages.asObservable();
 
-	private searchDetailsIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
-	public searchDetailsIncomingMessage$: Observable<IncomingMessage> = this.searchDetailsIncomingMessages.asObservable();
+	private searchDetailsIncomingMessages = new Subject<IncomingMessage>();
+	public searchDetailsIncomingMessage$ = this.searchDetailsIncomingMessages.asObservable();
 
-	private updateIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
-	public updateIncomingMessage$: Observable<IncomingMessage> = this.updateIncomingMessages.asObservable();
+	private updateIncomingMessages = new Subject<IncomingMessage>();
+	public updateIncomingMessage$ = this.updateIncomingMessages.asObservable();
 
-	private decompressIncomingMessages: Subject<IncomingMessage> = new Subject<IncomingMessage>();
-	public decompressIncomingMessage$: Observable<IncomingMessage> = this.decompressIncomingMessages.asObservable();
+	private decompressIncomingMessages = new Subject<IncomingMessage>();
+	public decompressIncomingMessage$ = this.decompressIncomingMessages.asObservable();
+
+	private convertToPdfIncomingMessages = new Subject<IncomingMessage>();
+	public convertToPdfIncomingMessage$ = this.convertToPdfIncomingMessages.asObservable();
 
 	constructor() {
 		// TODO: Change the IP address to the server's IP address.
@@ -54,6 +57,8 @@ export class BooksService {
 						this.updateIncomingMessages.next(msg);
 					} else if (msg.event === "decompress") {
 						this.decompressIncomingMessages.next(msg);
+					} else if (msg.event === "convert_to_pdf") {
+						this.convertToPdfIncomingMessages.next(msg);
 					}
 				},
 				error: err => console.error(err),
@@ -83,5 +88,9 @@ export class BooksService {
 
 	public decompressFile(filePath: string) {
 		this.sendMessage({event: "decompress", data: {filePath}});
+	}
+
+	public convertToPdf(filePath: string, coverId: string) {
+		this.sendMessage({event: "convert_to_pdf", data: {filePath, id: coverId}});
 	}
 }

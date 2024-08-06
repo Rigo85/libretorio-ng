@@ -37,9 +37,14 @@ export class ErrorMessageComponent implements OnInit, OnDestroy {
 	open() {
 		const modalElement = document.getElementById("errorModal");
 		if (modalElement) {
-			const modal = new bootstrap.Modal(modalElement);
-			modalElement.addEventListener("hidden.bs.modal", this.onClose ?? (() => {}));
-			modal.show();
+			const modalInstance = bootstrap.Modal.getInstance(modalElement);
+			if (modalInstance) {
+				modalInstance.show();
+			} else {
+				const modal = new bootstrap.Modal(modalElement);
+				modalElement.addEventListener("hidden.bs.modal", this.onClose ?? (() => {}));
+				modal.show();
+			}
 		}
 	}
 }

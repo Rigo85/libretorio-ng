@@ -24,8 +24,13 @@
 					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onDownload(file)">
 						Download ({{ file.size }})
 					</button>
+					<button *ngIf="isConvertToPdf" type="button" class="btn btn-outline-secondary w-auto"
+							(click)="onConvertToPdf()">
+						Convert to PDF
+					</button>
 					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
-							[disabled]="isDisabled"> Read
+							[disabled]="isDisabled">
+						Read
 					</button>
 				</div>
 			</div>
@@ -138,8 +143,8 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
-				<pdf-viewer *ngIf="(file | ext) === 'PDF'" [pdfSrc]="stringSource"></pdf-viewer>
-				<epub-viewer *ngIf="(file | ext) === 'EPUB'" [epubSrc]="stringSource"></epub-viewer>
+				<pdf-viewer *ngIf="(file | ext) === 'PDF' || isUsingPdfConversion" [pdfSrc]="stringSource"></pdf-viewer>
+				<epub-viewer *ngIf="(file | ext) === 'EPUB' && !isUsingPdfConversion" [epubSrc]="stringSource"></epub-viewer>
 				<comic-viewer *ngIf="(file | ext) === 'CBR'" [comicSrc]="stringSource"></comic-viewer>
 				<comic-viewer *ngIf="(file | ext) === 'CBZ'" [comicSrc]="stringSource"></comic-viewer>
 				<comic-viewer *ngIf="(file | ext) === 'CB7'" [comicSrc]="stringSource"></comic-viewer>
@@ -147,3 +152,9 @@
 		</div>
 	</div>
 </div>
+
+<error-message></error-message>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
+	<p style="color: white"> Loading... </p>
+</ngx-spinner>

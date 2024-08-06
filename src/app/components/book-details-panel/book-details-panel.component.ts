@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
 import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
 import { catchError, from, Observable, of } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
+import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
 
 import { File, getExtension } from "(src)/app/core/headers";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
@@ -15,6 +16,9 @@ import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.c
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { EpubViewerComponent } from "(src)/app/components/epub-viewer/epub-viewer.component";
 import { ComicViewerComponent } from "(src)/app/components/comic-viewer/comic-viewer.component";
+import { BooksService } from "(src)/app/services/books.service";
+import { ErrorMessageService } from "(src)/app/services/error-message.service";
+import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 
 declare var bootstrap: any;
 
@@ -33,20 +37,29 @@ declare var bootstrap: any;
 		NgxExtendedPdfViewerModule,
 		ExtensionPipe,
 		EpubViewerComponent,
-		ComicViewerComponent
+		ComicViewerComponent,
+		NgxSpinnerModule,
+		ErrorMessageComponent
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
 })
-export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewInit {
+export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
 	@Input() file!: File;
 	downloadMessage: string = "";
 	titleMessage: string = "Information";
 	stringSource: string = "";
 	extension: string = "N/A";
 	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
+	convertToPdfExtensions: string[] = ["epub"];
+	_isUsingPdfConversion: boolean = false;
 
-	constructor(private fileCheckService: FileCheckService, private downloadService: DownloadService) {}
+	constructor(
+		private fileCheckService: FileCheckService,
+		private downloadService: DownloadService,
+		private booksService: BooksService,
+		private spinner: NgxSpinnerService,
+		private errorMessageService: ErrorMessageService) {}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["file"]) {
@@ -64,17 +77,30 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		const modalElement = document.getElementById("readModal");
 		if (modalElement) {
 			modalElement.addEventListener("shown.bs.modal", () => {
-				this.stringSource = this.getStringSource(this.file);
+				this.stringSource = !this.stringSource ? this.getStringSource(this.file) : this.stringSource;
 			});
 
 			modalElement.addEventListener("hidden.bs.modal", () => {
 				this.stringSource = "";
+				this._isUsingPdfConversion = false;
 			});
 		}
 	}
 
+	ngOnDestroy() {
+		this._isUsingPdfConversion = false;
+	}
+
 	get isDisabled(): boolean {
 		return !this.disabledExtensions.includes(this.extension);
+	}
+
+	get isConvertToPdf(): boolean {
+		return this.convertToPdfExtensions.includes(this.extension);
+	}
+
+	get isUsingPdfConversion(): boolean {
+		return this._isUsingPdfConversion;
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
@@ -148,8 +174,56 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	onRead() {
 		const modalElement = document.getElementById("readModal");
 		if (modalElement) {
-			const modal = new bootstrap.Modal(modalElement);
-			modal.show();
+			const modalInstance = bootstrap.Modal.getInstance(modalElement);
+			if (modalInstance) {
+				modalInstance.show();
+			} else {
+				// console.info("Modal instance not found, creating a new one.");
+				const newModalInstance = new bootstrap.Modal(modalElement);
+				modalElement.addEventListener("hidden.bs.modal", () => {
+					const modal = bootstrap.Modal.getInstance(modalElement);
+					if (modal) {
+						// hiding epub modal reader when converting to pdf.
+						modal.hide();
+					}
+				});
+				newModalInstance.show();
+			}
 		}
+	}
+
+	onConvertToPdf() {
+		try {
+			this.spinner.show();
+			this.booksService.convertToPdf(this.getStringSource(this.file), this.file.coverId);
+
+			this.booksService.convertToPdfIncomingMessage$.subscribe({
+				next: (msg) => {
+					this.spinner.hide();
+					const {success, error, pdfPath} = msg.data;
+					this._isUsingPdfConversion = true;
+
+					if (success === "OK") {
+						this.stringSource = pdfPath;
+						this.onRead();
+					} else {
+						console.error("Convert to PDF error:", error);
+						this.handleError(error || "Error converting to PDF.");
+					}
+				},
+				error: (error) => {
+					console.error("Error converting to PDF:", error);
+					this.spinner.hide();
+					this.handleError("Error converting to PDF.");
+				}
+			});
+		} catch (error) {
+			this.spinner.hide();
+			console.error("Error converting to PDF:", error);
+		}
+	}
+
+	private handleError(message: string) {
+		this.errorMessageService.open(message);
 	}
 }
