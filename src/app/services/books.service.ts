@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { catchError, Observable, retry, Subject, throwError } from "rxjs";
+import { catchError, retry, Subject, throwError } from "rxjs";
 import { WebSocketSubject } from "rxjs/internal/observable/dom/WebSocketSubject";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 

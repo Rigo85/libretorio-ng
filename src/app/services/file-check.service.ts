@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { catchError, map, Observable, of, throwError } from "rxjs";
+import { catchError, map, Observable, of } from "rxjs";
 
 import { HttpClient } from "@angular/common/http";
 import { CacheService } from "(src)/app/services/cache.service";

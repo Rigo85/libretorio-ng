@@ -9,7 +9,7 @@ import {
 	ViewChild
 } from "@angular/core";
 import { NgForOf, NgIf } from "@angular/common";
-import Hammer from "hammerjs";
+// import Hammer from "hammerjs";
 
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { onClose } from "(src)/app/components/helpers/utils";
