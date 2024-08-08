@@ -2,6 +2,7 @@ import { AfterViewInit, Component, Input, OnInit } from "@angular/core";
 import { catchError, from, map, Observable, of, startWith, tap } from "rxjs";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
+import { Router } from "@angular/router";
 
 import { File, filterObjectFields, hash } from "(src)/app/core/headers";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
@@ -14,6 +15,7 @@ import {
 import { FileCheckService } from "(src)/app/services/file-check.service";
 import { SearchDetailsPanelComponent } from "(src)/app/components/search-details-panel/search-details-panel.component";
 import { BooksService } from "(src)/app/services/books.service";
+import { UrlParamsService } from "(src)/app/services/url-params.service";
 
 declare var bootstrap: any;
 
@@ -72,7 +74,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	constructor(
 		private bookService: BooksService,
 		private fileCheckService: FileCheckService,
-		private spinner: NgxSpinnerService
+		private spinner: NgxSpinnerService,
+		private router: Router,
+		private urlParamsService: UrlParamsService
 	) { }
 
 	ngOnInit(): void {
@@ -105,6 +109,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				this.confirmationModal.show();
 			});
 
+		this.urlParamsService.fileMessage$
+			.subscribe((file: File) => {
+				this.onSelectFile(file);
+			});
 	}
 
 	ngAfterViewInit(): void {
@@ -118,10 +126,13 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.editBookDetailsModal = new bootstrap.Modal(editBookDetailsModalElement);
 			this.searchDetailsModal = new bootstrap.Modal(searchDetailsModalElement);
 			this.confirmationModal = new bootstrap.Modal(confirmationModalElement);
+
+			bookDetailsModalElement.addEventListener("hidden.bs.modal", this.onCloseDetailsModal.bind(this));
 		}
 	}
 
 	onSelectFile(file: File): void {
+		this.router.navigate(["/"], {queryParams: {parent: file.parentHash, file: file.coverId}});
 		this.selectedFile = file;
 		this.bookDetailsModal.show();
 	}
@@ -192,16 +203,6 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				hash(JSON.stringify(selectedFileDetails)) === hash(JSON.stringify($event["details"])) &&
 				this.selectedFile.customDetails === $event["customDetails"]
 			;
-
-			// console.info(hash(JSON.stringify(selectedFileDetails)));
-			// console.info(selectedFileDetails);
-			//
-			// console.info(hash(JSON.stringify($event["details"])));
-			// console.info($event["details"]);
-			//
-			// console.info(this.selectedFile.customDetails);
-			// console.info($event["customDetails"]);
-
 			if (!this.isEnabledSaveButton) {
 				this.editBookDetailsOptions = $event;
 			}
@@ -231,6 +232,12 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.spinner.show();
 			this.isEnabledSaveButton = true;
 			this.bookService.updateBookDetails(this.selectedFile);
+		}
+	}
+
+	onCloseDetailsModal() {
+		if (this.selectedFile) {
+			this.router.navigate(["/"], {queryParams: {parent: this.selectedFile.parentHash}});
 		}
 	}
 }
