@@ -8,6 +8,7 @@ import { Subject } from "rxjs";
 })
 export class UrlParamsService {
 	private _hasUrlParams: boolean = false;
+	private _wasClicked: boolean = false;
 	private _id?: string;
 	private _parentHash!: string;
 	private fileMessages = new Subject<File>();
@@ -37,6 +38,14 @@ export class UrlParamsService {
 
 	public set parentHash(value: string) {
 		this._parentHash = value;
+	}
+
+	get wasClicked(): boolean {
+		return this._wasClicked;
+	}
+
+	set wasClicked(value: boolean) {
+		this._wasClicked = value;
 	}
 
 	public setSelectedFile(file: File): void {

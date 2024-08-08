@@ -46,18 +46,22 @@ export class AppComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.route.queryParams.subscribe((params) => {
-			const parentHash: string = params["parent"]?.trim();
-			const fileCoverId: string = params["file"]?.trim();
-
 			this.spinner.show();
 
-			if (parentHash) {
-				this.urlParamsService.hasUrlParams = true;
-				this.urlParamsService.parentHash = parentHash;
-				this.urlParamsService.id = fileCoverId;
-				this.bookService.onBooksList(parentHash);
+			if (this.urlParamsService.wasClicked) {
+				this.urlParamsService.wasClicked = false;
 			} else {
-				this.bookService.onBooksList();
+				const parentHash: string = params["parent"]?.trim();
+				const fileCoverId: string = params["file"]?.trim();
+
+				if (parentHash) {
+					this.urlParamsService.hasUrlParams = true;
+					this.urlParamsService.parentHash = parentHash;
+					this.urlParamsService.id = fileCoverId;
+					this.bookService.onBooksList(parentHash);
+				} else {
+					this.bookService.onBooksList();
+				}
 			}
 		});
 
