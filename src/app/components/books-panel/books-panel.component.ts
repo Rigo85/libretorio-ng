@@ -132,7 +132,6 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	onSelectFile(file: File): void {
-		this.router.navigate(["/"], {queryParams: {parent: file.parentHash, file: file.coverId}});
 		this.selectedFile = file;
 		this.bookDetailsModal.show();
 	}

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
+
 import { Directory } from "(src)/app/core/headers";
-import { Router } from "@angular/router";
 
 @Injectable({
 	providedIn: "root"
@@ -9,8 +9,6 @@ export class CollapseStateService {
 	private _collapseStates: { [key: string]: boolean } = {};
 	private lastDirectory?: Directory;
 	private _initialized: boolean = false;
-
-	constructor(private router: Router) {}
 
 	initializeCollapseStates(directory?: Directory): void {
 		if (directory && !this._initialized) {
@@ -25,7 +23,6 @@ export class CollapseStateService {
 			}
 
 			initialize(this._collapseStates, directory);
-			this.router.navigate(["/"], {queryParams: {parent: directory.hash}});
 		}
 	}
 
@@ -51,8 +48,6 @@ export class CollapseStateService {
 			.forEach((hash: string) => {
 				this._collapseStates[hash] = !path.find((dp: string) => dp === hash);
 			});
-
-		this.router.navigate(["/"], {queryParams: {parent: hash}});
 	}
 
 	private searchTreePath(directory: Directory, hash: string): string[] {

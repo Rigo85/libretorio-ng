@@ -140,7 +140,8 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 			}
 		} catch (error) {
 			console.error("Error extracting ZIP:", error);
-			this.handleError("Error opening CBZ file.");
+			this.decompressing = true;
+			this.booksService.decompressFile(this.comicSrc, this.id);
 		}
 	}
 
