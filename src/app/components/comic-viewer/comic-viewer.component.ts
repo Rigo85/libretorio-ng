@@ -89,7 +89,7 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 		this.spinner.show().catch((error) => {console.info("Error showing spinner:", error);});
 
-		if (["COMIC-MANGA", "EPUB"].includes(this.fileKind.toString())) {
+		if (["COMIC-MANGA"].includes(this.fileKind.toString())) {
 			this.decompressing = true;
 			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
 		} else if (this.fileKind === FileKind.FILE) {
