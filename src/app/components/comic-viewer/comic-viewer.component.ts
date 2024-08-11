@@ -19,6 +19,7 @@ import { ErrorMessageComponent } from "(src)/app/components/error-message/error-
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { BooksService } from "(src)/app/services/books.service";
+import { FileKind } from "(src)/app/core/headers";
 
 @Component({
 	selector: "comic-viewer",
@@ -34,6 +35,7 @@ import { BooksService } from "(src)/app/services/books.service";
 export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@Input() comicSrc!: string;
 	@Input() id!: string;
+	@Input() fileKind!: FileKind;
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
@@ -86,19 +88,25 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		}
 
 		this.spinner.show().catch((error) => {console.info("Error showing spinner:", error);});
-		this.http.get(url, {responseType: "arraybuffer"})
-			.subscribe({
-				next: (arrayBuffer) => {
-					const buffer = Buffer.from(arrayBuffer);
-					const fileName = url.toLowerCase();
-					this.extractComic(fileName, buffer).catch((error) => {console.info("Error extracting comic:", error);});
-				},
-				error: (error) => {
-					this.spinner.hide();
-					console.error("Error loading comic:", error);
-					this.handleError("Error loading comic.");
-				}
-			});
+
+		if (["COMIC-MANGA", "EPUB"].includes(this.fileKind.toString())) {
+			this.decompressing = true;
+			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
+		} else if (this.fileKind === FileKind.FILE) {
+			this.http.get(url, {responseType: "arraybuffer"})
+				.subscribe({
+					next: (arrayBuffer) => {
+						const buffer = Buffer.from(arrayBuffer);
+						const fileName = url.toLowerCase();
+						this.extractComic(fileName, buffer).catch((error) => {console.info("Error extracting comic:", error);});
+					},
+					error: (error) => {
+						this.spinner.hide();
+						console.error("Error loading comic:", error);
+						this.handleError("Error loading comic.");
+					}
+				});
+		}
 	}
 
 	private async extractComic(fileName: string, buffer: Buffer) {
@@ -141,7 +149,7 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		} catch (error) {
 			console.error("Error extracting ZIP:", error);
 			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc, this.id);
+			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
 		}
 	}
 
@@ -178,13 +186,13 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		} catch (error: any) {
 			console.error("Failed to load WASM file or extract RAR while attempting to decompress on the backend:", error.message);
 			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc, this.id);
+			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
 		}
 	}
 
 	private async extract7z(buffer: Buffer): Promise<void> {
 		this.decompressing = true;
-		this.booksService.decompressFile(this.comicSrc, this.id);
+		this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
 	}
 
 	private getImageFormat(fileName: string): string {

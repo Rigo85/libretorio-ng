@@ -5,7 +5,7 @@ import { catchError, from, Observable, of } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
 import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
 
-import { File, getExtension } from "(src)/app/core/headers";
+import { File, FileKind, getExtension } from "(src)/app/core/headers";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { DescriptionPipe } from "(src)/app/pipes/description.pipe";
@@ -92,7 +92,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	get isDisabled(): boolean {
-		return !this.disabledExtensions.includes(this.extension);
+		return !this.disabledExtensions.includes(this.extension) && !["EPUB", "COMIC-MANGA"].includes(this.file.fileKind.toString());
 	}
 
 	get isConvertToPdf(): boolean {
@@ -113,8 +113,15 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		return !file.customDetails ? file.coverId : coverId;
 	}
 
-	onDownload(file: { parentPath: string; name: string }) {
-		const fileUrl = `${file.parentPath}/${file.name}`;
+	onDownload(file: { parentPath: string; name: string, coverId: string, fileKind: FileKind }): void {
+		let fileUrl: string;
+
+		if (file.fileKind === FileKind.FILE) {
+			fileUrl = `${file.parentPath}/${file.name}`;
+		} else {
+			fileUrl = `cache/${file.coverId}/${file.coverId}.zip`;
+		}
+
 		this.downloadService.downloadFile(fileUrl).pipe(
 			catchError((error: HttpErrorResponse) => {
 				this.downloadMessage = this.getErrorMessage(error);

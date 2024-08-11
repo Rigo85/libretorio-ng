@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { File } from "(src)/app/core/headers";
+import { File, FileKind } from "(src)/app/core/headers";
 
 @Pipe({
 	name: "ext",
@@ -8,6 +8,10 @@ import { File } from "(src)/app/core/headers";
 export class ExtensionPipe implements PipeTransform {
 
 	transform(value: File): string {
+		if(value.fileKind !== FileKind.FILE){
+			return value.fileKind.toString();
+		}
+
 		const split = value.name.split(".");
 		let result;
 		if (value.name.includes(".") && split.length > 1 && split[split.length - 1].length < 5) {

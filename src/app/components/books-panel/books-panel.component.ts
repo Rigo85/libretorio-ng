@@ -2,9 +2,8 @@ import { AfterViewInit, Component, Input, OnInit } from "@angular/core";
 import { catchError, from, map, Observable, of, startWith, tap } from "rxjs";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
-import { Router } from "@angular/router";
 
-import { File, filterObjectFields, hash } from "(src)/app/core/headers";
+import { File, FileKind, filterObjectFields, hash } from "(src)/app/core/headers";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
@@ -70,12 +69,19 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		first_sentence: [] // string[]
 	};
 	editBookDetailsOptions: any = {};
+	readonly File = File;
+	readonly FileKind = FileKind;
+	specialDirectoriesColors: Record<string, string> = {
+		"COMIC-MANGA": "#3d6636",
+		"EPUB": "#363866",
+		"FILE": "#55595c",
+		"NONE:": "#55595c"
+	};
 
 	constructor(
 		private bookService: BooksService,
 		private fileCheckService: FileCheckService,
 		private spinner: NgxSpinnerService,
-		private router: Router,
 		private urlParamsService: UrlParamsService
 	) { }
 
@@ -236,7 +242,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 	onCloseDetailsModal() {
 		if (this.selectedFile) {
-			this.router.navigate(["/"], {queryParams: {parent: this.selectedFile.parentHash}});
+			// this.router.navigate(["/"], {queryParams: {parent: this.selectedFile.parentHash}});
 		}
 	}
+
 }

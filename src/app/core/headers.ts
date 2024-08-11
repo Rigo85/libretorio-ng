@@ -2,6 +2,15 @@ import CryptoJS from "crypto-js";
 
 declare var stringSimilarity: any;
 
+export enum FileKind {
+	/* eslint-disable @typescript-eslint/naming-convention */
+	FILE = "FILE",
+	COMIC_MANGA = "COMIC-MANGA",
+	EPUB = "EPUB",
+	NONE = "NONE"
+	/* eslint-enable @typescript-eslint/naming-convention */
+}
+
 export interface File {
 	id: number;
 	name: string;
@@ -12,6 +21,7 @@ export interface File {
 	localDetails?: any;
 	webDetails?: any;
 	customDetails?: boolean;
+	fileKind: FileKind;
 }
 
 export interface Directory {

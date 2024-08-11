@@ -3,7 +3,7 @@ import { catchError, retry, Subject, throwError } from "rxjs";
 import { WebSocketSubject } from "rxjs/internal/observable/dom/WebSocketSubject";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
-import { File } from "(src)/app/core/headers";
+import { File, FileKind } from "(src)/app/core/headers";
 
 interface IncomingMessage {
 	event: string;
@@ -86,8 +86,8 @@ export class BooksService {
 		this.sendMessage({event: "search_text", data: {searchText}});
 	}
 
-	public decompressFile(filePath: string, id: string) {
-		this.sendMessage({event: "decompress", data: {filePath, id}});
+	public decompressFile(filePath: string, id: string, fileKind: FileKind) {
+		this.sendMessage({event: "decompress", data: {filePath, id, fileKind}});
 	}
 
 	public convertToPdf(filePath: string, coverId: string) {

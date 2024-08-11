@@ -15,6 +15,7 @@ import { ErrorMessageComponent } from "(src)/app/components/error-message/error-
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
+import { FileKind } from "(src)/app/core/headers";
 
 declare var ePub: any;
 
@@ -33,6 +34,7 @@ declare var ePub: any;
 export class EpubViewerComponent implements OnChanges, OnInit {
 	@Input() epubSrc!: string;
 	@ViewChild("tocList", {static: true}) tocList!: ElementRef;
+	@Input() fileKind!: FileKind;
 	onClose = onClose;
 	private book: any;
 	private rendition: any;
@@ -78,12 +80,11 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 		this.book = ePub();
 
 		try {
-			await this.book.open(src);
+			await this.book.open(this.fileKind === FileKind.FILE ? src : `${src}/OEBPS/content.opf`);
 
 			this.spinner.show();
 			await this.book.locations.generate(1024);
 			this.spinner.hide();
-
 
 			await this.createAndDisplayRendition(viewerElement);
 			await this.book.ready;
