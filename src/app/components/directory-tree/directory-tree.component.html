@@ -12,7 +12,7 @@
 		[class.collapse]="directory && isCollapsed(directory.hash)"
 		[class.show]="directory && !isCollapsed( directory.hash )"
 		[id]="directory?.hash"
-		style="overflow-y: hidden;"
+		style="overflow-y: hidden;overflow-x: hidden;"
 	>
 		<ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
 			<li *ngFor="let subDir of directory?.directories">

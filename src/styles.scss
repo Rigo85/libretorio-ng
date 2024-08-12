@@ -34,11 +34,6 @@ header {
 	max-height: 71px;
 }
 
-.list-container {
-	max-height: calc(100vh - 150px - 250px);
-	overflow-y: auto;
-}
-
 .collapse {
 	max-height: 200px;
 	overflow-y: auto;
@@ -157,12 +152,22 @@ footer {
 }
 
 .list-container {
-	flex-grow: 1;
+	//flex-grow: 1;
+	display: block;
+	max-height: calc(100vh - 150px - 250px);
+	min-width: 248px;
 	overflow-y: auto;
+	overflow-x: auto;
+	//white-space: nowrap;
 }
 
 .list-unstyled {
-	height: 100%;
+	max-height: calc(100vh - 150px - 250px);
+	display: inline-block;
+}
+
+.list-unstyled li {
+	min-width: 248px; /* Ajusta según sea necesario */
 }
 
 .clickable-area {
