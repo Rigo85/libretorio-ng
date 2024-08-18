@@ -260,6 +260,15 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 		}
 	}
 
+	// @HostListener("window:wheel", ["$event"])
+	// onScroll(event: WheelEvent) {
+	// 	if (event.deltaY > 0) {
+	// 		this.nextPage();
+	// 	} else if (event.deltaY < 0) {
+	// 		this.prevPage();
+	// 	}
+	// }
+
 	// private extractTar(buffer: Buffer): void {
 	// 	decompress(buffer, {plugins: [decompressTar()]}).then((files: any[]) => {
 	// 		files.forEach((file: any) => {

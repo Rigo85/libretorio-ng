@@ -33,6 +33,7 @@ export interface Directory {
 export interface ScanResult {
 	directories?: Directory;
 	files: File[];
+	total: number;
 }
 
 export interface OpenLibraryBook {

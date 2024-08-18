@@ -9,6 +9,7 @@ export class CollapseStateService {
 	private _collapseStates: { [key: string]: boolean } = {};
 	private lastDirectory?: Directory;
 	private _initialized: boolean = false;
+	private _lastHash?: string;
 
 	initializeCollapseStates(directory?: Directory): void {
 		if (directory && !this._initialized) {
@@ -38,7 +39,12 @@ export class CollapseStateService {
 		this._initialized = value;
 	}
 
+	get lastHash(): string | undefined {
+		return this._lastHash;
+	}
+
 	toggleCollapseState(hash: string): void {
+		this._lastHash = hash;
 		let path = [] as string[];
 		if (this.lastDirectory) {
 			path = this.searchTreePath(this.lastDirectory, hash);

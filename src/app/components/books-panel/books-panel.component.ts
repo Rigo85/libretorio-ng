@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, Input, OnInit } from "@angular/core";
-import { catchError, from, map, Observable, of, startWith, tap } from "rxjs";
+import { AfterViewInit, Component, OnInit } from "@angular/core";
+import { catchError, from, map, Observable, of, shareReplay, startWith, tap } from "rxjs";
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
-import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
+import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
-import { File, FileKind, filterObjectFields, hash } from "(src)/app/core/headers";
+import { File, filterObjectFields, hash, ScanResult } from "(src)/app/core/headers";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
@@ -15,6 +15,8 @@ import { FileCheckService } from "(src)/app/services/file-check.service";
 import { SearchDetailsPanelComponent } from "(src)/app/components/search-details-panel/search-details-panel.component";
 import { BooksService } from "(src)/app/services/books.service";
 import { UrlParamsService } from "(src)/app/services/url-params.service";
+import { CollapseStateService } from "(src)/app/services/collapse-state.service";
+import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.service";
 
 declare var bootstrap: any;
 
@@ -37,7 +39,10 @@ declare var bootstrap: any;
 	styleUrls: ["./books-panel.component.scss"]
 })
 export class BooksPanelComponent implements AfterViewInit, OnInit {
-	@Input() files!: File[];
+	// @Input() files!: File[];
+	// @Input() total: number = 0;
+	files: File[] = [];
+	total: number = 0;
 	selectedFile?: File;
 	bookDetailsModal: any;
 	editBookDetailsModal: any;
@@ -70,22 +75,58 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	};
 	editBookDetailsOptions: any = {};
 	readonly File = File;
-	readonly FileKind = FileKind;
 	specialDirectoriesColors: Record<string, string> = {
 		"COMIC-MANGA": "#3d6636",
 		"EPUB": "#363866",
 		"FILE": "#55595c",
 		"NONE:": "#55595c"
 	};
+	loading = false;
+	itemsPerLoad = 50;
+	overlapCount = 5;
+	currentStartIndex = 0;
+	private isScrollingDown: boolean = true;
 
 	constructor(
 		private bookService: BooksService,
 		private fileCheckService: FileCheckService,
 		private spinner: NgxSpinnerService,
-		private urlParamsService: UrlParamsService
+		private urlParamsService: UrlParamsService,
+		private collapseStateService: CollapseStateService,
+		private leftPanelUpdateService: LeftPanelUpdateService
 	) { }
 
 	ngOnInit(): void {
+		this.bookService.onBooksList();
+
+		this.bookService.incomingMessage$.pipe(
+			catchError((err) => {
+				console.error("WebSocket error occurred:", err);
+				return [];
+			}),
+			map((msg) => msg.data as ScanResult),
+			tap((scanResult) => {
+				this.collapseStateService.initializeCollapseStates(scanResult.directories);
+
+				this.total = scanResult.total ?? 0;
+				if (scanResult.directories) {
+					this.leftPanelUpdateService.setDirectories(scanResult.directories);
+				}
+
+				this.files = scanResult.files;
+
+				// if (this.isScrollingDown) {
+				// 	console.info("files count:", scanResult.files.length);
+				// 	console.info("files: ", scanResult.files.map((file) => file.name).slice(0, this.overlapCount));
+				// } else {
+				// 	console.info("files count:", scanResult.files.length);
+				// 	console.info("files: ", scanResult.files.map((file) => file.name).slice(-this.overlapCount));
+				// }
+			}),
+			startWith({files: [], total: 0}),
+			shareReplay(1)
+		).subscribe();
+
 		this.searchDetails$ = this.bookService.searchDetailsIncomingMessage$.pipe(
 			map((msg) => {
 				return msg.data as any[];
@@ -195,7 +236,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 	clearUpdateMessage() {
 		this.updateMessage = undefined;
-		this.bookService.onBooksList();
+		this.bookService.onBooksList(this.collapseStateService.lastHash);
 	}
 
 	onEditBookDetails($event: any) {
@@ -246,4 +287,64 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		}
 	}
 
+	onScroll($event: Event) {
+		const element = $event.target as HTMLElement;
+		const scrollTop = element.scrollTop;
+
+		// Si el scroll está al inicio, carga los elementos anteriores
+		// console.info({scrollTop, index: this.currentStartIndex});
+		if (scrollTop === 0 && this.currentStartIndex > 0 && !this.loading) {
+			this.loadPreviousItems();
+		}
+
+		// Si el scroll está al final, carga los siguientes elementos
+		if (scrollTop + element.clientHeight >= element.scrollHeight && !this.loading) {
+			this.loadNextItems();
+		}
+
+		// const threshold = 50;
+		// // Si el scroll está cerca del inicio, carga los elementos anteriores
+		// if (scrollTop <= threshold && this.currentStartIndex > 0) {
+		// 	this.loadPreviousItems();
+		// }
+		//
+		// // Si el scroll está cerca del final, carga los siguientes elementos
+		// if (scrollTop + element.clientHeight >= element.scrollHeight - threshold) {
+		// 	this.loadNextItems();
+		// }
+	}
+
+	private loadNextItems(): void {
+		if (this.currentStartIndex + this.itemsPerLoad < this.total) {
+			this.currentStartIndex += this.itemsPerLoad - this.overlapCount;
+			this.isScrollingDown = true;
+
+			this.bookService.onBooksList(
+				this.collapseStateService.lastHash,
+				this.currentStartIndex,
+				this.itemsPerLoad);
+
+			const element = document.querySelector(".album") as HTMLElement;
+			element.scrollTop = 50;
+		}
+	}
+
+	private loadPreviousItems(): void {
+		if (this.currentStartIndex > 0) {
+			this.currentStartIndex = Math.max(this.currentStartIndex - (this.itemsPerLoad - this.overlapCount), 0);
+			this.isScrollingDown = false;
+
+			this.bookService.onBooksList(
+				this.collapseStateService.lastHash,
+				this.currentStartIndex,
+				this.itemsPerLoad);
+
+			const element = document.querySelector(".album") as HTMLElement;
+
+			setTimeout(() => {
+				const offset = Math.max(1, element.clientHeight * 0.1); // Ajusta el 10% de la altura visible
+				element.scrollTop = element.scrollHeight - element.clientHeight - offset;
+			}, 500);
+		}
+	}
 }

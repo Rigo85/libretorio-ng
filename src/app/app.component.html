@@ -20,10 +20,10 @@
 
 <!--<theme-toggler></theme-toggler>-->
 <main class="d-flex flex-nowrap">
-	<left-panel *ngIf="scanResult$ | async as scanResult" [directory]="scanResult.directories"></left-panel>
+	<left-panel></left-panel>
 	<div class="content-container">
 		<header-panel></header-panel>
-		<books-panel *ngIf="scanResult$ | async as scanResult" [files]="scanResult.files"></books-panel>
+		<books-panel></books-panel>
 	</div>
 </main>
 <footer-panel></footer-panel>
