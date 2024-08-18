@@ -1,4 +1,5 @@
 import {
+	ChangeDetectorRef,
 	Component,
 	ElementRef,
 	HostListener,
@@ -9,17 +10,13 @@ import {
 	SimpleChanges
 } from "@angular/core";
 import { NgForOf } from "@angular/common";
-import { HttpClient } from "@angular/common/http";
-import JSZip from "jszip";
-import { createExtractorFromData } from "node-unrar-js";
-import { Buffer } from "buffer";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { BooksService } from "(src)/app/services/books.service";
-import { FileKind } from "(src)/app/core/headers";
+import { DecompressPages, FileKind } from "(src)/app/core/headers";
 
 @Component({
 	selector: "comic-viewer",
@@ -39,13 +36,16 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
+	relativeCurrentPage: number = 1;
 	private totalPages: number = 0;
+	private currentPagesLength: number = 0;
+	private index: number = 0;
+	private pageIndex: number = 0;
 	private separator = " / ";
-	private decompressing = false;
 	private scrollElement?: HTMLElement;
+	private isBackward: boolean = false;
 
 	constructor(
-		private http: HttpClient,
 		private errorMessageService: ErrorMessageService,
 		private elementRef: ElementRef,
 		private spinner: NgxSpinnerService,
@@ -56,6 +56,8 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 			this.pages = [];
 			this.totalPages = 0;
 			this.currentPage = 1;
+			this.relativeCurrentPage = 1;
+			this.currentPagesLength = 0;
 			this.loadComic(this.comicSrc);
 		}
 	}
@@ -67,13 +69,19 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	ngOnInit() {
 		this.booksService.decompressIncomingMessage$.subscribe((message) => {
 			const {success, error, pages} = message.data;
-
-			this.decompressing = false;
 			this.spinner.hide();
 
 			if (success === "OK") {
-				this.pages = pages;
-				this.totalPages = pages.length;
+				this.pages = pages.pages;
+				this.totalPages = pages.totalPages;
+				// this.currentPage = pages.pageIndex;
+				this.currentPagesLength = pages.currentPagesLength;
+				if (this.isBackward) {
+					this.isBackward = false;
+					this.relativeCurrentPage = pages.currentPagesLength;
+				}
+				this.index = pages.index;
+				this.pageIndex = pages.pageIndex;
 			} else {
 				this.handleError(error);
 			}
@@ -87,120 +95,8 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 			return;
 		}
 
-		this.spinner.show().catch((error) => {console.info("Error showing spinner:", error);});
-
-		if (["COMIC-MANGA"].includes(this.fileKind.toString())) {
-			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
-		} else if (this.fileKind === FileKind.FILE) {
-			this.http.get(url, {responseType: "arraybuffer"})
-				.subscribe({
-					next: (arrayBuffer) => {
-						const buffer = Buffer.from(arrayBuffer);
-						const fileName = url.toLowerCase();
-						this.extractComic(fileName, buffer).catch((error) => {console.info("Error extracting comic:", error);});
-					},
-					error: (error) => {
-						this.spinner.hide();
-						console.error("Error loading comic:", error);
-						this.handleError("Error loading comic.");
-					}
-				});
-		}
-	}
-
-	private async extractComic(fileName: string, buffer: Buffer) {
-		const dispatch: Record<string, (buffer: Buffer) => Promise<void>> = {
-			"cbz": this.extractZip.bind(this),
-			"cbr": this.extractRar.bind(this),
-			// "cbt": this.extractTar,
-			"cb7": this.extract7z.bind(this)
-		};
-
-		const extension: string = fileName.split(".").pop() ?? "";
-
-		if (extension && dispatch[extension]) {
-			try {
-				await dispatch[extension](buffer);
-				if (!this.decompressing) {
-					await this.spinner.hide();
-				}
-			} catch (error) {
-				await this.spinner.hide();
-				console.error(`Error extracting ${extension.toUpperCase()}:`, error);
-				this.handleError(`Error opening ${extension.toUpperCase()} file.`);
-			}
-		}
-	}
-
-	private async extractZip(buffer: Buffer): Promise<void> {
-		try {
-			const zip = await JSZip.loadAsync(buffer);
-			const files = Object.keys(zip.files).sort();
-			for (const relativePath of files) {
-				const file = zip.files[relativePath];
-				if (relativePath.endsWith(".jpg") || relativePath.endsWith(".png")) {
-					const imageBuffer = await file.async("arraybuffer");
-					const base64 = `data:image/${this.getImageFormat(relativePath)};base64,${Buffer.from(imageBuffer).toString("base64")}`;
-					this.pages.push(base64);
-					this.totalPages++;
-				}
-			}
-		} catch (error) {
-			console.error("Error extracting ZIP:", error);
-			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
-		}
-	}
-
-	private async extractRar(buffer: Buffer): Promise<void> {
-		try {
-			const wasmBinary = await fetch("/assets/unrar.wasm").then(response => response.arrayBuffer());
-			const extractor = await createExtractorFromData({data: buffer, wasmBinary});
-			const extracted = extractor.extract();
-
-			const sortedFiles = Array
-				.from(extracted.files)
-				.sort((a, b) => a.fileHeader.name.localeCompare(b.fileHeader.name))
-			;
-
-			for (const file of sortedFiles) {
-				if (file.fileHeader.flags.directory) {
-					console.info(`Skipping directory: "${file.fileHeader.name}"`);
-					continue;
-				}
-
-				if (file.fileHeader.name.endsWith(".jpg") || file.fileHeader.name.endsWith(".png")) {
-					const imageBuffer = file.extraction;
-					if (imageBuffer) {
-						const base64 = `data:image/${this.getImageFormat(file.fileHeader.name)};base64,${Buffer.from(imageBuffer).toString("base64")}`;
-						this.pages.push(base64);
-						this.totalPages++;
-					} else {
-						console.error(`Failed to extract image: "${file.fileHeader.name}"`);
-					}
-				} else {
-					console.log(`Skipping non-image file: ${file.fileHeader.name}"`);
-				}
-			}
-		} catch (error: any) {
-			console.error("Failed to load WASM file or extract RAR while attempting to decompress on the backend:", error.message);
-			this.decompressing = true;
-			this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
-		}
-	}
-
-	private async extract7z(buffer: Buffer): Promise<void> {
-		this.decompressing = true;
+		this.spinner.show();
 		this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
-	}
-
-	private getImageFormat(fileName: string): string {
-		if (fileName.endsWith(".png")) {
-			return "png";
-		} else {
-			return "jpeg";
-		}
 	}
 
 	private handleError(message: string) {
@@ -209,15 +105,31 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	private nextPage() {
 		if (this.currentPage < this.totalPages) {
-			this.currentPage++;
-			this.scrollToTop();
+			if (this.relativeCurrentPage < this.currentPagesLength) {
+				this.currentPage++;
+				this.relativeCurrentPage++;
+				this.scrollToTop();
+			} else {
+				this.spinner.show();
+				this.relativeCurrentPage = 1;
+				this.currentPage++;
+				this.booksService.getMorePages(this.id, this.index + 1);
+			}
 		}
 	}
 
 	private prevPage() {
 		if (this.currentPage > 1) {
-			this.currentPage--;
-			this.scrollToTop();
+			if (this.relativeCurrentPage > 1) {
+				this.currentPage--;
+				this.relativeCurrentPage--;
+				this.scrollToTop();
+			} else {
+				this.spinner.show();
+				this.currentPage--;
+				this.isBackward = true;
+				this.booksService.getMorePages(this.id, this.index - 1);
+			}
 		}
 	}
 
@@ -259,26 +171,5 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 			}
 		}
 	}
-
-	// @HostListener("window:wheel", ["$event"])
-	// onScroll(event: WheelEvent) {
-	// 	if (event.deltaY > 0) {
-	// 		this.nextPage();
-	// 	} else if (event.deltaY < 0) {
-	// 		this.prevPage();
-	// 	}
-	// }
-
-	// private extractTar(buffer: Buffer): void {
-	// 	decompress(buffer, {plugins: [decompressTar()]}).then((files: any[]) => {
-	// 		files.forEach((file: any) => {
-	// 			if (file.path.endsWith(".jpg") || file.path.endsWith(".png")) {
-	// 				const base64 = `data:image/jpeg;base64,${file.data.toString("base64")}`;
-	// 				this.pages.push(base64);
-	// 			}
-	// 		});
-	// 	});
-	// }
-
 
 }

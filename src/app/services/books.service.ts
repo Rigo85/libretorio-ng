@@ -93,4 +93,8 @@ export class BooksService {
 	public convertToPdf(filePath: string, coverId: string) {
 		this.sendMessage({event: "convert_to_pdf", data: {filePath, id: coverId}});
 	}
+
+	public getMorePages(id: string, index: number) {
+		this.sendMessage({event: "get_more_pages", data: {id, index}});
+	}
 }

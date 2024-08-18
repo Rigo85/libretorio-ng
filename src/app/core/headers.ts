@@ -99,6 +99,14 @@ export interface DialogMessage {
 	caption: string;
 }
 
+export interface DecompressPages {
+	pages: any[];
+	pageIndex: number;
+	currentPagesLength: number;
+	totalPages: number;
+	index: number;
+}
+
 export function cleanFilename(filename: string, lowerCase: boolean = true): string {
 	const _filename = filename
 		.replace(/\.[^/.]+$/, "")
