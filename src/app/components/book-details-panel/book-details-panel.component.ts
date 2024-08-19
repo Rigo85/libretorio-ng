@@ -51,7 +51,10 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	stringSource: string = "";
 	extension: string = "N/A";
 	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
-	convertToPdfExtensions: string[] = ["epub", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "rtf", "txt", "html", "htm", "lit"];
+	convertToPdfExtensions: string[] = [
+		"epub", "doc", "docx", "ppt", "pptx", "xls",
+		"xlsx", "rtf", "txt", "html", "htm", "lit"
+	];
 	_isUsingPdfConversion: boolean = false;
 
 	constructor(

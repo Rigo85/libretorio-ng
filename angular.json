@@ -17,6 +17,9 @@
 				"build": {
 					"builder": "@angular-devkit/build-angular:application",
 					"options": {
+						"allowedCommonJsDependencies": [
+							"crypto-js"
+						],
 						"outputPath": "dist/libretorio-ng",
 						"index": "src/index.html",
 						"browser": "src/main.ts",
@@ -58,8 +61,8 @@
 							"budgets": [
 								{
 									"type": "initial",
-									"maximumWarning": "500kB",
-									"maximumError": "1MB"
+									"maximumWarning": "3MB",
+									"maximumError": "5MB"
 								},
 								{
 									"type": "anyComponentStyle",

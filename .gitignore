@@ -41,6 +41,7 @@ testem.log
 .DS_Store
 Thumbs.db
 public/covers/
+public/temp_covers/
 public/media/
 public/cache/
 public/cache
