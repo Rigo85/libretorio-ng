@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { DirectoryTreeComponent } from "(src)/app/components/directory-tree/directory-tree.component";
 import { Directory } from "(src)/app/core/headers";
 import { NgOptimizedImage } from "@angular/common";

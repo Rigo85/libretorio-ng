@@ -1,5 +1,4 @@
 import {
-	ChangeDetectorRef,
 	Component,
 	ElementRef,
 	HostListener,
@@ -16,7 +15,7 @@ import { ErrorMessageComponent } from "(src)/app/components/error-message/error-
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { BooksService } from "(src)/app/services/books.service";
-import { DecompressPages, FileKind } from "(src)/app/core/headers";
+import { FileKind } from "(src)/app/core/headers";
 
 @Component({
 	selector: "comic-viewer",

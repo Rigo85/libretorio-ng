@@ -31,10 +31,6 @@ export class CollapseStateService {
 		return this._collapseStates;
 	}
 
-	get initialized(): boolean {
-		return this._initialized;
-	}
-
 	set initialized(value: boolean) {
 		this._initialized = value;
 	}

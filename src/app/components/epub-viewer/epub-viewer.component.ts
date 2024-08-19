@@ -147,16 +147,16 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 		}
 	}
 
-	private addSwipeDetection(element: any) {
-		// if (element) {
-		// 	const hammer = new Hammer(element);
-		// 	hammer.get("swipe").set({direction: Hammer.DIRECTION_HORIZONTAL});
-		// 	// hammer.on("swipeleft", () => this.nextPage());
-		// 	// hammer.on("swiperight", () => this.prevPage());
-		// } else {
-		// 	console.error("Could not find the viewer element in iframe.");
-		// }
-	}
+	// private addSwipeDetection(element: any) {
+	// 	// if (element) {
+	// 	// 	const hammer = new Hammer(element);
+	// 	// 	hammer.get("swipe").set({direction: Hammer.DIRECTION_HORIZONTAL});
+	// 	// 	// hammer.on("swipeleft", () => this.nextPage());
+	// 	// 	// hammer.on("swiperight", () => this.prevPage());
+	// 	// } else {
+	// 	// 	console.error("Could not find the viewer element in iframe.");
+	// 	// }
+	// }
 
 	private handleError(message: string) {
 		this.errorMessageService.open(message);
@@ -229,21 +229,21 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 		// }
 	}
 
-	private isMobileDevice(): boolean {
-		return window.matchMedia("(pointer: coarse)").matches;
-	}
+	// private isMobileDevice(): boolean {
+	// 	return window.matchMedia("(pointer: coarse)").matches;
+	// }
 
-	private nextPage() {
-		if (this.rendition) {
-			this.rendition.next();
-		}
-	}
-
-	private prevPage() {
-		if (this.rendition) {
-			this.rendition.prev();
-		}
-	}
+	// private nextPage() {
+	// 	if (this.rendition) {
+	// 		this.rendition.next();
+	// 	}
+	// }
+	//
+	// private prevPage() {
+	// 	if (this.rendition) {
+	// 		this.rendition.prev();
+	// 	}
+	// }
 
 	onFontSizeChange(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
