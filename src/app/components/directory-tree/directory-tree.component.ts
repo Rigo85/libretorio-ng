@@ -1,5 +1,6 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, NgZone } from "@angular/core";
 import { NgForOf } from "@angular/common";
+import { first } from "rxjs";
 
 import { Directory } from "(src)/app/core/headers";
 import { BooksService } from "(src)/app/services/books.service";
@@ -20,12 +21,16 @@ export class DirectoryTreeComponent {
 
 	constructor(
 		private bookService: BooksService,
-		private collapseStateService: CollapseStateService) { }
+		private collapseStateService: CollapseStateService,
+		private ngZone: NgZone) { }
 
 	onClick(hash?: string) {
 		if (!hash) return;
 		this.collapseStateService.toggleCollapseState(hash);
-		this.bookService.onBooksList(hash);
+
+		this.ngZone.onStable.pipe(first()).subscribe(() => {
+			this.bookService.onBooksList(hash);
+		});
 	}
 
 	isCollapsed(hash: string | undefined): boolean {
