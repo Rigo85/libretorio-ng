@@ -154,7 +154,7 @@ footer {
 .list-container {
 	//flex-grow: 1;
 	display: block;
-	max-height: calc(100vh - 150px - 250px);
+	max-height: calc(100vh - 150px - 250px - 20px);
 	min-width: 248px;
 	overflow-y: auto;
 	overflow-x: auto;
@@ -162,7 +162,7 @@ footer {
 }
 
 .list-unstyled {
-	max-height: calc(100vh - 150px - 250px);
+	max-height: calc(100vh - 150px - 250px - 20px);
 	display: inline-block;
 }
 
