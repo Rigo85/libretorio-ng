@@ -19,6 +19,7 @@ import { ComicViewerComponent } from "(src)/app/components/comic-viewer/comic-vi
 import { BooksService } from "(src)/app/services/books.service";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
+import { FullPathPipe } from "(src)/app/pipes/full-path.pipe";
 
 declare var bootstrap: any;
 
@@ -39,7 +40,8 @@ declare var bootstrap: any;
 		EpubViewerComponent,
 		ComicViewerComponent,
 		NgxSpinnerModule,
-		ErrorMessageComponent
+		ErrorMessageComponent,
+		FullPathPipe
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
