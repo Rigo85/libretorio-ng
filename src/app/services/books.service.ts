@@ -34,7 +34,8 @@ export class BooksService {
 
 	constructor() {
 		// TODO: Change the IP address to the server's IP address.
-		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3005");
+		// this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3000");
+		this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.25:3005");
 
 		this.webSocket
 			.pipe(
@@ -82,8 +83,8 @@ export class BooksService {
 		this.sendMessage({event: "update", data: file});
 	}
 
-	public onSearchText(searchText: string) {
-		this.sendMessage({event: "search_text", data: {searchText}});
+	public onSearchText(searchText: string, offset: number = 0, limit: number = 50) {
+		this.sendMessage({event: "search_text", data: {searchText, offset, limit}});
 	}
 
 	public decompressFile(filePath: string, id: string, fileKind: FileKind) {

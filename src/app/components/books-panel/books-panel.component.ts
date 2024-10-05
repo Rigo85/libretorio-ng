@@ -17,6 +17,7 @@ import { BooksService } from "(src)/app/services/books.service";
 import { UrlParamsService } from "(src)/app/services/url-params.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.service";
+import { SearchTextService } from "(src)/app/services/search-text.service";
 
 declare var bootstrap: any;
 
@@ -39,8 +40,6 @@ declare var bootstrap: any;
 	styleUrls: ["./books-panel.component.scss"]
 })
 export class BooksPanelComponent implements AfterViewInit, OnInit {
-	// @Input() files!: File[];
-	// @Input() total: number = 0;
 	files: File[] = [];
 	total: number = 0;
 	selectedFile?: File;
@@ -93,7 +92,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		private spinner: NgxSpinnerService,
 		private urlParamsService: UrlParamsService,
 		private collapseStateService: CollapseStateService,
-		private leftPanelUpdateService: LeftPanelUpdateService
+		private leftPanelUpdateService: LeftPanelUpdateService,
+		private searchTextService: SearchTextService
 	) { }
 
 	ngOnInit(): void {
@@ -102,6 +102,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		this.bookService.incomingMessage$.pipe(
 			catchError((err) => {
 				console.error("WebSocket error occurred:", err);
+				this.spinner.hide();
 				return [];
 			}),
 			map((msg) => msg.data as ScanResult),
@@ -114,6 +115,11 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				this.files = scanResult.files;
+
+				// console.info(this.files);
+				// console.info("total:", this.total);
+
+				this.spinner.hide();
 
 				// if (this.isScrollingDown) {
 				// 	console.info("files count:", scanResult.files.length);
@@ -301,28 +307,26 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		if (scrollTop + element.clientHeight >= element.scrollHeight && !this.loading) {
 			this.loadNextItems();
 		}
-
-		// const threshold = 50;
-		// // Si el scroll está cerca del inicio, carga los elementos anteriores
-		// if (scrollTop <= threshold && this.currentStartIndex > 0) {
-		// 	this.loadPreviousItems();
-		// }
-		//
-		// // Si el scroll está cerca del final, carga los siguientes elementos
-		// if (scrollTop + element.clientHeight >= element.scrollHeight - threshold) {
-		// 	this.loadNextItems();
-		// }
 	}
 
 	private loadNextItems(): void {
+		// console.info("loadNextItems");
+
 		if (this.currentStartIndex + this.itemsPerLoad < this.total) {
 			this.currentStartIndex += this.itemsPerLoad - this.overlapCount;
 			this.isScrollingDown = true;
 
-			this.bookService.onBooksList(
-				this.collapseStateService.lastHash,
-				this.currentStartIndex,
-				this.itemsPerLoad);
+			if (!this.searchTextService.searchText.trim()) {
+				this.bookService.onBooksList(
+					this.collapseStateService.lastHash,
+					this.currentStartIndex,
+					this.itemsPerLoad);
+			} else {
+				this.bookService.onSearchText(
+					this.searchTextService.searchText,
+					this.currentStartIndex,
+					this.itemsPerLoad);
+			}
 
 			const element = document.querySelector(".album") as HTMLElement;
 			element.scrollTop = 50;
@@ -330,14 +334,23 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	private loadPreviousItems(): void {
+		// console.info("loadPreviousItems");
+
 		if (this.currentStartIndex > 0) {
 			this.currentStartIndex = Math.max(this.currentStartIndex - (this.itemsPerLoad - this.overlapCount), 0);
 			this.isScrollingDown = false;
 
-			this.bookService.onBooksList(
-				this.collapseStateService.lastHash,
-				this.currentStartIndex,
-				this.itemsPerLoad);
+			if (!this.searchTextService.searchText.trim()) {
+				this.bookService.onBooksList(
+					this.collapseStateService.lastHash,
+					this.currentStartIndex,
+					this.itemsPerLoad);
+			} else {
+				this.bookService.onSearchText(
+					this.searchTextService.searchText,
+					this.currentStartIndex,
+					this.itemsPerLoad);
+			}
 
 			const element = document.querySelector(".album") as HTMLElement;
 

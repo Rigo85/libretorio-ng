@@ -3,20 +3,27 @@ import { FormsModule } from "@angular/forms";
 
 import { BooksService } from "(src)/app/services/books.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
+import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
+import { SearchTextService } from "(src)/app/services/search-text.service";
 
 @Component({
 	selector: "header-panel",
 	standalone: true,
 	imports: [
-		FormsModule
+		FormsModule,
+		NgxSpinnerModule
 	],
 	templateUrl: "./header-panel.component.html",
 	styleUrl: "./header-panel.component.scss"
 })
 export class HeaderPanelComponent implements AfterViewInit {
-	searchText: string = "";
 
-	constructor(private booksService: BooksService, private collapseState: CollapseStateService) {}
+	constructor(
+		private booksService: BooksService,
+		private collapseState: CollapseStateService,
+		private spinner: NgxSpinnerService,
+		private searchTextService: SearchTextService
+	) {}
 
 	ngAfterViewInit(): void {
 		this.handleSidebar();
@@ -31,11 +38,18 @@ export class HeaderPanelComponent implements AfterViewInit {
 		}
 	}
 
+	get searchText(): string {
+		return this.searchTextService.searchText;
+	}
+
+	set searchText(value: string) {
+		this.searchTextService.searchText = value;
+	}
+
 	handleEnter(): void {
 		this.booksService.onSearchText(this.searchText);
 		this.collapseState.initialized = false;
-		// TODO: revisar el loading modal.
-		this.searchText = "";
+		this.spinner.show();
 	}
 
 	handleEscape(): void {
