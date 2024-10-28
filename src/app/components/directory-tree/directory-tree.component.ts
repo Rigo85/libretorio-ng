@@ -5,6 +5,7 @@ import { first } from "rxjs";
 import { Directory } from "(src)/app/core/headers";
 import { BooksService } from "(src)/app/services/books.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
+import { SearchTextService } from "(src)/app/services/search-text.service";
 
 @Component({
 	selector: "directory-tree",
@@ -22,12 +23,13 @@ export class DirectoryTreeComponent {
 	constructor(
 		private bookService: BooksService,
 		private collapseStateService: CollapseStateService,
-		private ngZone: NgZone) { }
+		private ngZone: NgZone,
+		private searchTextService: SearchTextService) { }
 
 	onClick(hash?: string) {
 		if (!hash) return;
 		this.collapseStateService.toggleCollapseState(hash);
-
+		this.searchTextService.searchText = "";
 		this.ngZone.onStable.pipe(first()).subscribe(() => {
 			this.bookService.onBooksList(hash);
 		});
