@@ -8,14 +8,9 @@
 	>
 		{{ directory?.name }}
 	</button>
-	<div
-		[class.collapse]="directory && isCollapsed(directory.hash)"
-		[class.show]="directory && !isCollapsed( directory.hash )"
-		[id]="directory?.hash"
-		style="overflow-y: hidden;overflow-x: hidden;"
-	>
+	<div *ngIf="directory && !isCollapsed(directory.hash)">
 		<ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-			<li *ngFor="let subDir of directory?.directories">
+			<li *ngFor="let subDir of directory?.directories; trackBy: trackByHash">
 				<directory-tree [directory]="subDir" [nestingLevel]="nestingLevel + 1"></directory-tree>
 			</li>
 		</ul>

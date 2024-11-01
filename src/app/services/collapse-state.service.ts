@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from "@angular/core";
+import { Injectable } from "@angular/core";
 
 import { Directory } from "(src)/app/core/headers";
 
@@ -11,7 +11,7 @@ export class CollapseStateService {
 	private _initialized: boolean = false;
 	private _lastHash?: string;
 
-	constructor(private ngZone: NgZone) {}
+	constructor() {}
 
 	initializeCollapseStates(directory?: Directory): void {
 		if (directory && !this._initialized) {
@@ -48,23 +48,14 @@ export class CollapseStateService {
 			path = this.searchTreePath(this.lastDirectory, hash);
 		}
 
-		// console.info("Path:", path);
-
 		if (path.length) {
-			this.ngZone.runOutsideAngular(() => {
-				const clickedHash = path[path.length - 1];
-				const clickedHashState = this._collapseStates[clickedHash];
-				Object.keys(this._collapseStates).forEach((hash: string) => this._collapseStates[hash] = true);
-				// console.info("Clicked Hash:", clickedHash);
-				// console.info("Clicked Hash State:", clickedHashState);
-				path.forEach((p: string) => this._collapseStates[p] = false);
-				if (!clickedHashState) {
-					this._collapseStates[path[path.length - 1]] = true;
-				}
-				// console.info("Clicked Hash State After:", this._collapseStates[clickedHash]);
-			});
-
-			this.ngZone.run(() => {});
+			const clickedHash = path[path.length - 1];
+			const clickedHashState = this._collapseStates[clickedHash];
+			Object.keys(this._collapseStates).forEach((hash: string) => this._collapseStates[hash] = true);
+			path.forEach((p: string) => this._collapseStates[p] = false);
+			if (!clickedHashState) {
+				this._collapseStates[path[path.length - 1]] = true;
+			}
 		}
 	}
 

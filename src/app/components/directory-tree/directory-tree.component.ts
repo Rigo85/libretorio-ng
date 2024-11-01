@@ -1,6 +1,5 @@
 import { Component, Input, NgZone } from "@angular/core";
-import { NgForOf } from "@angular/common";
-import { first } from "rxjs";
+import { NgForOf, NgIf } from "@angular/common";
 
 import { Directory } from "(src)/app/core/headers";
 import { BooksService } from "(src)/app/services/books.service";
@@ -11,7 +10,8 @@ import { SearchTextService } from "(src)/app/services/search-text.service";
 	selector: "directory-tree",
 	standalone: true,
 	imports: [
-		NgForOf
+		NgForOf,
+		NgIf
 	],
 	templateUrl: "./directory-tree.component.html",
 	styleUrl: "./directory-tree.component.scss"
@@ -23,20 +23,21 @@ export class DirectoryTreeComponent {
 	constructor(
 		private bookService: BooksService,
 		private collapseStateService: CollapseStateService,
-		private ngZone: NgZone,
 		private searchTextService: SearchTextService) { }
 
 	onClick(hash?: string) {
 		if (!hash) return;
 		this.collapseStateService.toggleCollapseState(hash);
 		this.searchTextService.searchText = "";
-		this.ngZone.onStable.pipe(first()).subscribe(() => {
-			this.bookService.onBooksList(hash);
-		});
+		this.bookService.onBooksList(hash);
 	}
 
 	isCollapsed(hash: string | undefined): boolean {
 		if (!hash) return false;
 		return this.collapseStateService.collapseStates[hash];
+	}
+
+	trackByHash(index: number, subDir: Directory): string {
+		return subDir?.hash ?? "";
 	}
 }
