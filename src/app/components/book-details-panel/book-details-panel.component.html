@@ -153,6 +153,9 @@
 							  [id]="file.coverId"
 							  [fileKind]="file.fileKind">
 				</comic-viewer>
+				<audiobook-viewer *ngIf="['AUDIOBOOK'].includes(file | ext)"
+								  [audiobookSrc]="stringSource">
+				</audiobook-viewer>
 			</div>
 		</div>
 	</div>

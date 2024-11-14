@@ -20,6 +20,7 @@ import { BooksService } from "(src)/app/services/books.service";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { FullPathPipe } from "(src)/app/pipes/full-path.pipe";
+import { AudiobookViewerComponent } from "(src)/app/components/audiobook-viewer/audiobook-viewer.component";
 
 declare var bootstrap: any;
 
@@ -41,7 +42,8 @@ declare var bootstrap: any;
 		ComicViewerComponent,
 		NgxSpinnerModule,
 		ErrorMessageComponent,
-		FullPathPipe
+		FullPathPipe,
+		AudiobookViewerComponent
 	],
 	templateUrl: "./book-details-panel.component.html",
 	styleUrl: "./book-details-panel.component.scss"
@@ -97,7 +99,9 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	get isDisabled(): boolean {
-		return !this.disabledExtensions.includes(this.extension) && !["EPUB", "COMIC-MANGA"].includes(this.file.fileKind.toString());
+		return !this.disabledExtensions.includes(this.extension) &&
+			!["EPUB", "COMIC-MANGA", "AUDIOBOOK"].includes(this.file.fileKind.toString())
+			;
 	}
 
 	get isConvertToPdf(): boolean {

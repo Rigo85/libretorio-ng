@@ -1,0 +1,15 @@
+<div class="audio-list-container">
+	<div *ngFor="let audio of audioFiles" class="audio-item">
+		<div class="audio-name">{{ audio.title }}</div>
+		<audio controls>
+			<source [src]="audio.src" [type]="audio.type">
+			Tu navegador no soporta el elemento de audio.
+		</audio>
+		<hr>
+	</div>
+</div>
+
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
+	<p style="color: white"> Loading... </p>
+</ngx-spinner>
+<error-message [onClose]="onClose"></error-message>

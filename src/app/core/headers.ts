@@ -7,8 +7,15 @@ export enum FileKind {
 	FILE = "FILE",
 	COMIC_MANGA = "COMIC-MANGA",
 	EPUB = "EPUB",
+	AUDIOBOOK = "AUDIOBOOK",
 	NONE = "NONE"
 	/* eslint-enable @typescript-eslint/naming-convention */
+}
+
+export interface AudioBookMetadata {
+	title: string;
+	src: string;
+	type: string;
 }
 
 export interface File {

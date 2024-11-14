@@ -78,6 +78,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		"COMIC-MANGA": "#3d6636",
 		"EPUB": "#363866",
 		"FILE": "#55595c",
+		"AUDIOBOOK": "#66691e",
 		"NONE:": "#55595c"
 	};
 	loading = false;

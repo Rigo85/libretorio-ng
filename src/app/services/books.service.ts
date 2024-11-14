@@ -32,6 +32,9 @@ export class BooksService {
 	private convertToPdfIncomingMessages = new Subject<IncomingMessage>();
 	public convertToPdfIncomingMessage$ = this.convertToPdfIncomingMessages.asObservable();
 
+	private audioBookIncomingMessages = new Subject<IncomingMessage>();
+	public audioBookIncomingMessage$ = this.audioBookIncomingMessages.asObservable();
+
 	constructor() {
 		// TODO: Change the IP address to the server's IP address.
 		// this.webSocket = new WebSocketSubject<IncomingMessage>("ws://192.168.0.16:3000");
@@ -60,6 +63,8 @@ export class BooksService {
 						this.decompressIncomingMessages.next(msg);
 					} else if (msg.event === "convert_to_pdf") {
 						this.convertToPdfIncomingMessages.next(msg);
+					} else if (msg.event === "get_audio_book") {
+						this.audioBookIncomingMessages.next(msg);
 					}
 				},
 				error: err => console.error(err),
@@ -97,5 +102,9 @@ export class BooksService {
 
 	public getMorePages(id: string, index: number) {
 		this.sendMessage({event: "get_more_pages", data: {id, index}});
+	}
+
+	public getAudioBook(filePath: string) {
+		this.sendMessage({event: "get_audio_book", data: {filePath}});
 	}
 }
