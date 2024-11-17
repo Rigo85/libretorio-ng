@@ -116,8 +116,9 @@ export interface DecompressPages {
 
 export function cleanFilename(filename: string, lowerCase: boolean = true): string {
 	const _filename = filename
+		.normalize("NFC")
 		.replace(/\.[^/.]+$/, "")
-		.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ0-9 ]/g, " ")
+		.replace(/[^a-zA-ZÀ-ÿ0-9 ]+/g, " ")
 		.replace(/\s+/g, " ");
 
 	return lowerCase ? _filename.toLowerCase() : _filename;
@@ -125,7 +126,8 @@ export function cleanFilename(filename: string, lowerCase: boolean = true): stri
 
 export function cleanTitle(title: string, lowerCase: boolean = true): string {
 	const _title = title
-		.replace(/[^a-zA-Z'ñÑáéíóúÁÉÍÓÚ0-9 ]/g, " ")
+		.normalize("NFC")
+		.replace(/[^a-zA-ZÀ-ÿ0-9 ]+/g, " ")
 		.replace(/\s+/g, " ");
 
 	return lowerCase ? _title.toLowerCase() : _title;
