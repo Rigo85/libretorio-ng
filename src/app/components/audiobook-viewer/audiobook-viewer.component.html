@@ -45,7 +45,8 @@
 			<li *ngFor="let track of playlist; let i = index" (click)="selectTrack(i)"
 				[class.selected]="i === currentTrackIndex">
 				<div class="track-info">
-					<span class="track-title d-inline-block text-truncate">{{ track.title }}</span>
+<!--					<span class="track-title d-inline-block text-truncate">{{ track.title }}</span>-->
+					<span class="track-title">{{ track.title }}</span>
 					<span class="track-duration">{{ track.length }}</span>
 				</div>
 			</li>

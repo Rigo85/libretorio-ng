@@ -118,8 +118,6 @@ input[type="range"] {
 	color: #000; /* Opcional: cambiar el color del texto */
 }
 
-
-
 .track-info {
 	display: flex;
 	justify-content: space-between;
@@ -128,9 +126,11 @@ input[type="range"] {
 
 .track-title {
 	flex-grow: 1;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	white-space: break-spaces;
+	overflow-wrap: break-word;
+	//white-space: nowrap;
+	//overflow: hidden;
+	//text-overflow: ellipsis;
 }
 
 .track-duration {
