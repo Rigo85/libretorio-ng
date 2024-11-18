@@ -21,6 +21,7 @@ import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { FullPathPipe } from "(src)/app/pipes/full-path.pipe";
 import { AudiobookViewerComponent } from "(src)/app/components/audiobook-viewer/audiobook-viewer.component";
+import { StopPlayingService } from "(src)/app/services/stop-playing.service";
 
 declare var bootstrap: any;
 
@@ -66,7 +67,8 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		private downloadService: DownloadService,
 		private booksService: BooksService,
 		private spinner: NgxSpinnerService,
-		private errorMessageService: ErrorMessageService) {}
+		private errorMessageService: ErrorMessageService,
+		private stopPlayingService: StopPlayingService) {}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["file"]) {
@@ -201,6 +203,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 					if (modal) {
 						// hiding epub modal reader when converting to pdf.
 						modal.hide();
+						this.stopPlayingService.stopPlayingAudio();
 					}
 				});
 				newModalInstance.show();

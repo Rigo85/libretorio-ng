@@ -1,20 +1,140 @@
-.audio-list-container {
+@import 'material-icons/iconfont/material-icons.css';
+
+.audio-player {
+	max-width: 400px;
+	min-width: 400px;
+	/* Centra horizontalmente el contenedor */
+	margin: 1rem auto 0;
+	font-family: "Roboto Light", sans-serif;
+	display: flex; /* Convierte el contenedor en un flexbox */
+	flex-direction: column; /* Alinea los elementos hijos verticalmente */
+	align-items: center; /* Centra horizontalmente los elementos hijos */
+}
+
+.audio-player > div {
+	margin: 0; /* Elimina los márgenes entre el reproductor y la lista de reproducción */
+}
+
+.progress-bar {
 	display: flex;
-	flex-direction: column;
-	align-items: center; /* Centra los elementos horizontalmente */
-	margin-top: 20px;
+	flex-direction: row; /* Asegura alineación horizontal */
+	align-items: center;
+	justify-content: space-between;
+	width: 100%; /* Ajusta el ancho según sea necesario */
+	margin: 10px 0; /* Espaciado superior e inferior */
 }
 
-.audio-item {
-	width: 80%; /* El ancho de cada elemento será del 80% */
-	margin-bottom: 20px;
+.controls button {
+	width: 45px;
+	height: 45px;
+	border-radius: 50%; /* Hacer el botón redondo */
+	border: none;
+	background-color: #202020;
+	color: #fff; /* Color blanco para los íconos */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	outline: none;
+	transition: background-color 0.3s ease, transform 0.1s ease; /* Transición suave */
 }
 
-.audio-name {
+.controls button:hover {
+	background-color: #3e3d3d; /* Opcional: cambia el color al pasar el mouse */
+}
+
+.controls button:active {
+	background-color: #d0d0d0; /* Color al presionar el botón */
+	transform: scale(0.95); /* Efecto de presionar */
+}
+
+.controls button:focus {
+	box-shadow: 0 0 0 2px #a0a0a0; /* Añade un contorno al enfocar */
+}
+
+.time {
+	flex-shrink: 0;
+	font-size: 0.9rem; /* Ajustar el tamaño para que sea más legible */
+	color: #555; /* Color gris suave para un contraste adecuado */
+}
+
+input[type="range"] {
+	flex-grow: 1;
+	margin: 0 10px;
+	cursor: pointer;
+}
+
+.controls {
+	min-width: 350px;
+	display: flex;
+	justify-content: space-around;
+	margin-top: 10px;
+}
+
+.current-track {
+	max-width: 350px;
+	text-align: center;
+	margin-top: 10px;
+	margin-bottom: 10px;
 	font-weight: bold;
-	margin-bottom: 5px;
+	font-size: 1.2rem;
 }
 
-audio {
-	width: 100%;
+.playlist {
+	width: 400px;
+	margin-top: 10px;
+	max-height: 350px;
+	overflow-y: auto;
+	border-top: 1px solid #ddd; /* Línea divisoria para la lista de reproducción */
+	//background-color: #3e3d3d; /* Color de fondo suave */
+	padding: 20px;
+}
+
+.top-panel {
+	//border: 1px solid;
+	padding: 20px;
+	max-width: 400px;
+	min-width: 400px;
+}
+
+.playlist ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.playlist li {
+	padding: 10px;
+	cursor: pointer;
+	transition: background-color 0.3s ease; /* Transición suave */
+}
+
+.playlist li:hover {
+	background-color: #3e3d3d;
+}
+
+.playlist li.selected {
+	background-color: #d0d0d0; /* Color de fondo para el elemento seleccionado */
+	color: #000; /* Opcional: cambiar el color del texto */
+}
+
+
+
+.track-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.track-title {
+	flex-grow: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.track-duration {
+	margin-left: 10px;
+	font-size: 0.9rem;
+	color: #555;
 }

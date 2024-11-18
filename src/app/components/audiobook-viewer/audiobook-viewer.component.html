@@ -1,13 +1,58 @@
-<div class="audio-list-container">
-	<div *ngFor="let audio of audioFiles" class="audio-item">
-		<div class="audio-name">{{ audio.title }}</div>
-		<audio controls>
-			<source [src]="audio.src" [type]="audio.type">
-			Tu navegador no soporta el elemento de audio.
-		</audio>
-		<hr>
+<div class="audio-player">
+	<div class="top-panel">
+		<!-- Nombre del audio actual -->
+		<div class="current-track">
+			<span class="d-inline-block text-truncate" style="max-width: 350px;">{{ currentTrack?.title }}</span>
+		</div>
+
+		<!-- Barra de seguimiento -->
+		<div class="progress-bar">
+			<span class="time current-time">{{ formatTime(currentTime) }}</span>
+			<input type="range" (input)="seek($event)" [value]="currentTime" [max]="duration">
+			<span class="time total-time">{{ formatTime(duration) }}</span>
+		</div>
+
+		<!-- Botonera de control -->
+		<div class="controls">
+			<button (click)="toggleRepeat()">
+				<i *ngIf="isRepeating" class="material-icons">sync</i>
+				<i *ngIf="!isRepeating" class="material-icons">sync_disabled</i>
+			</button>
+
+			<button (click)="previous()">
+				<i class="material-icons">skip_previous</i>
+			</button>
+
+			<button (click)="togglePlayPause()">
+				<i *ngIf="isPlaying" class="material-icons">pause</i>
+				<i *ngIf="!isPlaying" class="material-icons">play_arrow</i>
+			</button>
+
+			<button (click)="next()">
+				<i class="material-icons">skip_next</i>
+			</button>
+
+			<button (click)="toggleContinuousPlay()">
+				<i *ngIf="isContinuous" class="material-icons">playlist_play</i>
+				<i *ngIf="!isContinuous" class="material-icons">playlist_remove</i>
+			</button>
+		</div>
+
+	</div>
+	<!-- Lista de reproducción -->
+	<div class="playlist" #playlistContainer>
+		<ul>
+			<li *ngFor="let track of playlist; let i = index" (click)="selectTrack(i)"
+				[class.selected]="i === currentTrackIndex">
+				<div class="track-info">
+					<span class="track-title d-inline-block text-truncate">{{ track.title }}</span>
+					<span class="track-duration">{{ track.length }}</span>
+				</div>
+			</li>
+		</ul>
 	</div>
 </div>
+
 
 <ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
 	<p style="color: white"> Loading... </p>
