@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, Renderer2 } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { AsyncPipe, NgIf } from "@angular/common";
 
@@ -26,5 +26,7 @@ import { FooterPanelComponent } from "(src)/app/components/footer-panel/footer-p
 })
 export class AppComponent {
 
-	constructor() { }
+	constructor(private renderer: Renderer2) {
+		this.renderer.setAttribute(document.body, "data-bs-theme", "dark");
+	}
 }
