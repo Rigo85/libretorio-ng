@@ -119,6 +119,7 @@ export function cleanFilename(filename: string, lowerCase: boolean = true): stri
 	const _filename = filename
 		.normalize("NFC")
 		.replace(/\.[^/.]+$/, "")
+		.replace(/[‘’]/g, "'")
 		.replace(/[^a-zA-ZÀ-ÿ0-9' ]+/g, " ")
 		.replace(/\s+/g, " ");
 
@@ -128,6 +129,7 @@ export function cleanFilename(filename: string, lowerCase: boolean = true): stri
 export function cleanTitle(title: string, lowerCase: boolean = true): string {
 	const _title = title
 		.normalize("NFC")
+		.replace(/[‘’]/g, "'")
 		.replace(/[^a-zA-ZÀ-ÿ0-9' ]+/g, " ")
 		.replace(/\s+/g, " ");
 
