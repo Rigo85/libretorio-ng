@@ -33,7 +33,7 @@
 		"hammerjs": "^2.0.8",
 		"jszip": "^3.10.1",
 		"material-icons": "^1.13.12",
-		"ngx-extended-pdf-viewer": "^21.0.0-alpha.13",
+		"ngx-extended-pdf-viewer": "^22.0.0-alpha.11",
 		"ngx-spinner": "^17.0.0",
 		"node-unrar-js": "^2.0.2",
 		"rxjs": "~7.8.0",
