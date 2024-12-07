@@ -1,5 +1,5 @@
-import { Component, Input, NgZone } from "@angular/core";
-import { NgForOf, NgIf } from "@angular/common";
+import { Component, Input } from "@angular/core";
+import { NgForOf, NgIf, Location } from "@angular/common";
 
 import { Directory } from "(src)/app/core/headers";
 import { BooksService } from "(src)/app/services/books.service";
@@ -23,13 +23,15 @@ export class DirectoryTreeComponent {
 	constructor(
 		private bookService: BooksService,
 		private collapseStateService: CollapseStateService,
-		private searchTextService: SearchTextService) { }
+		private searchTextService: SearchTextService,
+		private location: Location) { }
 
 	onClick(hash?: string) {
 		if (!hash) return;
 		this.collapseStateService.toggleCollapseState(hash);
 		this.searchTextService.searchText = "";
 		this.bookService.onBooksList(hash);
+		this.location.go(`/parent/${encodeURIComponent(hash)}`);
 	}
 
 	isCollapsed(hash: string | undefined): boolean {
