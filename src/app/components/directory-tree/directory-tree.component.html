@@ -1,6 +1,6 @@
 <li class="mb-1" [style.margin-left.px]="nestingLevel * 10">
 	<button
-		class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed"
+		class="btn btn-toggle d-inline-flex align-items-center justify-content-start text-start rounded border-0 collapsed"
 		data-bs-toggle="collapse"
 		[attr.data-bs-target]="'#' + directory?.hash"
 		[attr.aria-expanded]="directory && isCollapsed(directory.hash) ? 'false' : 'true'"
