@@ -19,7 +19,6 @@ import { FileKind } from "(src)/app/core/headers";
 
 @Component({
 	selector: "comic-viewer",
-	standalone: true,
 	imports: [
 		NgForOf,
 		ErrorMessageComponent,

@@ -6,7 +6,6 @@ import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.ser
 
 @Component({
 	selector: "left-panel",
-	standalone: true,
 	imports: [
 		DirectoryTreeComponent,
 		NgOptimizedImage

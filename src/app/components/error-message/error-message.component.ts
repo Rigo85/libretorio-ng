@@ -8,7 +8,6 @@ declare var bootstrap: any;
 
 @Component({
 	selector: "error-message",
-	standalone: true,
 	imports: [],
 	templateUrl: "./error-message.component.html",
 	styleUrl: "./error-message.component.scss"

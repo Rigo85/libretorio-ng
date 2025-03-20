@@ -24,7 +24,6 @@ declare var bootstrap: any;
 
 @Component({
 	selector: "books-panel",
-	standalone: true,
 	imports: [
 		ExtensionPipe,
 		AuthorPipe,
@@ -124,7 +123,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				this.files = scanResult.files;
-				if(this.paramsCoverId){
+				if (this.paramsCoverId) {
 					const file = this.files.find((file) => file.coverId === this.paramsCoverId);
 					if (file) {
 						this.onSelectFile(file);

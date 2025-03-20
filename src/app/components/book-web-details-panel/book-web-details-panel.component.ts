@@ -7,7 +7,6 @@ import { catchError, from, Observable, of } from "rxjs";
 
 @Component({
 	selector: "book-web-details-panel",
-	standalone: true,
 	imports: [
 		NgIf,
 		AsyncPipe,
@@ -31,7 +30,7 @@ export class BookWebDetailsPanelComponent {
 	get publishDate(): string {
 		const dates = this.openLibraryBook.publish_date ?? [];
 
-		if(Array.isArray(dates)) {
+		if (Array.isArray(dates)) {
 			return dates.join("; ");
 		} else {
 			return dates;

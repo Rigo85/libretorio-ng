@@ -10,7 +10,6 @@ import { StopPlayingService } from "(src)/app/services/stop-playing.service";
 
 @Component({
 	selector: "audiobook-viewer",
-	standalone: true,
 	imports: [
 		NgxSpinnerModule,
 		ErrorMessageComponent,

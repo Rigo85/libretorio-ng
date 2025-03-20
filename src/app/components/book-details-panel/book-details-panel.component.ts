@@ -27,7 +27,6 @@ declare var bootstrap: any;
 
 @Component({
 	selector: "book-details-panel",
-	standalone: true,
 	imports: [
 		AuthorPipe,
 		TitlePipe,

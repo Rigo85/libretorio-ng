@@ -8,7 +8,6 @@ import { SearchTextService } from "(src)/app/services/search-text.service";
 
 @Component({
 	selector: "directory-tree",
-	standalone: true,
 	imports: [
 		NgForOf,
 		NgIf

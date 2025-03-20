@@ -8,7 +8,6 @@ import { SearchTextService } from "(src)/app/services/search-text.service";
 
 @Component({
 	selector: "header-panel",
-	standalone: true,
 	imports: [
 		FormsModule,
 		NgxSpinnerModule

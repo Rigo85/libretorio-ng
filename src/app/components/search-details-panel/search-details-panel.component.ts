@@ -20,7 +20,6 @@ declare var bootstrap: any;
 
 @Component({
 	selector: "search-details-panel",
-	standalone: true,
 	imports: [
 		AsyncPipe,
 		NgForOf,

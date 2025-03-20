@@ -10,7 +10,6 @@ import { FooterPanelComponent } from "(src)/app/components/footer-panel/footer-p
 
 @Component({
 	selector: "app-root",
-	standalone: true,
 	imports: [
 		RouterOutlet,
 		ThemeTogglerComponent,

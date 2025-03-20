@@ -10,7 +10,6 @@ import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 
 @Component({
 	selector: "edit-book-details-panel",
-	standalone: true,
 	imports: [
 		ReactiveFormsModule,
 		NgForOf,

@@ -21,7 +21,6 @@ declare var ePub: any;
 
 @Component({
 	selector: "epub-viewer",
-	standalone: true,
 	imports: [
 		ErrorMessageComponent,
 		NgForOf,

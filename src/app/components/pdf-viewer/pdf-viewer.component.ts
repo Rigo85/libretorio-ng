@@ -8,7 +8,6 @@ import { ErrorMessageService } from "(src)/app/services/error-message.service";
 
 @Component({
 	selector: "pdf-viewer",
-	standalone: true,
 	imports: [
 		NgIf,
 		NgxExtendedPdfViewerModule,
