@@ -1,14 +1,4 @@
-import {
-	Component,
-	ElementRef,
-	HostListener,
-	Input,
-	OnChanges,
-	OnDestroy,
-	OnInit,
-	SimpleChanges
-} from "@angular/core";
-import { NgForOf } from "@angular/common";
+import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
@@ -20,7 +10,6 @@ import { FileKind } from "(src)/app/core/headers";
 @Component({
 	selector: "comic-viewer",
 	imports: [
-		NgForOf,
 		ErrorMessageComponent,
 		NgxSpinnerModule
 	],

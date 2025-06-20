@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
+import { AsyncPipe, NgIf } from "@angular/common";
 import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
 import { catchError, from, Observable, of } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
-import { NgxSpinnerService, NgxSpinnerModule } from "ngx-spinner";
+import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { File, FileKind, getExtension } from "(src)/app/core/headers";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
@@ -34,7 +34,6 @@ declare var bootstrap: any;
 		SubjectPipe,
 		NgIf,
 		AsyncPipe,
-		NgOptimizedImage,
 		PdfViewerComponent,
 		NgxExtendedPdfViewerModule,
 		ExtensionPipe,

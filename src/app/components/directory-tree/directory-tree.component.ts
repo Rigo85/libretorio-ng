@@ -27,8 +27,11 @@ export class DirectoryTreeComponent {
 
 	onClick(hash?: string) {
 		if (!hash) return;
+		// const collapsed = this.isCollapsed(hash);
 		this.collapseStateService.toggleCollapseState(hash);
 		this.searchTextService.searchText = "";
+		this.isCollapsed(hash);
+		// this.bookService.onBooksList(hash, !collapsed);
 		this.bookService.onBooksList(hash);
 		this.location.go(`/parent/${encodeURIComponent(hash)}`);
 	}

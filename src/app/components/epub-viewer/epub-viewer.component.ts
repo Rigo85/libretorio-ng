@@ -3,14 +3,12 @@ import {
 	ElementRef,
 	HostListener,
 	Input,
-	OnChanges, OnInit,
+	OnChanges,
+	OnInit,
 	Renderer2,
 	SimpleChanges,
 	ViewChild
 } from "@angular/core";
-import { NgForOf, NgIf } from "@angular/common";
-// import Hammer from "hammerjs";
-
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
@@ -23,8 +21,6 @@ declare var ePub: any;
 	selector: "epub-viewer",
 	imports: [
 		ErrorMessageComponent,
-		NgForOf,
-		NgIf,
 		NgxSpinnerModule
 	],
 	templateUrl: "./epub-viewer.component.html",

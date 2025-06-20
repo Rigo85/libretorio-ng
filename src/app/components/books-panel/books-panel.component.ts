@@ -351,6 +351,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			if (!this.searchTextService.searchText.trim()) {
 				this.bookService.onBooksList(
 					this.collapseStateService.lastHash,
+					false,
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			} else {
@@ -375,6 +376,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			if (!this.searchTextService.searchText.trim()) {
 				this.bookService.onBooksList(
 					this.collapseStateService.lastHash,
+					false,
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			} else {

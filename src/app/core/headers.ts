@@ -142,7 +142,8 @@ export function getTitle(file: File): string {
 	if (file.customDetails) {
 		title = cleanTitle(file.webDetails?.title ?? "", false);
 	} else {
-		const filename = cleanFilename(file.name);
+		const archiveName = cleanAnnaArchiveSuffixFromTitle(file.name);
+		const filename = cleanFilename(archiveName);
 		const localTitle = cleanTitle(file.localDetails?.title ?? "");
 		const webTitle = cleanTitle(file.webDetails?.title ?? "");
 
@@ -151,11 +152,18 @@ export function getTitle(file: File): string {
 		} else if (stringSimilarity.compareTwoStrings(filename, webTitle) >= 0.5) {
 			title = cleanTitle(file.webDetails?.title ?? "", false);
 		} else {
-			title = cleanFilename(file.name, false);
+			title = cleanFilename(archiveName, false);
 		}
 	}
 
 	return title;
+}
+
+export function cleanAnnaArchiveSuffixFromTitle(title: string): string {
+	return title.includes("Anna’s Archive") ?
+		title.split(" -- ")[0].trim() :
+		title
+		;
 }
 
 export function filterObjectFields(objToFilter: Record<string, any>, fieldFilter: string[]): any {

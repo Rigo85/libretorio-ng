@@ -1,7 +1,7 @@
-@import "@docsearch/css/dist/style";
-@import "bootstrap/scss/bootstrap";
-@import "bootstrap-icons/font/bootstrap-icons.css";
-@import "../node_modules/ngx-spinner/animations/square-jelly-box.css";
+@use "@docsearch/css/dist/style";
+@use "bootstrap/scss/bootstrap";
+@use "bootstrap-icons/font/bootstrap-icons.css";
+@use "../node_modules/ngx-spinner/animations/square-jelly-box.css";
 
 html, body {
 	height: 100%;
@@ -19,7 +19,8 @@ main {
 .album {
 	flex-grow: 1;
 	overflow-y: auto;
-	height: calc(100vh - 185px); /* Ajusta esta altura según tus necesidades */
+	//height: calc(100vh - 185px); /* Ajusta esta altura según tus necesidades */
+	height: calc(100vh - 71px - 65px); /* Ajusta esta altura según tus necesidades */
 }
 
 .content-container {
@@ -47,11 +48,12 @@ footer {
 
 @media (max-width: 768px) {
 	footer {
-		height: 80px;
+		height: 65px;
 	}
 
 	main {
 		max-height: calc(100vh - 130px);
+		//max-height: calc(100vh - 80px);
 		overflow: hidden;
 	}
 }
@@ -154,7 +156,8 @@ footer {
 .list-container {
 	//flex-grow: 1;
 	display: block;
-	max-height: calc(100vh - 150px - 250px - 30px);
+	//max-height: calc(100vh - 150px - 250px - 30px);
+	max-height: calc(100vh - 250px - 65px - 1rem);
 	min-width: 248px;
 	overflow-y: auto;
 	overflow-x: auto;

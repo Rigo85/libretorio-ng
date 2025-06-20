@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { AsyncPipe, NgForOf, NgIf, NgOptimizedImage } from "@angular/common";
+import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { catchError, from, Observable, of } from "rxjs";
 
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -16,7 +16,6 @@ import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 		AsyncPipe,
 		TitlePipe,
 		NgIf,
-		NgOptimizedImage,
 		ExtensionPipe
 	],
 	templateUrl: "./edit-book-details-panel.component.html",

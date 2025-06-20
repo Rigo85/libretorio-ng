@@ -76,8 +76,8 @@ export class BooksService {
 		this.webSocket.next(msg);
 	}
 
-	public onBooksList(parentHash?: string, offset: number = 0, limit: number = 50): void {
-		this.sendMessage({event: "ls", data: {parentHash, offset, limit}}); // Send message to server
+	public onBooksList(parentHash?: string, cleanUp: boolean = false, offset: number = 0, limit: number = 50): void {
+		this.sendMessage({event: "ls", data: {parentHash, offset, limit, cleanUp}});
 	}
 
 	public onSearchOptions($event: { title: string; author: string }) {
