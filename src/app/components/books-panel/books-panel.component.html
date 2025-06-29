@@ -58,10 +58,10 @@
 				</ng-template>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" (click)="openEditModal()">
+				<button type="button" class="btn btn-primary" [disabled]="!(isAdmin$ | async)" (click)="openEditModal()">
 					Edit Metadata
 				</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeBookDetails(selectedFile)">Close</button>
 			</div>
 		</div>
 	</div>

@@ -7,11 +7,11 @@ export function onClose() {
 		if (modalInstance) {
 			modalInstance.hide();
 		} else {
-			console.info("Modal instance not found, creating a new one.");
+			// console.info("Modal instance not found, creating a new one.");
 			const newModalInstance = new bootstrap.Modal(modalElement);
 			newModalInstance.hide();
 		}
 	} else {
-		console.info("Modal element not found.");
+		console.error("Modal element not found.");
 	}
 }

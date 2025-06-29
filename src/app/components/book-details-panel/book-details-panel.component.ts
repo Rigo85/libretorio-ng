@@ -134,7 +134,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		this.downloadService.downloadFile(fileUrl).pipe(
 			catchError((error: HttpErrorResponse) => {
 				this.downloadMessage = this.getErrorMessage(error);
-				console.info(`${this.titleMessage} - ${this.downloadMessage}`);
+				// console.info(`${this.titleMessage} - ${this.downloadMessage}`);
 				this.messageDialog();
 				return of(null);
 			})
@@ -147,14 +147,16 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 					a.download = file.name;
 					a.click();
 					window.URL.revokeObjectURL(url);
-					console.info("Download book", fileUrl);
+					// console.info("Download book", fileUrl);
 				}
 			},
 			error: (error) => {
 				console.error("Download failed", error);
 			},
 			complete: () => {
-				console.info("Download process completed.");
+				// console.info("Download process completed.");
+
+				this.booksService.logAction("Download", this.file.name, this.file.id);
 			}
 		});
 	}
@@ -190,6 +192,13 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	onRead() {
 		const modalElement = document.getElementById("readModal");
 		if (modalElement) {
+			if (this.file) {
+				this.booksService.logAction(
+					this.file.fileKind === FileKind.AUDIOBOOK ? "Listen to" : "Read",
+					this.file.name,
+					this.file.id
+				);
+			}
 			const modalInstance = bootstrap.Modal.getInstance(modalElement);
 			if (modalInstance) {
 				modalInstance.show();

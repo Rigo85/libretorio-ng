@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit } from "@angular/core";
-import { catchError, from, map, Observable, of, shareReplay, startWith, tap } from "rxjs";
-import { AsyncPipe, NgForOf, NgIf, Location } from "@angular/common";
+import { catchError, filter, from, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
+import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { File, filterObjectFields, hash, ScanResult } from "(src)/app/core/headers";
@@ -19,6 +19,7 @@ import { CollapseStateService } from "(src)/app/services/collapse-state.service"
 import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.service";
 import { SearchTextService } from "(src)/app/services/search-text.service";
 import { ActivatedRoute } from "@angular/router";
+import { AuthService } from "(src)/app/services/auth.service";
 
 declare var bootstrap: any;
 
@@ -87,6 +88,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	currentStartIndex = 0;
 	private isScrollingDown: boolean = true;
 	private paramsCoverId?: string;
+	isAdmin$: Observable<boolean> = of(false);
 
 	constructor(
 		private bookService: BooksService,
@@ -97,16 +99,35 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		private leftPanelUpdateService: LeftPanelUpdateService,
 		private searchTextService: SearchTextService,
 		private location: Location,
-		private route: ActivatedRoute
+		private route: ActivatedRoute,
+		private authService: AuthService
 	) { }
 
 	ngOnInit(): void {
-		this.route.params.subscribe((params) => {
-			this.handleParams(params);
-		});
+		this.bookService.connect();
 
-		// this.bookService.onBooksList();
+		this.bookService.connectionStatus$
+			.pipe(
+				filter((connected: any) => connected),
+				take(1)
+			)
+			.subscribe(() => {
+				// console.info("WebSocket connection established.");
 
+				this.route.params.subscribe((params) => {
+					this.handleParams(params);
+				});
+
+				this.setupWebSocketSubscriptions();
+
+				this.isAdmin$ = this.authService.isAdmin()
+					.pipe(
+						shareReplay(1)
+					);
+			});
+	}
+
+	private setupWebSocketSubscriptions(): void {
 		this.bookService.incomingMessage$.pipe(
 			catchError((err) => {
 				console.error("WebSocket error occurred:", err);
@@ -213,6 +234,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	onSelectFile(file: File): void {
 		this.selectedFile = file;
 		this.bookDetailsModal.show();
+		if (file) {
+			this.bookService.logAction("Show book details", file.name, file.id);
+		}
 	}
 
 	openEditModal(): void {
@@ -392,6 +416,12 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				const offset = Math.max(1, element.clientHeight * 0.1); // Ajusta el 10% de la altura visible
 				element.scrollTop = element.scrollHeight - element.clientHeight - offset;
 			}, 500);
+		}
+	}
+
+	closeBookDetails(selectedFile: File | undefined) {
+		if (selectedFile) {
+			this.bookService.logAction("Close Book Details", selectedFile.name, selectedFile.id);
 		}
 	}
 }

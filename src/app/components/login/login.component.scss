@@ -1,0 +1,107 @@
+/* 2. Panel izquierdo con imagen y overlay oscuro */
+.image-panel {
+	position: relative;
+	background-image: url('/images/library.png');
+	background-size: cover;
+	background-position: center;
+	height: 100%;
+}
+
+.image-panel::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	//background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 3. Contenedor del login y carta */
+.login-card {
+	background-color: #242424;
+	color: #e0e0e0;
+	border: 1px solid #333333;
+	border-radius: 0.5rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+	padding: 1.5rem;
+	width: 100%;
+	max-width: 360px;
+}
+
+/* Icono y título */
+.login-card .bi-journal-bookmark-fill {
+	font-size: 2.5rem;
+	//color: #868181;
+}
+
+.login-card h2 {
+	font-size: 1.75rem;
+	margin-top: 0.5rem;
+	margin-bottom: 1.5rem;
+	color: #e0e0e0;
+}
+
+/* 4. Labels */
+.login-card .form-label {
+	color: #bbbbbb;
+	font-weight: 500;
+}
+
+/* 5. Inputs */
+.login-card .form-control {
+	background-color: #1a1a1a !important;
+	color: #e0e0e0 !important;
+	border: 1px solid #2c2c2c !important;
+	border-radius: 0.375rem;
+	padding: 0.75rem 0.75rem;
+	transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.login-card .form-control::placeholder {
+	color: #666666 !important;
+	opacity: 1;
+}
+
+.login-card .form-control:focus {
+	background-color: #151515 !important;
+	border-color: #2979ff !important;
+	box-shadow: 0 0 0 0.2rem rgba(41, 121, 255, 0.4) !important;
+	outline: none;
+}
+
+/* 6. Botón */
+.login-card .btn-primary {
+	background-color: #2979ff;
+	border-color: #2979ff;
+	color: #ffffff;
+	padding: 0.65rem;
+	font-size: 1rem;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+	width: 100%;
+}
+
+.login-card .btn-primary:hover {
+	background-color: #5393ff;
+	border-color: #5393ff;
+}
+
+.login-card .btn-primary:focus,
+.login-card .btn-primary:active {
+	box-shadow: 0 0 0 0.2rem rgba(41, 121, 255, 0.5);
+}
+
+/* 7. Responsive tweaks */
+@media (max-width: 767px) {
+	.image-panel::before {
+		//background-color: rgba(0, 0, 0, 0.8);
+	}
+	.col-lg-4.col-md-5.d-flex {
+		padding: 1.5rem !important; /* Más espacio en los bordes */
+	}
+	.login-card {
+		//margin: 2rem;
+		margin: 1rem;
+		width: 100%;
+	}
+}

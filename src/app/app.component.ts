@@ -1,16 +1,10 @@
 import { Component, Renderer2 } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
-import { LeftPanelComponent } from "(src)/app/components/left-panel/left-panel.component";
-import { HeaderPanelComponent } from "(src)/app/components/header-panel/header-panel.component";
-import { FooterPanelComponent } from "(src)/app/components/footer-panel/footer-panel.component";
 
 @Component({
 	selector: "app-root",
 	imports: [
-		RouterOutlet,
-		LeftPanelComponent,
-		HeaderPanelComponent,
-		FooterPanelComponent
+		RouterOutlet
 	],
 	templateUrl: "./app.component.html",
 	styleUrl: "./app.component.scss"

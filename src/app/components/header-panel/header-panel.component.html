@@ -5,17 +5,19 @@
 			(click)="toggleSidebar()">
 		<span class="navbar-toggler-icon"></span>
 	</button>
-	<div class="d-flex flex-wrap justify-content-lg-end ms-auto"
-		 style="width: 100%;"
-	>
-		<form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3 ms-auto" role="search">
-			<input type="search" class="form-control" placeholder="Search..."
-				   [(ngModel)]="searchText"
-				   (keydown)="onKeyDown($event)"
-				   aria-label="Search"
-				   [ngModelOptions]="{standalone: true}"
-			>
-		</form>
+	<div class="d-flex align-items-center" style="width: 100%;">
+		<div class="d-flex flex-grow-1 justify-content-end align-items-center gap-2">
+			<form class="flex-grow-1 flex-lg-grow-0 mb-0 me-2" role="search" style="max-width: 200px;">
+				<input type="search" class="form-control" placeholder="Search..."
+					[(ngModel)]="searchText"
+					(keydown)="onKeyDown($event)"
+					aria-label="Search"
+					[ngModelOptions]="{standalone: true}"
+				>
+			</form>
+			<button class="btn btn-link" type="button" (click)="logout()">
+				<i class="bi bi-box-arrow-right me-1"></i>Logout
+			</button>
+		</div>
 	</div>
 </header>
-

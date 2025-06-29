@@ -1,7 +1,26 @@
+//@media (max-width: 768px) {
+//	.card img, {
+//		width: 255px;
+//		height: auto;
+//	}
+//}
+
 @media (max-width: 768px) {
-	.card img, {
+	.card img {
 		width: 255px;
 		height: auto;
 	}
+
+	.album {
+		height: calc(100vh - 71px - 65px - 50px) !important; /* Ajustamos la altura para dejar espacio al footer */
+		padding-bottom: 70px; /* Espacio adicional en la parte inferior */
+	}
+}
+
+/* Aseguramos que el contenido respete el footer en todos los dispositivos */
+.album {
+	overflow-y: auto;
+	position: relative;
+	z-index: 1; /* Menor que el z-index del footer */
 }
 

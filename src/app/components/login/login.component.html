@@ -1,0 +1,46 @@
+<div class="container-fluid vh-100">
+	<div class="row vh-100 g-0">
+		<!-- Panel izquierdo con imagen -->
+		<div class="col-lg-8 col-md-7 p-0">
+			<div class="image-panel h-100"></div>
+		</div>
+
+		<!-- Panel derecho de login -->
+		<div class="col-lg-4 col-md-5 d-flex align-items-center justify-content-center">
+			<div class="login-card">
+				<div class="text-center mb-4">
+					<i class="bi bi-journal-bookmark-fill fs-1 text-primary"></i>
+					<h2 class="mt-2">E-LIBRARY</h2>
+				</div>
+				<form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
+					<div class="mb-3">
+						<label for="email" class="form-label">Email</label>
+						<input
+							id="email"
+							type="text"
+							class="form-control"
+							formControlName="email"
+							placeholder="Email"
+							required
+							autocomplete="email"
+						/>
+					</div>
+					<div class="mb-4">
+						<label for="password" class="form-label">Password</label>
+						<input
+							id="password"
+							type="password"
+							class="form-control"
+							formControlName="password"
+							placeholder="Password"
+							autocomplete="current-password"
+							required
+						/>
+					</div>
+					<button type="submit" class="btn btn-primary">Login</button>
+					<div class="text-danger mt-3" *ngIf="error">{{ error }}</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

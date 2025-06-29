@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, HostListener } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 
 import { BooksService } from "(src)/app/services/books.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 import { SearchTextService } from "(src)/app/services/search-text.service";
+import { AuthService } from "(src)/app/services/auth.service";
 
 @Component({
 	selector: "header-panel",
@@ -21,11 +23,35 @@ export class HeaderPanelComponent implements AfterViewInit {
 		private booksService: BooksService,
 		private collapseState: CollapseStateService,
 		private spinner: NgxSpinnerService,
-		private searchTextService: SearchTextService
+		private searchTextService: SearchTextService,
+		private authService: AuthService,
+		private router: Router
 	) {}
 
 	ngAfterViewInit(): void {
 		this.handleSidebar();
+
+		this.searchTextService.searchText$.subscribe(searchText => {
+			if (!searchText) {
+				this.booksService.onBooksList(this.collapseState.lastHash);
+			}
+		})
+	}
+
+	logout(): void {
+		this.spinner.show();
+		this.authService.logout().subscribe({
+			next: () => {
+				// console.info("Logout successful");
+				this.router.navigate(["/auth/login"]);
+				this.spinner.hide();
+				this.booksService.logAction("Logout");
+			},
+			error: (err: any) => {
+				console.error("Logout failed", err);
+				this.spinner.hide();
+			}
+		});
 	}
 
 	onKeyDown($event: KeyboardEvent) {
@@ -47,7 +73,7 @@ export class HeaderPanelComponent implements AfterViewInit {
 
 	handleEnter(): void {
 		this.booksService.onSearchText(this.searchText);
-		this.collapseState.initialized = false;
+		// this.collapseState.initialized = false;
 		this.spinner.show();
 	}
 
