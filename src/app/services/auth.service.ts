@@ -1,10 +1,46 @@
-import { Injectable } from "@angular/core";
+import { Injectable, OnDestroy } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { catchError, map, Observable, of, switchMap } from "rxjs";
+import { catchError, map, Observable, of, Subject, switchMap, takeUntil } from "rxjs";
+import { Router } from "@angular/router";
+import { BooksService } from "(src)/app/services/books.service";
 
 @Injectable({providedIn: "root"})
-export class AuthService {
-	constructor(private http: HttpClient) {}
+export class AuthService implements OnDestroy {
+	private destroy$ = new Subject<void>();
+
+	constructor(
+		private http: HttpClient,
+		private router: Router,
+		private booksService: BooksService
+	) {
+		this.listenForSessionExpired();
+	}
+
+	private listenForSessionExpired(): void {
+		this.booksService.sessionExpiredIncomingMessage$
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((msg) => {
+				console.warn("Session expired:", msg.data.message);
+
+				this.logout().subscribe({
+					next: () => {
+						console.log("Successful logout after expiration");
+						setTimeout(() => {
+							this.router.navigate(["/auth/login"], {replaceUrl: true});
+						}, 100);
+					},
+					error: (err) => {
+						console.error("Error closing session after expiration:", err);
+						this.router.navigate(["/auth/login"], {replaceUrl: true});
+					}
+				});
+			});
+	}
+
+	ngOnDestroy(): void {
+		this.destroy$.next();
+		this.destroy$.complete();
+	}
 
 	getCsrfToken(): Observable<string> {
 		return this.http

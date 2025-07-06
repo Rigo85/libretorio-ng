@@ -21,6 +21,9 @@ export class BooksService {
 	private connectionStatus = new BehaviorSubject<boolean>(false);
 	public connectionStatus$ = this.connectionStatus.asObservable();
 
+	private sessionExpiredIncomingMessages = new Subject<IncomingMessage>();
+	public sessionExpiredIncomingMessage$ = this.sessionExpiredIncomingMessages.asObservable();
+
 	private csrfToken$: Observable<string>;
 
 	private heartbeatTimer!: any;
@@ -69,6 +72,7 @@ export class BooksService {
 		this.decompressIncomingMessages.complete();
 		this.convertToPdfIncomingMessages.complete();
 		this.audioBookIncomingMessages.complete();
+		this.sessionExpiredIncomingMessages.complete();
 	}
 
 	public connect(): void {
@@ -133,6 +137,9 @@ export class BooksService {
 				break;
 			case "get_audio_book":
 				this.audioBookIncomingMessages.next(msg);
+				break;
+			case "session_expired":
+				this.sessionExpiredIncomingMessages.next(msg);
 				break;
 		}
 	}
