@@ -152,7 +152,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				// console.info(this.files);
-				console.info("total:", this.total);
+				// console.info("total:", this.total);
 
 				this.spinner.hide();
 
