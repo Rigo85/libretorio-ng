@@ -75,6 +75,8 @@ export class AuthService implements OnDestroy {
 	}
 
 	logout(): Observable<void> {
+		this.booksService.disconnect();
+
 		return this.getCsrfToken().pipe(
 			switchMap(token =>
 				this.http.post<void>(

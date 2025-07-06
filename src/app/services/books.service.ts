@@ -60,7 +60,7 @@ export class BooksService {
 		}, 20_000);
 	}
 
-	private cleanup() {
+	public cleanup() {
 		clearInterval(this.heartbeatTimer);
 		if (this.webSocket) {
 			this.webSocket.complete();
@@ -73,6 +73,11 @@ export class BooksService {
 		this.convertToPdfIncomingMessages.complete();
 		this.audioBookIncomingMessages.complete();
 		this.sessionExpiredIncomingMessages.complete();
+	}
+
+	public disconnect(): void {
+		this.cleanup();
+		this.connectionStatus.next(false);
 	}
 
 	public connect(): void {
