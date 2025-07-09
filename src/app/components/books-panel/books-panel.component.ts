@@ -3,7 +3,7 @@ import { catchError, filter, from, map, Observable, of, shareReplay, startWith, 
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
-import { File, filterObjectFields, hash, ScanResult } from "(src)/app/core/headers";
+import { File, filterObjectFields, getExtension, hash, ScanResult } from "(src)/app/core/headers";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { AuthorPipe } from "(src)/app/pipes/author.pipe";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
@@ -89,6 +89,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	private isScrollingDown: boolean = true;
 	private paramsCoverId?: string;
 	isAdmin$: Observable<boolean> = of(false);
+	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 
 	constructor(
 		private bookService: BooksService,
@@ -245,8 +246,28 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
-			.pipe(catchError(() => of(false)));
+		const extension = getExtension(file);
+		if (this.imagesExtensions.includes(extension)) {
+			return of(true);
+		} else {
+			return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
+				.pipe(catchError(() => of(false)));
+		}
+	}
+
+	getImageUrl(file: File): string {
+		const extension = getExtension(file);
+		console.info(extension);
+		console.info(this.imagesExtensions);
+		console.info(this.imagesExtensions.includes(extension));
+
+
+		if (this.imagesExtensions.includes(extension)) {
+			const parentPath = file.parentPath.split("dist/public")[1];
+			return `${parentPath}/${file.name}`;
+		} else {
+			return `'/covers/${this.getCoverId(file)}.jpg'`;
+		}
 	}
 
 	getCoverId(file: File): string {

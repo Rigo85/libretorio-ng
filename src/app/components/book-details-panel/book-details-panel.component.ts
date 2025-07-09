@@ -54,6 +54,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	stringSource: string = "";
 	extension: string = "N/A";
 	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
+	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	convertToPdfExtensions: string[] = [
 		"epub", "doc", "docx", "ppt", "pptx", "xls",
 		"xlsx", "rtf", "txt", "html", "htm", "lit"
@@ -113,8 +114,21 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	checkFileExists(file: File): Observable<boolean> {
-		return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
-			.pipe(catchError(() => of(false)));
+		if (this.imagesExtensions.includes(this.extension)) {
+			return of(true);
+		} else {
+			return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
+				.pipe(catchError(() => of(false)));
+		}
+	}
+
+	getImageUrl(file: File): string {
+		if (this.imagesExtensions.includes(this.extension)) {
+			const parentPath = file.parentPath.split("dist/public")[1];
+			return `${parentPath}/${file.name}`;
+		} else {
+			return `'/covers/${this.getCoverId(file)}.jpg'`;
+		}
 	}
 
 	getCoverId(file: File): string {
