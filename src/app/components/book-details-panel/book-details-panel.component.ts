@@ -57,7 +57,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	convertToPdfExtensions: string[] = [
 		"epub", "doc", "docx", "ppt", "pptx", "xls",
-		"xlsx", "rtf", "txt", "html", "htm", "lit"
+		"xlsx", "rtf", "txt", "html", "htm", "lit", "md"
 	];
 	_isUsingPdfConversion: boolean = false;
 
