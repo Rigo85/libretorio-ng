@@ -127,7 +127,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 			const parentPath = file.parentPath.split("dist/public")[1];
 			return `${parentPath}/${file.name}`;
 		} else {
-			return `'/covers/${this.getCoverId(file)}.jpg'`;
+			return `/covers/${this.getCoverId(file)}.jpg`;
 		}
 	}
 

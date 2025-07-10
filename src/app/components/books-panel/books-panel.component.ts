@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { catchError, filter, from, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
@@ -90,6 +90,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	private paramsCoverId?: string;
 	isAdmin$: Observable<boolean> = of(false);
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
+	@ViewChild("albumContainer") albumContainer?: ElementRef<HTMLElement>;
 
 	constructor(
 		private bookService: BooksService,
@@ -156,6 +157,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				// console.info("total:", this.total);
 
 				this.spinner.hide();
+				if (this.albumContainer?.nativeElement) {
+					this.albumContainer.nativeElement.scrollTop = 0;
+				}
 
 				// if (this.isScrollingDown) {
 				// 	console.info("files count:", scanResult.files.length);
@@ -257,16 +261,11 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 	getImageUrl(file: File): string {
 		const extension = getExtension(file);
-		console.info(extension);
-		console.info(this.imagesExtensions);
-		console.info(this.imagesExtensions.includes(extension));
-
-
 		if (this.imagesExtensions.includes(extension)) {
 			const parentPath = file.parentPath.split("dist/public")[1];
 			return `${parentPath}/${file.name}`;
 		} else {
-			return `'/covers/${this.getCoverId(file)}.jpg'`;
+			return `/covers/${this.getCoverId(file)}.jpg`;
 		}
 	}
 

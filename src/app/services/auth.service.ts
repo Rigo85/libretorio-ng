@@ -14,6 +14,26 @@ export class AuthService implements OnDestroy {
 		private booksService: BooksService
 	) {
 		this.listenForSessionExpired();
+		this.startSessionMonitor();
+	}
+
+	private startSessionMonitor(): void {
+		const sessionCheckInterval = 5 * 60 * 1000;
+
+		setInterval(() => {
+			this.isLoggedIn().subscribe({
+				next: (isLoggedIn) => {
+					if (!isLoggedIn) {
+						console.warn("Session expired or invalid, redirecting to login");
+						this.router.navigate(["/auth/login"], {replaceUrl: true});
+					}
+				},
+				error: () => {
+					console.error("Error checking session status");
+					this.router.navigate(["/auth/login"], {replaceUrl: true});
+				}
+			});
+		}, sessionCheckInterval);
 	}
 
 	private listenForSessionExpired(): void {
