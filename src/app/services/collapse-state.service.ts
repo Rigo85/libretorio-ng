@@ -10,6 +10,7 @@ export class CollapseStateService {
 	private lastDirectory?: Directory;
 	private _initialized: boolean = false;
 	private _lastHash?: string;
+	private _pendingHash?: string;
 
 	constructor() {}
 
@@ -26,6 +27,16 @@ export class CollapseStateService {
 			}
 
 			initialize(this._collapseStates, directory);
+
+			if (this._pendingHash) {
+				this.toggleCollapseState(this._pendingHash);
+			}
+		}
+	}
+
+	setPendingHash(hash?: string): void {
+		if (hash) {
+			this._pendingHash = hash;
 		}
 	}
 

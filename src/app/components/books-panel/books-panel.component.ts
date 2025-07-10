@@ -231,6 +231,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 		// console.info("Parent Hash:", parentHash);
 		// console.info("Cover ID:", coverId);
+		if (parentHash) {
+			this.collapseStateService.setPendingHash(parentHash);
+		}
 
 		this.bookService.onBooksList(parentHash);
 		this.paramsCoverId = coverId;
