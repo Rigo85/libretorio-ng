@@ -76,11 +76,21 @@ export class BooksService {
 	}
 
 	public disconnect(): void {
-		this.cleanup();
+		if (this.webSocket) {
+			this.webSocket.complete();
+			this.webSocket.unsubscribe();
+		}
+		clearInterval(this.heartbeatTimer);
 		this.connectionStatus.next(false);
 	}
 
 	public connect(): void {
+		if (this.webSocket && !this.webSocket.closed) {
+			this.webSocket.complete();
+			this.webSocket.unsubscribe();
+		}
+		clearInterval(this.heartbeatTimer);
+
 		this.csrfToken$
 			.pipe(take(1))
 			.subscribe(csrfToken => {
