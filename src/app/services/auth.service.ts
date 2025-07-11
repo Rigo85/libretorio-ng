@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { catchError, map, Observable, of, Subject, switchMap, takeUntil } from "rxjs";
 import { Router } from "@angular/router";
 import { BooksService } from "(src)/app/services/books.service";
+import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 
 @Injectable({providedIn: "root"})
 export class AuthService implements OnDestroy {
@@ -11,7 +12,8 @@ export class AuthService implements OnDestroy {
 	constructor(
 		private http: HttpClient,
 		private router: Router,
-		private booksService: BooksService
+		private booksService: BooksService,
+		private collapseStateService: CollapseStateService
 	) {
 		this.listenForSessionExpired();
 		this.startSessionMonitor();
@@ -95,6 +97,7 @@ export class AuthService implements OnDestroy {
 	}
 
 	logout(): Observable<void> {
+		this.collapseStateService.clearStates();
 		this.booksService.disconnect();
 
 		return this.getCsrfToken().pipe(

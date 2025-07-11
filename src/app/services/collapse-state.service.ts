@@ -44,6 +44,13 @@ export class CollapseStateService {
 		return this._collapseStates;
 	}
 
+	clearStates(): void {
+		this._collapseStates = {};
+		this._initialized = false;
+		this._lastHash = undefined;
+		this._pendingHash = undefined;
+	}
+
 	set initialized(value: boolean) {
 		this._initialized = value;
 	}
