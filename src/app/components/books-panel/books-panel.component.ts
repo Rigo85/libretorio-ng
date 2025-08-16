@@ -91,6 +91,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	isAdmin$: Observable<boolean> = of(false);
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	@ViewChild("albumContainer") albumContainer?: ElementRef<HTMLElement>;
+	lastParentHash?: string;
 
 	constructor(
 		private bookService: BooksService,
@@ -157,17 +158,17 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				// console.info("total:", this.total);
 
 				this.spinner.hide();
-				if (this.albumContainer?.nativeElement) {
-					this.albumContainer.nativeElement.scrollTop = 0;
-				}
 
-				// if (this.isScrollingDown) {
-				// 	console.info("files count:", scanResult.files.length);
-				// 	console.info("files: ", scanResult.files.map((file) => file.name).slice(0, this.overlapCount));
-				// } else {
-				// 	console.info("files count:", scanResult.files.length);
-				// 	console.info("files: ", scanResult.files.map((file) => file.name).slice(-this.overlapCount));
-				// }
+				if (this.files?.length) {
+					const currentParentHash = this.files[0].parentHash;
+					if (this.lastParentHash !== currentParentHash) {
+						this.lastParentHash = currentParentHash;
+
+						if (this.albumContainer?.nativeElement) {
+							this.albumContainer.nativeElement.scrollTop = 50;
+						}
+					}
+				}
 			}),
 			startWith({files: [], total: 0}),
 			shareReplay(1)
@@ -288,23 +289,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	trackById(index: number, file: File): string {
-		const webDetails: any = {
-			id: file.id,
-			details: {
-				title: file.webDetails?.title ?? "",
-				cover_i: file.webDetails?.cover_i ?? "",
-				publisher: file.webDetails?.publisher ?? [],
-				author_name: file.webDetails?.author_name ?? [], // string[]
-				publish_date: file.webDetails?.publish_date ?? [], // string[]
-				publish_year: file.webDetails?.publish_year ?? [], // number[]
-				subject: file.webDetails?.subject ?? [], // string[]
-				description: file.webDetails?.description ?? "",
-				first_sentence: file.webDetails?.first_sentence ?? [] // string[]
-			},
-			customDetails: false
-		};
-
-		return hash(JSON.stringify(webDetails));
+		return file.coverId;
 	}
 
 	onUpdateOptions($event: File) {
@@ -389,7 +374,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	private loadNextItems(): void {
-		// console.info("loadNextItems");
+		// console.info(`loadNextItems: Current Start Index: ${this.currentStartIndex}, Items Per Load: ${this.itemsPerLoad}, Total: ${this.total}`);
 
 		if (this.currentStartIndex + this.itemsPerLoad < this.total) {
 			this.currentStartIndex += this.itemsPerLoad - this.overlapCount;
@@ -414,7 +399,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	}
 
 	private loadPreviousItems(): void {
-		// console.info("loadPreviousItems");
+		// console.info(`loadPreviousItems: Current Start Index: ${this.currentStartIndex}, Items Per Load: ${this.itemsPerLoad}`);
 
 		if (this.currentStartIndex > 0) {
 			this.currentStartIndex = Math.max(this.currentStartIndex - (this.itemsPerLoad - this.overlapCount), 0);

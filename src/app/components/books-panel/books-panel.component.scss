@@ -1,26 +1,35 @@
-//@media (max-width: 768px) {
-//	.card img, {
-//		width: 255px;
-//		height: auto;
-//	}
-//}
+/* Base (desktop + general) */
+.album {
+	overflow-y: auto;
+	position: relative;
+	z-index: 1; /* Debajo del footer fijo */
+	overflow-anchor: none;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+}
 
+/* Móvil: fallback con 100vh */
 @media (max-width: 768px) {
 	.card img {
 		width: 255px;
 		height: auto;
+		display: block;
+		max-width: 100%;
 	}
 
 	.album {
-		height: calc(100vh - 71px - 65px - 50px) !important; /* Ajustamos la altura para dejar espacio al footer */
-		padding-bottom: 70px; /* Espacio adicional en la parte inferior */
+		height: calc(100vh - 71px - 65px - 50px) !important;
+		padding-bottom: calc(70px + env(safe-area-inset-bottom));
+		-webkit-overflow-scrolling: touch;
 	}
 }
 
-/* Aseguramos que el contenido respete el footer en todos los dispositivos */
-.album {
-	overflow-y: auto;
-	position: relative;
-	z-index: 1; /* Menor que el z-index del footer */
+/* Móvil: preferir 100dvh si está soportado (sin mezclar dentro de .album) */
+@supports (height: 100dvh) {
+	@media (max-width: 768px) {
+		.album {
+			height: calc(100dvh - 71px - 65px - 50px) !important;
+		}
+	}
 }
 

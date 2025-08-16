@@ -1,0 +1,9 @@
+#sidebar .list-unstyled {
+	max-height: none !important;
+	display: block;
+}
+
+#sidebar .list-container {
+	padding-bottom: calc(65px + 1rem);
+	-webkit-overflow-scrolling: touch; /* suave en iOS */
+}
