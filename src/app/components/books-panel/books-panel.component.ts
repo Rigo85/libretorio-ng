@@ -20,6 +20,7 @@ import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.ser
 import { SearchTextService } from "(src)/app/services/search-text.service";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "(src)/app/services/auth.service";
+import { CurrentClickDirectoryService } from "(src)/app/services/current-click-directory.service";
 
 declare var bootstrap: any;
 
@@ -103,7 +104,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		private searchTextService: SearchTextService,
 		private location: Location,
 		private route: ActivatedRoute,
-		private authService: AuthService
+		private authService: AuthService,
+		private currentClickDir: CurrentClickDirectoryService
 	) { }
 
 	ngOnInit(): void {
@@ -161,7 +163,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 				if (this.files?.length) {
 					const currentParentHash = this.files[0].parentHash;
-					if (this.lastParentHash !== currentParentHash) {
+					if (this.lastParentHash !== currentParentHash ||
+						this.currentClickDir.lastClickedDirectory &&
+						this.currentClickDir.lastClickedDirectory === currentParentHash
+					) {
 						this.lastParentHash = currentParentHash;
 						this.currentStartIndex = 0;
 
@@ -170,6 +175,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 						}
 					}
 				}
+
+				this.currentClickDir.lastClickedDirectory = undefined;
 			}),
 			startWith({files: [], total: 0}),
 			shareReplay(1)
