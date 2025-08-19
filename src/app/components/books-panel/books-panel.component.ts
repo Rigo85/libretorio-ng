@@ -163,6 +163,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 					const currentParentHash = this.files[0].parentHash;
 					if (this.lastParentHash !== currentParentHash) {
 						this.lastParentHash = currentParentHash;
+						this.currentStartIndex = 0;
 
 						if (this.albumContainer?.nativeElement) {
 							this.albumContainer.nativeElement.scrollTop = 50;
