@@ -5,15 +5,21 @@ import { BehaviorSubject } from "rxjs";
 	providedIn: "root"
 })
 export class SearchTextService {
-	private searchTextSource = new BehaviorSubject<string>("");
-	searchText$ = this.searchTextSource.asObservable();
+	private searchTextSource = new BehaviorSubject<string>("")
+	// searchText$ = this.searchTextSource.asObservable();
+
+	private resetSource = new BehaviorSubject<boolean>(false);
+	reset$ = this.resetSource.asObservable();
 
 	get searchText(): string {
 		return this.searchTextSource.getValue();
 	}
 
-	set searchText(value: string) {
+	setSearchText(value: string, needReset: boolean = false): void {
 		this.searchTextSource.next(value);
+		if (needReset) {
+			this.resetSource.next(true);
+		}
 	}
 
 	constructor() { }

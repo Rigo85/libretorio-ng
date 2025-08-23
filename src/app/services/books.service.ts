@@ -169,6 +169,7 @@ export class BooksService {
 	}
 
 	public onBooksList(parentHash?: string, cleanUp: boolean = false, offset: number = 0, limit: number = 50): void {
+		console.info(`Requesting book list for parentHash=${parentHash}, offset=${offset}, limit=${limit}, cleanUp=${cleanUp}`);
 		this.sendMessage({event: "ls", data: {parentHash, offset, limit, cleanUp}});
 	}
 

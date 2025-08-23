@@ -1,11 +1,11 @@
 /* Base (desktop + general) */
 .album {
-	overflow-y: auto;
+	//overflow-y: auto;
 	position: relative;
 	z-index: 1; /* Debajo del footer fijo */
 	overflow-anchor: none;
-	overscroll-behavior: contain;
-	scrollbar-gutter: stable;
+	//overscroll-behavior: contain;
+	//scrollbar-gutter: stable;
 }
 
 /* Móvil: fallback con 100vh */
@@ -33,3 +33,29 @@
 	}
 }
 
+/* Área de scroll dedicada para #albumContainer */
+.album {
+	/* Altura base: ajusta el 180px si tu header/footer ocupan distinto */
+	height: var(--album-height, calc(100vh - 180px));
+	overflow-y: auto;
+	overscroll-behavior: contain; /* evita "arrastre" al body */
+	scrollbar-gutter: stable both-edges; /* evita saltos al aparecer la barra */
+}
+
+/* Buffer arriba/abajo para lotes pequeños (< pageSize): evita tocar el borde */
+.album::before,
+.album::after {
+	content: "";
+	display: block;
+	height: var(--scroll-buffer, 0px); /* se ajusta desde TS */
+}
+
+/* Evita reflow cuando cargan imágenes y que "muerda" el scroll al final */
+.img-container {
+	width: 180px;
+	height: 225px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}

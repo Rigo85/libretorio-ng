@@ -149,6 +149,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				this.files = scanResult.files;
+				this.tuneScrollArea();
 				if (this.paramsCoverId) {
 					const file = this.files.find((file) => file.coverId === this.paramsCoverId);
 					if (file) {
@@ -157,7 +158,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				// console.info(this.files);
-				// console.info("total:", this.total);
+				console.info("total:", this.total);
 
 				this.spinner.hide();
 
@@ -232,6 +233,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			bookDetailsModalElement.addEventListener("shown.bs.modal", this.onOpenDetailsModal.bind(this));
 			bookDetailsModalElement.addEventListener("hidden.bs.modal", this.onCloseDetailsModal.bind(this));
 		}
+
+		this.tuneScrollArea();
 	}
 
 	handleParams(params: Record<string, any>): void {
@@ -244,6 +247,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.collapseStateService.setPendingHash(parentHash);
 		}
 
+		console.info(`Loading books for parentHash: ${parentHash || "root"}`);
 		this.bookService.onBooksList(parentHash);
 		this.paramsCoverId = coverId;
 	}
@@ -308,6 +312,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 	clearUpdateMessage() {
 		this.updateMessage = undefined;
+		console.info(`Reloading books for parentHash: ${this.collapseStateService.lastHash || "root"}`);
 		this.bookService.onBooksList(this.collapseStateService.lastHash);
 	}
 
@@ -389,14 +394,16 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.isScrollingDown = true;
 
 			if (!this.searchTextService.searchText.trim()) {
+				console.info(`Loading next books for parentHash: ${this.collapseStateService.lastHash || "root"}`);
 				this.bookService.onBooksList(
 					this.collapseStateService.lastHash,
 					false,
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			} else {
+				console.info(`Loading next search results for text: ${this.searchTextService.searchText.trim()}`);
 				this.bookService.onSearchText(
-					this.searchTextService.searchText,
+					this.searchTextService.searchText.trim(),
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			}
@@ -414,14 +421,16 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.isScrollingDown = false;
 
 			if (!this.searchTextService.searchText.trim()) {
+				console.info(`Loading previous books for parentHash: ${this.collapseStateService.lastHash}`);
 				this.bookService.onBooksList(
 					this.collapseStateService.lastHash,
 					false,
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			} else {
+				console.info(`Loading previous search results for text: ${this.searchTextService.searchText.trim()}`);
 				this.bookService.onSearchText(
-					this.searchTextService.searchText,
+					this.searchTextService.searchText.trim(),
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			}
@@ -440,4 +449,22 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.bookService.logAction("Close Book Details", selectedFile.name, selectedFile.id);
 		}
 	}
+
+	private tuneScrollArea(): void {
+		const el = this.albumContainer?.nativeElement;
+		if (!el) return;
+
+		const isPartialBatch = this.files.length > 0 && this.files.length < this.itemsPerLoad;
+
+		// 1) “Acortar” un poco la altura cuando hay pocos elementos
+		//    (quita ~80px para alejarte del borde y no disparar el umbral)
+		el.style.setProperty(
+			"--album-height",
+			isPartialBatch ? 'calc(100vh - 260px)' : 'calc(100vh - 180px)'
+		);
+
+		// 2) Añadir un "colchón" arriba/abajo para que no toque los extremos
+		el.style.setProperty("--scroll-buffer", isPartialBatch ? "160px" : "0px");
+	}
+
 }

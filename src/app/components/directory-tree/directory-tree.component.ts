@@ -29,11 +29,10 @@ export class DirectoryTreeComponent {
 
 	onClick(hash?: string) {
 		if (!hash) return;
-		// const collapsed = this.isCollapsed(hash);
 		this.collapseStateService.toggleCollapseState(hash);
-		this.searchTextService.searchText = "";
+		this.searchTextService.setSearchText("", false);
 		this.isCollapsed(hash);
-		// this.bookService.onBooksList(hash, !collapsed);
+		console.info(`Click on directory: ${hash}`);
 		this.bookService.onBooksList(hash);
 		this.location.go(`/parent/${encodeURIComponent(hash)}`);
 		this.currentClickDir.lastClickedDirectory = hash;

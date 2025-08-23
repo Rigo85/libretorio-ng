@@ -31,8 +31,8 @@ export class HeaderPanelComponent implements AfterViewInit {
 	ngAfterViewInit(): void {
 		this.handleSidebar();
 
-		this.searchTextService.searchText$.subscribe(searchText => {
-			if (!searchText) {
+		this.searchTextService.reset$.subscribe(reset => {
+			if (reset) {
 				this.booksService.onBooksList(this.collapseState.lastHash);
 			}
 		})
@@ -68,12 +68,11 @@ export class HeaderPanelComponent implements AfterViewInit {
 	}
 
 	set searchText(value: string) {
-		this.searchTextService.searchText = value;
+		this.searchTextService.setSearchText(value, !value?.trim())
 	}
 
 	handleEnter(): void {
 		this.booksService.onSearchText(this.searchText);
-		// this.collapseState.initialized = false;
 		this.spinner.show();
 	}
 
