@@ -59,3 +59,42 @@
 	justify-content: center;
 	overflow: hidden;
 }
+
+/* Keep body text left-aligned and ensure the clickable card is at least cover width */
+.clickable-area {
+	text-align: left;
+	min-width: 180px; /* match cover width */
+}
+
+/* Center only the cover image / placeholder */
+.clickable-area .img-container,
+.clickable-area .card-img-top,
+.clickable-area svg.bd-placeholder-img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Control the image block size and add a small visual gutter */
+.clickable-area .img-container {
+	width: 180px; /* same as image max-width */
+	padding: 6px; /* small inner gutter (previous look) */
+	margin-top: 6px; /* space from card edges */
+	margin-bottom: 8px; /* space before card-body */
+	//box-sizing: content-box; /* keep the image max size intact */
+	box-sizing: border-box;
+}
+
+/* Keep the cover size stable (safe even if inline styles exist) */
+.clickable-area .card-img-top {
+	max-width: 180px;
+	max-height: 225px;
+}
+
+/* En XL (1200–1399px), baja a 4 columnas para que cada card ≥ 180px */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+	.row.row-cols-xl-5 > [class*='col'] {
+		flex: 0 0 25%;
+		max-width: 25%;
+	}
+}
