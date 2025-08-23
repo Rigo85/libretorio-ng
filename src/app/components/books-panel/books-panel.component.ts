@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { catchError, filter, from, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
@@ -105,7 +105,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		private location: Location,
 		private route: ActivatedRoute,
 		private authService: AuthService,
-		private currentClickDir: CurrentClickDirectoryService
+		private currentClickDir: CurrentClickDirectoryService,
+		private cdr: ChangeDetectorRef
 	) { }
 
 	ngOnInit(): void {
@@ -149,7 +150,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				}
 
 				this.files = scanResult.files;
-				this.tuneScrollArea();
+				this.deferTune();
 				if (this.paramsCoverId) {
 					const file = this.files.find((file) => file.coverId === this.paramsCoverId);
 					if (file) {
@@ -234,7 +235,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			bookDetailsModalElement.addEventListener("hidden.bs.modal", this.onCloseDetailsModal.bind(this));
 		}
 
-		this.tuneScrollArea();
+		this.deferTune();
 	}
 
 	handleParams(params: Record<string, any>): void {
@@ -460,11 +461,18 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		//    (quita ~80px para alejarte del borde y no disparar el umbral)
 		el.style.setProperty(
 			"--album-height",
-			isPartialBatch ? 'calc(100vh - 260px)' : 'calc(100vh - 180px)'
+			isPartialBatch ? "calc(100vh - 260px)" : "calc(100vh - 180px)"
 		);
 
 		// 2) Añadir un "colchón" arriba/abajo para que no toque los extremos
 		el.style.setProperty("--scroll-buffer", isPartialBatch ? "160px" : "0px");
 	}
 
+	/** Run tuneScrollArea after the view re-renders and the layout is ready */
+	private deferTune(): void {
+		this.cdr.detectChanges();                // fuerza el render del *ngFor
+		requestAnimationFrame(() => {            // espera al próximo frame (layout listo)
+			this.tuneScrollArea();
+		});
+	}
 }
