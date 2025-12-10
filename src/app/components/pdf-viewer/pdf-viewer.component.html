@@ -2,8 +2,8 @@
 	<ngx-extended-pdf-viewer
 		[src]="pdfSrc"
 		[textLayer]="true"
-		height="100%"
-		[zoom]="'page-width'"
+        [height]="viewerHeight"
+        [zoom]="initialZoom"
 		[theme]="'dark'"
 		backgroundColor="#5c5c5c"
 		(pdfLoadingFailed)="handleError($event)"
