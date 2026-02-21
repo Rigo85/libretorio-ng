@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { catchError, filter, from, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
+import { catchError, filter, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
@@ -90,6 +90,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	overlapCount = 5;
 	currentStartIndex = 0;
 	private pendingScrollDirection: "top" | "bottom" | null = null;
+	private coverCheckCache = new Map<string, Observable<boolean>>();
 	private paramsCoverId?: string;
 	isAdmin$: Observable<boolean> = of(false);
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
@@ -277,10 +278,17 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		const extension = getExtension(file);
 		if (this.imagesExtensions.includes(extension)) {
 			return of(true);
-		} else {
-			return from(this.fileCheckService.checkFileExists(this.getCoverId(file)))
-				.pipe(catchError(() => of(false)));
 		}
+		const coverId = this.getCoverId(file);
+		let obs$ = this.coverCheckCache.get(coverId);
+		if (!obs$) {
+			obs$ = this.fileCheckService.checkFileExists(coverId).pipe(
+				catchError(() => of(false)),
+				shareReplay(1)
+			);
+			this.coverCheckCache.set(coverId, obs$);
+		}
+		return obs$;
 	}
 
 	getImageUrl(file: File): string {
