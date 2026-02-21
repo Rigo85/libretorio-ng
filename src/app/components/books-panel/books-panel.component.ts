@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { catchError, filter, from, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
@@ -83,11 +84,12 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		"AUDIOBOOK": "#66691e",
 		"NONE:": "#55595c"
 	};
+	private destroyRef = inject(DestroyRef);
 	loading = false;
 	itemsPerLoad = 50;
 	overlapCount = 5;
 	currentStartIndex = 0;
-	private isScrollingDown: boolean = true;
+	private pendingScrollDirection: "top" | "bottom" | null = null;
 	private paramsCoverId?: string;
 	isAdmin$: Observable<boolean> = of(false);
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
@@ -138,6 +140,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			catchError((err) => {
 				console.error("WebSocket error occurred:", err);
 				this.spinner.hide();
+				this.loading = false;
+				this.pendingScrollDirection = null;
 				return [];
 			}),
 			map((msg) => msg.data as ScanResult),
@@ -181,7 +185,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				this.currentClickDir.lastClickedDirectory = undefined;
 			}),
 			startWith({files: [], total: 0}),
-			shareReplay(1)
+			shareReplay({bufferSize: 1, refCount: true}),
+			takeUntilDestroyed(this.destroyRef)
 		).subscribe();
 
 		this.searchDetails$ = this.bookService.searchDetailsIncomingMessage$.pipe(
@@ -206,7 +211,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 						console.error("Error receiving data:", error);
 						return of({response: false});
 					}
-				))
+				),
+				takeUntilDestroyed(this.destroyRef))
 			.subscribe((msg) => {
 				this.spinner.hide();
 				this.updateMessage = msg["response"] ? "Update successful." : "Update failed.";
@@ -214,6 +220,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			});
 
 		this.urlParamsService.fileMessage$
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe((file: File) => {
 				this.onSelectFile(file);
 			});
@@ -391,8 +398,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		// console.info(`loadNextItems: Current Start Index: ${this.currentStartIndex}, Items Per Load: ${this.itemsPerLoad}, Total: ${this.total}`);
 
 		if (this.currentStartIndex + this.itemsPerLoad < this.total) {
+			this.loading = true;
 			this.currentStartIndex += this.itemsPerLoad - this.overlapCount;
-			this.isScrollingDown = true;
+			this.pendingScrollDirection = "top";
 
 			if (!this.searchTextService.searchText.trim()) {
 				console.info(`Loading next books for parentHash: ${this.collapseStateService.lastHash || "root"}`);
@@ -408,9 +416,6 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			}
-
-			const element = document.querySelector(".album") as HTMLElement;
-			element.scrollTop = 50;
 		}
 	}
 
@@ -418,8 +423,9 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		// console.info(`loadPreviousItems: Current Start Index: ${this.currentStartIndex}, Items Per Load: ${this.itemsPerLoad}`);
 
 		if (this.currentStartIndex > 0) {
+			this.loading = true;
 			this.currentStartIndex = Math.max(this.currentStartIndex - (this.itemsPerLoad - this.overlapCount), 0);
-			this.isScrollingDown = false;
+			this.pendingScrollDirection = "bottom";
 
 			if (!this.searchTextService.searchText.trim()) {
 				console.info(`Loading previous books for parentHash: ${this.collapseStateService.lastHash}`);
@@ -435,14 +441,20 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 					this.currentStartIndex,
 					this.itemsPerLoad);
 			}
-
-			const element = document.querySelector(".album") as HTMLElement;
-
-			setTimeout(() => {
-				const offset = Math.max(1, element.clientHeight * 0.1); // Ajusta el 10% de la altura visible
-				element.scrollTop = element.scrollHeight - element.clientHeight - offset;
-			}, 500);
 		}
+	}
+
+	private adjustScrollAfterLoad(): void {
+		const el = this.albumContainer?.nativeElement;
+		if (!el || !this.pendingScrollDirection) return;
+
+		if (this.pendingScrollDirection === "top") {
+			el.scrollTop = 5; // Lejos del borde superior (evita re-trigger inmediato)
+		} else {
+			const offset = Math.max(10, el.clientHeight * 0.1); // 10% del viewport
+			el.scrollTop = el.scrollHeight - el.clientHeight - offset;
+		}
+		this.pendingScrollDirection = null;
 	}
 
 	closeBookDetails(selectedFile: File | undefined) {
@@ -473,6 +485,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		this.cdr.detectChanges();                // fuerza el render del *ngFor
 		requestAnimationFrame(() => {            // espera al próximo frame (layout listo)
 			this.tuneScrollArea();
+			this.adjustScrollAfterLoad();        // ajusta scroll con scrollHeight correcto
+			this.loading = false;                // libera el guard solo después del layout
 		});
 	}
 }

@@ -2,12 +2,12 @@ import { Injectable } from "@angular/core";
 import {
 	HttpInterceptor, HttpRequest, HttpHandler, HttpEvent
 } from "@angular/common/http";
-import { Observable, switchMap } from "rxjs";
+import { Observable, shareReplay, switchMap } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 
 @Injectable()
 export class XsrfInterceptor implements HttpInterceptor {
-	private csrfToken$ = this.http.get<{ csrfToken: string }>("/api/csrf-token");
+	private csrfToken$ = this.http.get<{ csrfToken: string }>("/api/csrf-token").pipe(shareReplay(1));
 
 	constructor(private http: HttpClient) {}
 

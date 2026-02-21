@@ -16,12 +16,6 @@ main {
 	flex: 1;
 }
 
-.album {
-	flex-grow: 1;
-	overflow-y: auto;
-	//height: calc(100vh - 185px); /* Ajusta esta altura según tus necesidades */
-	height: calc(100vh - 71px - 65px); /* Ajusta esta altura según tus necesidades */
-}
 
 .content-container {
 	width: 100%;
