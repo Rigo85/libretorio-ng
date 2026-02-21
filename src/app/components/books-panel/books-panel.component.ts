@@ -380,7 +380,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 
 	onScroll($event: Event) {
 		const element = $event.target as HTMLElement;
-		const scrollTop = element.scrollTop;
+		const { scrollTop, scrollHeight, clientHeight } = element;
+
+		// Si el contenido no llena el viewport no hay scroll real — ignorar
+		if (scrollHeight <= clientHeight) return;
 
 		// Si el scroll está al inicio, carga los elementos anteriores
 		// console.info({scrollTop, index: this.currentStartIndex});
@@ -389,7 +392,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		}
 
 		// Si el scroll está al final, carga los siguientes elementos
-		if (scrollTop + element.clientHeight >= element.scrollHeight && !this.loading) {
+		if (scrollTop + clientHeight >= scrollHeight && !this.loading) {
 			this.loadNextItems();
 		}
 	}
@@ -485,8 +488,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 		this.cdr.detectChanges();                // fuerza el render del *ngFor
 		requestAnimationFrame(() => {            // espera al próximo frame (layout listo)
 			this.tuneScrollArea();
-			this.adjustScrollAfterLoad();        // ajusta scroll con scrollHeight correcto
-			this.loading = false;                // libera el guard solo después del layout
+			this.adjustScrollAfterLoad();        // ajusta scroll → puede encolar un scroll event
+			requestAnimationFrame(() => {        // espera a que ese scroll event se procese primero
+				this.loading = false;            // libera el guard solo después
+			});
 		});
 	}
 }
