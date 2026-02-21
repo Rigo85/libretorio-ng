@@ -13,6 +13,11 @@
 		"npm": "10.x"
 	},
 	"private": true,
+	"overrides": {
+		"minimatch": ">=10.2.1",
+		"tar": ">=7.5.8",
+		"ajv": ">=8.18.0"
+	},
 	"dependencies": {
 		"@angular/animations": "^19.2.3",
 		"@angular/common": "^19.2.3",
