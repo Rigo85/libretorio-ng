@@ -16,7 +16,7 @@ export class FileCheckService {
 		if (webDetails) {
 			url = `/temp_covers/${id}.jpg`;
 		} else {
-			url = `/covers/${id}.jpg`;
+			url = `/covers/${id}.webp`;
 		}
 
 		if (id === "no-cover") {

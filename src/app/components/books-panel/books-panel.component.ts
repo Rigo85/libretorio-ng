@@ -297,7 +297,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			const parentPath = file.parentPath.split("dist/public")[1];
 			return `${parentPath}/${file.name}`;
 		} else {
-			return `/covers/${this.getCoverId(file)}.jpg`;
+			return `/covers/${this.getCoverId(file)}.webp`;
 		}
 	}
 
