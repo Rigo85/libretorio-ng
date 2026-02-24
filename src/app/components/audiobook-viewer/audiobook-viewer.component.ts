@@ -75,6 +75,7 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
+		this.audio.pause();
 		this.isPlaying = false;
 		this.audio.removeEventListener("timeupdate", this.updateTime);
 		this.audio.removeEventListener("loadedmetadata", this.updateDuration);
