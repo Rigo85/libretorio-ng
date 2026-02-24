@@ -5,7 +5,7 @@ import { NgForOf, NgIf } from "@angular/common";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { BooksService } from "(src)/app/services/books.service";
-import { AudioBookMetadata } from "(src)/app/core/headers";
+import { AudioBookMetadata, AudioChapter } from "(src)/app/core/headers";
 import { StopPlayingService } from "(src)/app/services/stop-playing.service";
 
 @Component({
@@ -31,6 +31,7 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 	isContinuous = true;
 	currentTime = 0;
 	duration = 0;
+	activeChapterTitle: string | null = null;
 	@ViewChild("playlistContainer", {static: false}) scrollElement!: ElementRef;
 
 	constructor(
@@ -101,6 +102,11 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 	seek(event: Event) {
 		const input = event.target as HTMLInputElement;
 		this.audio.currentTime = Number(input.value);
+	}
+
+	seekToChapter(chapter: AudioChapter): void {
+		this.audio.currentTime = chapter.startTimeInSeconds;
+		this.currentTime = chapter.startTimeInSeconds;
 	}
 
 	updateTime = () => {

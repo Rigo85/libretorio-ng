@@ -8,7 +8,21 @@
 		<!-- Barra de seguimiento -->
 		<div class="progress-bar">
 			<span class="time current-time">{{ formatTime(currentTime) }}</span>
-			<input type="range" (input)="seek($event)" [value]="currentTime" [max]="duration">
+			<div class="seek-container">
+				<input type="range" (input)="seek($event)" [value]="currentTime" [max]="duration">
+				<div class="chapter-markers" *ngIf="currentTrack?.chapters?.length">
+					<div class="chapter-mark"
+						*ngFor="let ch of currentTrack?.chapters"
+						[style.left.%]="ch.startTimeInSeconds / duration * 100"
+						(click)="seekToChapter(ch)"
+						(mouseenter)="activeChapterTitle = ch.title"
+						(mouseleave)="activeChapterTitle = null"
+						(touchstart)="activeChapterTitle = ch.title; $event.preventDefault()"
+						(touchend)="seekToChapter(ch); activeChapterTitle = null">
+						<span class="chapter-tooltip" [class.visible]="activeChapterTitle === ch.title">{{ ch.title }}</span>
+					</div>
+				</div>
+			</div>
 			<span class="time total-time">{{ formatTime(duration) }}</span>
 		</div>
 

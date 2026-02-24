@@ -58,10 +58,64 @@
 	color: #555; /* Color gris suave para un contraste adecuado */
 }
 
-input[type="range"] {
+.seek-container {
+	position: relative;
 	flex-grow: 1;
 	margin: 0 10px;
-	cursor: pointer;
+
+	input[type="range"] {
+		width: 100%;
+		cursor: pointer;
+		display: block;
+	}
+
+	.chapter-markers {
+		position: absolute;
+		top: 0;
+		left: 8px;
+		right: 8px;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.chapter-mark {
+		position: absolute;
+		top: 50%;
+		transform: translateX(-50%) translateY(-50%);
+		width: 3px;
+		height: 14px;
+		background-color: rgba(255, 190, 0, 0.85);
+		cursor: pointer;
+		pointer-events: all;
+		border-radius: 1px;
+		z-index: 1;
+
+		.chapter-tooltip {
+			position: absolute;
+			bottom: calc(100% + 6px);
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(20, 20, 20, 0.93);
+			color: #eee;
+			padding: 3px 8px;
+			border-radius: 4px;
+			font-size: 0.75rem;
+			white-space: nowrap;
+			pointer-events: none;
+			visibility: hidden;
+			opacity: 0;
+			transition: opacity 0.15s ease;
+			max-width: 180px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			z-index: 2;
+
+			&.visible {
+				visibility: visible;
+				opacity: 1;
+			}
+		}
+	}
 }
 
 .controls {

@@ -5,6 +5,8 @@ import { Router } from "@angular/router";
 import { BooksService } from "(src)/app/services/books.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
 
+declare var bootstrap: any;
+
 @Injectable({providedIn: "root"})
 export class AuthService implements OnDestroy {
 	private destroy$ = new Subject<void>();
@@ -96,7 +98,18 @@ export class AuthService implements OnDestroy {
 		);
 	}
 
+	private closeAllModals(): void {
+		document.querySelectorAll(".modal.show").forEach(el => {
+			bootstrap.Modal.getInstance(el)?.hide();
+		});
+		document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+		document.body.classList.remove("modal-open");
+		document.body.style.removeProperty("overflow");
+		document.body.style.removeProperty("padding-right");
+	}
+
 	logout(): Observable<void> {
+		this.closeAllModals();
 		this.collapseStateService.clearStates();
 		this.booksService.disconnect();
 
