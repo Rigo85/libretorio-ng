@@ -45,19 +45,10 @@ export class AuthService implements OnDestroy {
 			.pipe(takeUntil(this.destroy$))
 			.subscribe((msg) => {
 				console.warn("Session expired:", msg.data.message);
-
-				this.logout().subscribe({
-					next: () => {
-						console.log("Successful logout after expiration");
-						setTimeout(() => {
-							this.router.navigate(["/auth/login"], {replaceUrl: true});
-						}, 100);
-					},
-					error: (err) => {
-						console.error("Error closing session after expiration:", err);
-						this.router.navigate(["/auth/login"], {replaceUrl: true});
-					}
-				});
+				this.cleanupSession();
+				setTimeout(() => {
+					this.router.navigate(["/auth/login"], {replaceUrl: true});
+				}, 100);
 			});
 	}
 
@@ -99,8 +90,14 @@ export class AuthService implements OnDestroy {
 	}
 
 	private closeAllModals(): void {
-		document.querySelectorAll(".modal.show").forEach(el => {
-			bootstrap.Modal.getInstance(el)?.hide();
+		(document.activeElement as HTMLElement)?.blur();
+		document.querySelectorAll<HTMLElement>(".modal").forEach(el => {
+			const instance = bootstrap.Modal.getInstance(el);
+			if (instance) instance.dispose();
+			el.classList.remove("show");
+			el.style.display = "none";
+			el.setAttribute("aria-hidden", "true");
+			el.removeAttribute("aria-modal");
 		});
 		document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
 		document.body.classList.remove("modal-open");
@@ -108,10 +105,14 @@ export class AuthService implements OnDestroy {
 		document.body.style.removeProperty("padding-right");
 	}
 
-	logout(): Observable<void> {
+	private cleanupSession(): void {
 		this.closeAllModals();
 		this.collapseStateService.clearStates();
 		this.booksService.disconnect();
+	}
+
+	logout(): Observable<void> {
+		this.cleanupSession();
 
 		return this.getCsrfToken().pipe(
 			switchMap(token =>

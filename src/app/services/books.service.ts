@@ -17,6 +17,7 @@ export class BooksService {
 
 	// region attributes
 	private webSocket!: WebSocketSubject<IncomingMessage>;
+	private intentionalDisconnect = false;
 
 	private connectionStatus = new BehaviorSubject<boolean>(false);
 	public connectionStatus$ = this.connectionStatus.asObservable();
@@ -76,6 +77,7 @@ export class BooksService {
 	}
 
 	public disconnect(): void {
+		this.intentionalDisconnect = true;
 		if (this.webSocket) {
 			this.webSocket.complete();
 			this.webSocket.unsubscribe();
@@ -119,7 +121,10 @@ export class BooksService {
 				this.webSocket
 					.pipe(
 						catchError(err => {
-							console.error("WebSocket error:", err);
+							if (!this.intentionalDisconnect) {
+								console.error("WebSocket error:", err);
+							}
+							this.intentionalDisconnect = false;
 							return throwError(() => err);
 						}),
 						retry({delay: 3_000}),
