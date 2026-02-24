@@ -32,6 +32,12 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 	currentTime = 0;
 	duration = 0;
 	activeChapterTitle: string | null = null;
+
+	readonly speeds = [0.75, 1, 1.25, 1.5, 2];
+	currentSpeedIndex = 1;
+
+	private saveInterval!: any;
+
 	@ViewChild("playlistContainer", {static: false}) scrollElement!: ElementRef;
 
 	constructor(
@@ -56,9 +62,9 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 			this.currentTrackIndex = 0;
 			this.currentTrack = this.playlist[this.currentTrackIndex];
 			this.audio.src = this.currentTrack.src;
-			// console.info(this.currentTrack.src);
 			this.spinner.hide().catch(console.error);
 
+			this.restorePosition();
 			this.scrollTop();
 		});
 
@@ -72,9 +78,15 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 		this.audio.addEventListener("timeupdate", this.updateTime);
 		this.audio.addEventListener("loadedmetadata", this.updateDuration);
 		this.audio.addEventListener("ended", this.onTrackEnd);
+
+		this.saveInterval = setInterval(() => {
+			if (this.isPlaying) this.savePosition();
+		}, 10_000);
 	}
 
 	ngOnDestroy() {
+		clearInterval(this.saveInterval);
+		this.savePosition();
 		this.audio.pause();
 		this.isPlaying = false;
 		this.audio.removeEventListener("timeupdate", this.updateTime);
@@ -109,6 +121,69 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 		this.audio.currentTime = chapter.startTimeInSeconds;
 		this.currentTime = chapter.startTimeInSeconds;
 	}
+
+	// region chapter navigation
+
+	get hasChapters(): boolean {
+		return (this.currentTrack?.chapters?.length ?? 0) > 1;
+	}
+
+	get currentChapterIndex(): number {
+		const chapters = this.currentTrack?.chapters;
+		if (!chapters?.length) return -1;
+		let idx = 0;
+		for (let i = 0; i < chapters.length; i++) {
+			if (this.currentTime >= chapters[i].startTimeInSeconds) {
+				idx = i;
+			} else {
+				break;
+			}
+		}
+		return idx;
+	}
+
+	get currentChapterName(): string | null {
+		const chapters = this.currentTrack?.chapters;
+		if (!chapters?.length) return null;
+		const idx = this.currentChapterIndex;
+		return idx >= 0 ? chapters[idx].title : null;
+	}
+
+	previousChapter(): void {
+		const chapters = this.currentTrack?.chapters;
+		if (!chapters?.length) return;
+		const idx = this.currentChapterIndex;
+		const seekTime = (this.currentTime - chapters[idx].startTimeInSeconds > 3 || idx === 0)
+			? chapters[idx].startTimeInSeconds
+			: chapters[idx - 1].startTimeInSeconds;
+		this.audio.currentTime = seekTime;
+		this.currentTime = seekTime;
+	}
+
+	nextChapter(): void {
+		const chapters = this.currentTrack?.chapters;
+		if (!chapters?.length) return;
+		const idx = this.currentChapterIndex;
+		if (idx < chapters.length - 1) {
+			this.audio.currentTime = chapters[idx + 1].startTimeInSeconds;
+			this.currentTime = this.audio.currentTime;
+		}
+	}
+
+	// endregion
+
+	// region speed control
+
+	get currentSpeed(): number {
+		return this.speeds[this.currentSpeedIndex];
+	}
+
+	cycleSpeed(): void {
+		this.currentSpeedIndex = (this.currentSpeedIndex + 1) % this.speeds.length;
+		this.audio.playbackRate = this.currentSpeed;
+	}
+
+	// endregion
 
 	updateTime = () => {
 		this.currentTime = this.audio.currentTime;
@@ -159,6 +234,7 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 		this.currentTrackIndex = index;
 		this.currentTrack = this.playlist[this.currentTrackIndex];
 		this.audio.src = this.currentTrack.src;
+		this.audio.playbackRate = this.currentSpeed;
 		this.audio.load();
 		if (this.isPlaying) {
 			this.audio.play().catch((error: any) => {
@@ -176,9 +252,6 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 	}
 
 	formatTime(seconds: number): string {
-		// const minutes = Math.floor(seconds / 60);
-		// const secs = Math.floor(seconds % 60);
-		// return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
 		if (isNaN(seconds) || !seconds) return "0:00";
 
 		const h = Math.floor(seconds / 3600);
@@ -191,6 +264,34 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 		return hours + minutes + secs;
 	}
+
+	// region position persistence
+
+	private savePosition(): void {
+		if (!this.audiobookSrc || !this.currentTrack) return;
+		localStorage.setItem(`ab_pos_${this.audiobookSrc}`, JSON.stringify({
+			trackIndex: this.currentTrackIndex,
+			currentTime: this.currentTime
+		}));
+	}
+
+	private restorePosition(): void {
+		if (!this.audiobookSrc) return;
+		const saved = localStorage.getItem(`ab_pos_${this.audiobookSrc}`);
+		if (!saved) return;
+		try {
+			const { trackIndex, currentTime } = JSON.parse(saved) as { trackIndex: number; currentTime: number };
+			if (trackIndex > 0 && trackIndex < this.playlist.length) {
+				this.selectTrack(trackIndex);
+			}
+			if (currentTime > 0) {
+				const onCanPlay = () => { this.audio.currentTime = currentTime; };
+				this.audio.addEventListener("canplay", onCanPlay, {once: true});
+			}
+		} catch { /* ignore malformed data */ }
+	}
+
+	// endregion
 
 	private scrollTop() {
 		if (this.scrollElement?.nativeElement) {

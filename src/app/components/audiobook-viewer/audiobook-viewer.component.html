@@ -1,8 +1,13 @@
 <div class="audio-player">
 	<div class="top-panel">
-		<!-- Nombre del audio actual -->
-		<div class="current-track">
-			<span class="d-inline-block text-truncate" style="max-width: 350px;">{{ currentTrack?.title }}</span>
+
+		<!-- Título + nombre de capítulo + velocidad -->
+		<div class="track-header">
+			<div class="current-track">
+				<span class="d-inline-block text-truncate">{{ currentTrack?.title }}</span>
+				<span class="chapter-name" *ngIf="currentChapterName">{{ currentChapterName }}</span>
+			</div>
+			<button class="speed-btn" (click)="cycleSpeed()" title="Velocidad de reproducción">{{ currentSpeed }}×</button>
 		</div>
 
 		<!-- Barra de seguimiento -->
@@ -28,38 +33,47 @@
 
 		<!-- Botonera de control -->
 		<div class="controls">
-			<button (click)="toggleRepeat()">
+			<button (click)="toggleRepeat()" title="Repetir">
 				<i *ngIf="isRepeating" class="material-icons">sync</i>
 				<i *ngIf="!isRepeating" class="material-icons">sync_disabled</i>
 			</button>
 
-			<button (click)="previous()">
+			<button (click)="previousChapter()" [disabled]="!hasChapters" title="Capítulo anterior">
+				<i class="material-icons">fast_rewind</i>
+			</button>
+
+			<button (click)="previous()" title="Pista anterior">
 				<i class="material-icons">skip_previous</i>
 			</button>
 
-			<button (click)="togglePlayPause()">
+			<button (click)="togglePlayPause()" title="{{ isPlaying ? 'Pausar' : 'Reproducir' }}">
 				<i *ngIf="isPlaying" class="material-icons">pause</i>
 				<i *ngIf="!isPlaying" class="material-icons">play_arrow</i>
 			</button>
 
-			<button (click)="next()">
+			<button (click)="next()" title="Pista siguiente">
 				<i class="material-icons">skip_next</i>
 			</button>
 
-			<button (click)="toggleContinuousPlay()">
+			<button (click)="nextChapter()" [disabled]="!hasChapters" title="Capítulo siguiente">
+				<i class="material-icons">fast_forward</i>
+			</button>
+
+			<button (click)="toggleContinuousPlay()" title="Reproducción continua">
 				<i *ngIf="isContinuous" class="material-icons">playlist_play</i>
 				<i *ngIf="!isContinuous" class="material-icons">playlist_remove</i>
 			</button>
 		</div>
 
 	</div>
+
 	<!-- Lista de reproducción -->
 	<div class="playlist" #playlistContainer>
 		<ul>
 			<li *ngFor="let track of playlist; let i = index" (click)="selectTrack(i)"
 				[class.selected]="i === currentTrackIndex">
 				<div class="track-info">
-<!--					<span class="track-title d-inline-block text-truncate">{{ track.title }}</span>-->
+					<span class="track-index">{{ i + 1 }}</span>
 					<span class="track-title">{{ track.title }}</span>
 					<span class="track-duration">{{ track.length }}</span>
 				</div>
