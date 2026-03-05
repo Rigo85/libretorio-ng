@@ -5,7 +5,7 @@ import { NgForOf, NgIf } from "@angular/common";
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { BooksService } from "(src)/app/services/books.service";
-import { AudioBookMetadata, AudioChapter } from "(src)/app/core/headers";
+import { AudioBookMetadata, AudioChapter, hash } from "(src)/app/core/headers";
 import { StopPlayingService } from "(src)/app/services/stop-playing.service";
 
 @Component({
@@ -269,7 +269,7 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	private savePosition(): void {
 		if (!this.audiobookSrc || !this.currentTrack) return;
-		localStorage.setItem(`ab_pos_${this.audiobookSrc}`, JSON.stringify({
+		localStorage.setItem(`ab_pos_${hash(this.audiobookSrc)}`, JSON.stringify({
 			trackIndex: this.currentTrackIndex,
 			currentTime: this.currentTime
 		}));
@@ -277,7 +277,7 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	private restorePosition(): void {
 		if (!this.audiobookSrc) return;
-		const saved = localStorage.getItem(`ab_pos_${this.audiobookSrc}`);
+		const saved = localStorage.getItem(`ab_pos_${hash(this.audiobookSrc)}`);
 		if (!saved) return;
 		try {
 			const { trackIndex, currentTime } = JSON.parse(saved) as { trackIndex: number; currentTime: number };

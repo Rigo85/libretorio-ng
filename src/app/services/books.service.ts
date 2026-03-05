@@ -1,8 +1,7 @@
 import { DestroyRef, Injectable } from "@angular/core";
-import { BehaviorSubject, catchError, Observable, retry, Subject, switchMap, take, throwError } from "rxjs";
+import { BehaviorSubject, catchError, Observable, retry, Subject, throwError } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
-import { HttpClient } from "@angular/common/http";
 import { File, FileKind } from "(src)/app/core/headers";
 
 interface IncomingMessage {
@@ -24,8 +23,6 @@ export class BooksService {
 
 	private sessionExpiredIncomingMessages = new Subject<IncomingMessage>();
 	public sessionExpiredIncomingMessage$ = this.sessionExpiredIncomingMessages.asObservable();
-
-	private csrfToken$: Observable<string>;
 
 	private heartbeatTimer!: any;
 
@@ -49,11 +46,7 @@ export class BooksService {
 
 	// endregion
 
-	constructor(private http: HttpClient, private destroyRef: DestroyRef) {
-		this.csrfToken$ = this.http
-			.get<{ csrfToken: string }>("/api/csrf-token", {withCredentials: true})
-			.pipe(switchMap(resp => { return [resp.csrfToken]; }));
-	}
+	constructor(private destroyRef: DestroyRef) {}
 
 	private startHeartbeat(): void {
 		this.heartbeatTimer = setInterval(() => {
@@ -93,48 +86,42 @@ export class BooksService {
 		}
 		clearInterval(this.heartbeatTimer);
 
-		this.csrfToken$
-			.pipe(take(1))
-			.subscribe(csrfToken => {
-				// const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-				// const wsUrl = `${wsProtocol}//${window.location.host.split(":")[0]}:3005/?csrfToken=${encodeURIComponent(csrfToken)}`;
-				const wsUrl = `wss://libretorio.rji-services.org/?csrfToken=${encodeURIComponent(csrfToken)}`;
-				this.webSocket = webSocket<IncomingMessage>({
-					url: wsUrl,
-					deserializer: e => JSON.parse(e.data),
-					openObserver: {
-						next: () => {
-							// console.log("WebSocket opened.");
-							this.connectionStatus.next(true);
-						}
-					},
-					closeObserver: {
-						next: () => {
-							// console.log("WebSocket closed.");
-							this.connectionStatus.next(false);
-						}
+		const wsUrl = "wss://libretorio.rji-services.org/";
+		this.webSocket = webSocket<IncomingMessage>({
+			url: wsUrl,
+			deserializer: e => JSON.parse(e.data),
+			openObserver: {
+				next: () => {
+					// console.log("WebSocket opened.");
+					this.connectionStatus.next(true);
+				}
+			},
+			closeObserver: {
+				next: () => {
+					// console.log("WebSocket closed.");
+					this.connectionStatus.next(false);
+				}
+			}
+		});
+
+		this.startHeartbeat();
+
+		this.webSocket
+			.pipe(
+				catchError(err => {
+					if (!this.intentionalDisconnect) {
+						console.error("WebSocket error:", err);
 					}
-				});
-
-				this.startHeartbeat();
-
-				this.webSocket
-					.pipe(
-						catchError(err => {
-							if (!this.intentionalDisconnect) {
-								console.error("WebSocket error:", err);
-							}
-							this.intentionalDisconnect = false;
-							return throwError(() => err);
-						}),
-						retry({delay: 3_000}),
-						takeUntilDestroyed(this.destroyRef)
-					)
-					.subscribe({
-						next: msg => this.routeIncoming(msg),
-						error: err => console.error(err),
-						complete: () => console.log("Connection closed.")
-					});
+					this.intentionalDisconnect = false;
+					return throwError(() => err);
+				}),
+				retry({delay: 3_000}),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe({
+				next: msg => this.routeIncoming(msg),
+				error: err => console.error(err),
+				complete: () => console.log("Connection closed.")
 			});
 	}
 
