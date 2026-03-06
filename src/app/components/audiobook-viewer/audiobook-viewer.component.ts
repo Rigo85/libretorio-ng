@@ -53,16 +53,17 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	ngOnInit() {
 		this.booksService.audioBookIncomingMessage$.subscribe((message) => {
-			this.playlist = message.data.map((file: AudioBookMetadata) => {
+			this.playlist = (message.data ?? []).map((file: AudioBookMetadata) => {
 				return {
 					...file,
 					src: file?.src?.split("dist/public")[1]
 				};
 			});
+			this.spinner.hide().catch(console.error);
+			if (!this.playlist.length) return;
 			this.currentTrackIndex = 0;
 			this.currentTrack = this.playlist[this.currentTrackIndex];
 			this.audio.src = this.currentTrack.src;
-			this.spinner.hide().catch(console.error);
 
 			this.restorePosition();
 			this.scrollTop();
