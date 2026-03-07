@@ -14,7 +14,7 @@
 	},
 	"private": true,
 	"overrides": {
-		"minimatch": ">=10.2.1",
+		"minimatch": ">=10.2.3",
 		"tar": ">=7.5.8",
 		"ajv": ">=8.18.0",
 		"rollup": ">=4.58.1",
