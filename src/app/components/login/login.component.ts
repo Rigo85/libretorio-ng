@@ -1,6 +1,7 @@
-import { Component } from "@angular/core";
+import { Component, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Subscription } from "rxjs";
 import { AuthService } from "(src)/app/services/auth.service";
 import { Router } from "@angular/router";
 
@@ -10,10 +11,11 @@ import { Router } from "@angular/router";
 	templateUrl: "./login.component.html",
 	styleUrl: "./login.component.scss"
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
 
 	error = "";
 	loginForm: FormGroup;
+	private loginSub?: Subscription;
 
 	constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
 		this.loginForm = this.fb.group({
@@ -31,7 +33,8 @@ export class LoginComponent {
 		const {email, password} = this.loginForm.value;
 		this.error = "";
 
-		this.authService.login(email, password).subscribe({
+		this.loginSub?.unsubscribe();
+		this.loginSub = this.authService.login(email, password).subscribe({
 			next: () => {
 				// console.info("Login successful.");
 
@@ -43,6 +46,10 @@ export class LoginComponent {
 				this.error = "Login failed.";
 			}
 		});
+	}
+
+	ngOnDestroy(): void {
+		this.loginSub?.unsubscribe();
 	}
 
 }

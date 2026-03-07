@@ -10,6 +10,7 @@ declare var bootstrap: any;
 @Injectable({providedIn: "root"})
 export class AuthService implements OnDestroy {
 	private destroy$ = new Subject<void>();
+	private sessionMonitorInterval?: ReturnType<typeof setInterval>;
 
 	constructor(
 		private http: HttpClient,
@@ -24,7 +25,7 @@ export class AuthService implements OnDestroy {
 	private startSessionMonitor(): void {
 		const sessionCheckInterval = 5 * 60 * 1000;
 
-		setInterval(() => {
+		this.sessionMonitorInterval = setInterval(() => {
 			this.isLoggedIn().subscribe({
 				next: (isLoggedIn) => {
 					if (!isLoggedIn) {
@@ -53,6 +54,7 @@ export class AuthService implements OnDestroy {
 	}
 
 	ngOnDestroy(): void {
+		clearInterval(this.sessionMonitorInterval);
 		this.destroy$.next();
 		this.destroy$.complete();
 	}

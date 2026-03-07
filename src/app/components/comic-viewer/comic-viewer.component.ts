@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { Component, DestroyRef, ElementRef, HostListener, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
@@ -31,6 +32,7 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	private separator = " / ";
 	private scrollElement?: HTMLElement;
 	private isBackward: boolean = false;
+	private destroyRef = inject(DestroyRef);
 
 	constructor(
 		private errorMessageService: ErrorMessageService,
@@ -51,10 +53,11 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		this.pages = [];
+		this.scrollElement = undefined;
 	}
 
 	ngOnInit() {
-		this.booksService.decompressIncomingMessage$.subscribe((message) => {
+		this.booksService.decompressIncomingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((message) => {
 			const {success, error, pages} = message.data;
 			this.spinner.hide();
 

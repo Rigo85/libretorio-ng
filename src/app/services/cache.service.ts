@@ -10,7 +10,12 @@ export class CacheService {
 		return this.cache.get(url);
 	}
 
+	private readonly MAX_SIZE = 500;
+
 	addToCache(url: string, exists: boolean): void {
+		if (this.cache.size >= this.MAX_SIZE) {
+			this.cache.delete(this.cache.keys().next().value!);
+		}
 		this.cache.set(url, exists);
 	}
 

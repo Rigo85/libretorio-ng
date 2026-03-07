@@ -89,10 +89,13 @@ export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
 		clearInterval(this.saveInterval);
 		this.savePosition();
 		this.audio.pause();
+		this.audio.src = "";
 		this.isPlaying = false;
 		this.audio.removeEventListener("timeupdate", this.updateTime);
 		this.audio.removeEventListener("loadedmetadata", this.updateDuration);
 		this.audio.removeEventListener("ended", this.onTrackEnd);
+		this.playlist = [];
+		this.currentTrack = undefined;
 	}
 
 	private loadAudiobook(url: string): void {

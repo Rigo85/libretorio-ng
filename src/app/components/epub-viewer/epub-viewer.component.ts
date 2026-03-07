@@ -4,6 +4,7 @@ import {
 	HostListener,
 	Input,
 	OnChanges,
+	OnDestroy,
 	OnInit,
 	Renderer2,
 	SimpleChanges,
@@ -26,7 +27,7 @@ declare var ePub: any;
 	templateUrl: "./epub-viewer.component.html",
 	styleUrl: "./epub-viewer.component.scss"
 })
-export class EpubViewerComponent implements OnChanges, OnInit {
+export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@Input() epubSrc!: string;
 	@ViewChild("tocList", {static: true}) tocList!: ElementRef;
 	@Input() fileKind!: FileKind;
@@ -252,5 +253,13 @@ export class EpubViewerComponent implements OnChanges, OnInit {
 	private onRelocated(location: any) {
 		const percent = this.book.locations.percentageFromCfi(location.start.cfi);
 		this.percentage = Math.floor(percent * 100);
+	}
+
+	ngOnDestroy(): void {
+		try { this.rendition?.destroy(); } catch { /* ignore */ }
+		try { this.book?.destroy(); } catch { /* ignore */ }
+		this.rendition = null;
+		this.book = null;
+		this.toc = [];
 	}
 }

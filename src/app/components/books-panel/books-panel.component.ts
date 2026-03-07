@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { catchError, filter, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
 import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
@@ -42,7 +42,7 @@ declare var bootstrap: any;
 	templateUrl: "./books-panel.component.html",
 	styleUrls: ["./books-panel.component.scss"]
 })
-export class BooksPanelComponent implements AfterViewInit, OnInit {
+export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 	files: File[] = [];
 	total: number = 0;
 	selectedFile?: File;
@@ -91,6 +91,8 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 	currentStartIndex = 0;
 	private pendingScrollDirection: "top" | "bottom" | null = null;
 	private coverCheckCache = new Map<string, Observable<boolean>>();
+	private onOpenDetailsModalBound!: EventListener;
+	private onCloseDetailsModalBound!: EventListener;
 	private paramsCoverId?: string;
 	isAdmin$: Observable<boolean> = of(false);
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
@@ -123,9 +125,11 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			.subscribe(() => {
 				// console.info("WebSocket connection established.");
 
-				this.route.params.subscribe((params) => {
-					this.handleParams(params);
-				});
+				this.route.params
+					.pipe(takeUntilDestroyed(this.destroyRef))
+					.subscribe((params) => {
+						this.handleParams(params);
+					});
 
 				this.setupWebSocketSubscriptions();
 
@@ -176,6 +180,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 					) {
 						this.lastParentHash = currentParentHash;
 						this.currentStartIndex = 0;
+						this.coverCheckCache.clear();
 
 						if (this.albumContainer?.nativeElement) {
 							this.albumContainer.nativeElement.scrollTop = 50;
@@ -239,8 +244,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 			this.searchDetailsModal = new bootstrap.Modal(searchDetailsModalElement);
 			this.confirmationModal = new bootstrap.Modal(confirmationModalElement);
 
-			bookDetailsModalElement.addEventListener("shown.bs.modal", this.onOpenDetailsModal.bind(this));
-			bookDetailsModalElement.addEventListener("hidden.bs.modal", this.onCloseDetailsModal.bind(this));
+			this.onOpenDetailsModalBound = this.onOpenDetailsModal.bind(this);
+			this.onCloseDetailsModalBound = this.onCloseDetailsModal.bind(this);
+			bookDetailsModalElement.addEventListener("shown.bs.modal", this.onOpenDetailsModalBound);
+			bookDetailsModalElement.addEventListener("hidden.bs.modal", this.onCloseDetailsModalBound);
 		}
 
 		this.deferTune();
@@ -501,5 +508,18 @@ export class BooksPanelComponent implements AfterViewInit, OnInit {
 				this.loading = false;            // libera el guard solo después
 			});
 		});
+	}
+
+	ngOnDestroy(): void {
+		const bookDetailsModalElement = document.getElementById("bookDetailsModal");
+		if (bookDetailsModalElement && this.onOpenDetailsModalBound) {
+			bookDetailsModalElement.removeEventListener("shown.bs.modal", this.onOpenDetailsModalBound);
+			bookDetailsModalElement.removeEventListener("hidden.bs.modal", this.onCloseDetailsModalBound);
+		}
+		this.bookDetailsModal?.dispose();
+		this.editBookDetailsModal?.dispose();
+		this.searchDetailsModal?.dispose();
+		this.confirmationModal?.dispose();
+		this.coverCheckCache.clear();
 	}
 }

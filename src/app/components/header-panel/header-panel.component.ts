@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, HostListener } from "@angular/core";
+import { AfterViewInit, Component, DestroyRef, HostListener, inject } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 
@@ -18,6 +19,7 @@ import { AuthService } from "(src)/app/services/auth.service";
 	styleUrl: "./header-panel.component.scss"
 })
 export class HeaderPanelComponent implements AfterViewInit {
+	private destroyRef = inject(DestroyRef);
 
 	constructor(
 		private booksService: BooksService,
@@ -31,11 +33,13 @@ export class HeaderPanelComponent implements AfterViewInit {
 	ngAfterViewInit(): void {
 		this.handleSidebar();
 
-		this.searchTextService.reset$.subscribe(reset => {
-			if (reset) {
-				this.booksService.onBooksList(this.collapseState.lastHash);
-			}
-		})
+		this.searchTextService.reset$
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(reset => {
+				if (reset) {
+					this.booksService.onBooksList(this.collapseState.lastHash);
+				}
+			});
 	}
 
 	logout(): void {

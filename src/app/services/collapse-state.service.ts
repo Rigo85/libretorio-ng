@@ -85,7 +85,7 @@ export class CollapseStateService {
 			}
 
 			for (const dir of directory.directories) {
-				const result = searchDirPath(dir, hash, JSON.parse(JSON.stringify(path)));
+				const result = searchDirPath(dir, hash, [...path]);
 				if (result) {
 					return result;
 				}

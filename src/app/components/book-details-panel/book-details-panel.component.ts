@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 import { AsyncPipe, NgIf } from "@angular/common";
 import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
-import { catchError, from, Observable, of } from "rxjs";
+import { catchError, from, Observable, of, Subscription, take } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
@@ -60,6 +60,17 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		"xlsx", "rtf", "txt", "html", "htm", "lit", "md"
 	];
 	_isUsingPdfConversion: boolean = false;
+	private convertToPdfSub?: Subscription;
+
+	private onShownModal = () => {
+		this.stringSource = !this.stringSource ? this.getStringSource(this.file) : this.stringSource;
+	};
+
+	private onHiddenModal = () => {
+		this.stringSource = "";
+		this._isUsingPdfConversion = false;
+		this.stopPlayingService.stopPlayingAudio();
+	};
 
 	constructor(
 		private fileCheckService: FileCheckService,
@@ -84,19 +95,19 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	ngAfterViewInit(): void {
 		const modalElement = document.getElementById("readModal");
 		if (modalElement) {
-			modalElement.addEventListener("shown.bs.modal", () => {
-				this.stringSource = !this.stringSource ? this.getStringSource(this.file) : this.stringSource;
-			});
-
-			modalElement.addEventListener("hidden.bs.modal", () => {
-				this.stringSource = "";
-				this._isUsingPdfConversion = false;
-			});
+			modalElement.addEventListener("shown.bs.modal", this.onShownModal);
+			modalElement.addEventListener("hidden.bs.modal", this.onHiddenModal);
 		}
 	}
 
 	ngOnDestroy() {
 		this._isUsingPdfConversion = false;
+		this.convertToPdfSub?.unsubscribe();
+		const modalElement = document.getElementById("readModal");
+		if (modalElement) {
+			modalElement.removeEventListener("shown.bs.modal", this.onShownModal);
+			modalElement.removeEventListener("hidden.bs.modal", this.onHiddenModal);
+		}
 	}
 
 	get isDisabled(): boolean {
@@ -219,14 +230,6 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 			} else {
 				// console.info("Modal instance not found, creating a new one.");
 				const newModalInstance = new bootstrap.Modal(modalElement);
-				modalElement.addEventListener("hidden.bs.modal", () => {
-					const modal = bootstrap.Modal.getInstance(modalElement);
-					if (modal) {
-						// hiding epub modal reader when converting to pdf.
-						modal.hide();
-						this.stopPlayingService.stopPlayingAudio();
-					}
-				});
 				newModalInstance.show();
 			}
 		}
@@ -237,7 +240,8 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 			this.spinner.show();
 			this.booksService.convertToPdf(this.getStringSource(this.file), this.file.coverId);
 
-			this.booksService.convertToPdfIncomingMessage$.subscribe({
+			this.convertToPdfSub?.unsubscribe();
+		this.convertToPdfSub = this.booksService.convertToPdfIncomingMessage$.pipe(take(1)).subscribe({
 				next: (msg) => {
 					this.spinner.hide();
 					const {success, error, pdfPath} = msg.data;
