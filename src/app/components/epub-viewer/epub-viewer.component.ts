@@ -137,9 +137,9 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@HostListener("document:keyup", ["$event"])
 	handleKeyUp(event: KeyboardEvent) {
 		if (event.key === "ArrowLeft") {
-			this.rendition.prev();
+			this.rendition?.prev();
 		} else if (event.key === "ArrowRight") {
-			this.rendition.next();
+			this.rendition?.next();
 		}
 	}
 
@@ -160,6 +160,7 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	private loadToc() {
 		this.book.loaded.navigation.then((toc: any) => {
+			if (!this.book) return;
 			this.toc = toc;
 			this.renderer.setProperty(this.tocList.nativeElement, "innerHTML", "");
 
@@ -251,15 +252,24 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 	}
 
 	private onRelocated(location: any) {
+		if (!this.book) return;
 		const percent = this.book.locations.percentageFromCfi(location.start.cfi);
 		this.percentage = Math.floor(percent * 100);
 	}
 
 	ngOnDestroy(): void {
-		try { this.rendition?.destroy(); } catch { /* ignore */ }
-		try { this.book?.destroy(); } catch { /* ignore */ }
+		const rendition = this.rendition;
+		const book = this.book;
 		this.rendition = null;
 		this.book = null;
 		this.toc = [];
+		try {
+			const r = rendition?.destroy();
+			if (r instanceof Promise) r.catch(() => {});
+		} catch { /* ignore */ }
+		try {
+			const b = book?.destroy();
+			if (b instanceof Promise) b.catch(() => {});
+		} catch { /* ignore */ }
 	}
 }
