@@ -516,10 +516,12 @@ export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 			bookDetailsModalElement.removeEventListener("shown.bs.modal", this.onOpenDetailsModalBound);
 			bookDetailsModalElement.removeEventListener("hidden.bs.modal", this.onCloseDetailsModalBound);
 		}
-		this.bookDetailsModal?.dispose();
-		this.editBookDetailsModal?.dispose();
-		this.searchDetailsModal?.dispose();
-		this.confirmationModal?.dispose();
+		// Use getInstance() to avoid double-dispose: Bootstrap sets _element=null on first dispose()
+		// and getInstance() returns null for already-disposed modals.
+		for (const id of ["bookDetailsModal", "editBookDetailsModal", "searchDetailsModal", "confirmationModal"]) {
+			const el = document.getElementById(id);
+			if (el) bootstrap.Modal.getInstance(el)?.dispose();
+		}
 		this.coverCheckCache.clear();
 	}
 }
