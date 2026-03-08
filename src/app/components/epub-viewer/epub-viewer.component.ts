@@ -3,7 +3,6 @@ import {
 	ElementRef,
 	HostListener,
 	Input,
-	NgZone,
 	OnChanges,
 	OnDestroy,
 	OnInit,
@@ -46,8 +45,7 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 		private elementRef: ElementRef,
 		private renderer: Renderer2,
 		private errorMessageService: ErrorMessageService,
-		private spinner: NgxSpinnerService,
-		private ngZone: NgZone) {}
+		private spinner: NgxSpinnerService) {}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["epubSrc"] && changes["epubSrc"].currentValue !== changes["epubSrc"].previousValue) {
@@ -260,16 +258,8 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		const rendition = this.rendition;
-		const book = this.book;
 		this.rendition = null;
 		this.book = null;
 		this.toc = [];
-		// Run outside Angular's zone so that any async callbacks triggered by
-		// epubjs destroy() (setTimeout, events) do not reach Angular's ErrorHandler
-		this.ngZone.runOutsideAngular(() => {
-			try { rendition?.destroy(); } catch { /* ignore */ }
-			try { book?.destroy(); } catch { /* ignore */ }
-		});
 	}
 }
