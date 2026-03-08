@@ -2,7 +2,7 @@ import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleCh
 import { AsyncPipe, NgIf } from "@angular/common";
 import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
 import { catchError, from, Observable, of, Subscription, take } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
+import { DownloadService } from "(src)/app/services/download.service";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { File, FileKind, getExtension } from "(src)/app/core/headers";
@@ -11,7 +11,6 @@ import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { DescriptionPipe } from "(src)/app/pipes/description.pipe";
 import { SubjectPipe } from "(src)/app/pipes/subject.pipe";
 import { FileCheckService } from "(src)/app/services/file-check.service";
-import { DownloadService } from "(src)/app/services/download.service";
 import { PdfViewerComponent } from "(src)/app/components/pdf-viewer/pdf-viewer.component";
 import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { EpubViewerComponent } from "(src)/app/components/epub-viewer/epub-viewer.component";
@@ -156,45 +155,26 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 			fileUrl = `cache/${file.coverId}/${file.coverId}.zip`;
 		}
 
-		this.downloadService.downloadFile(fileUrl).pipe(
-			catchError((error: HttpErrorResponse) => {
-				this.downloadMessage = this.getErrorMessage(error);
-				// console.info(`${this.titleMessage} - ${this.downloadMessage}`);
+		const encodedUrl = encodeURI(fileUrl);
+		this.spinner.show();
+
+		this.downloadService.checkFileAvailable(encodedUrl).pipe(
+			take(1),
+			catchError(() => {
+				this.downloadMessage = "File not available for download.";
 				this.messageDialog();
 				return of(null);
 			})
-		).subscribe({
-			next: (blob) => {
-				if (blob) {
-					const url = window.URL.createObjectURL(blob);
-					const a = document.createElement("a");
-					a.href = url;
-					a.download = file.name;
-					a.click();
-					window.URL.revokeObjectURL(url);
-					// console.info("Download book", fileUrl);
-				}
-			},
-			error: (error) => {
-				console.error("Download failed", error);
-			},
-			complete: () => {
-				// console.info("Download process completed.");
-
+		).subscribe((result) => {
+			this.spinner.hide();
+			if (result !== null) {
+				const a = document.createElement("a");
+				a.href = encodedUrl;
+				a.download = file.name;
+				a.click();
 				this.booksService.logAction("Download", this.file.name, this.file.id);
 			}
 		});
-	}
-
-	private getErrorMessage(error: HttpErrorResponse): string {
-		if (error.error instanceof ErrorEvent) {
-			// Error del lado del cliente o de red
-			return `Error: ${error.error.message}`;
-		} else {
-			// Error del lado del servidor
-			this.titleMessage = `Error ${error.status}`;
-			return `${error.statusText} URL: ${decodeURIComponent(error.url ?? "")}`;
-		}
 	}
 
 	clearDownloadMessage() {
