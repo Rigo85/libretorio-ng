@@ -53,6 +53,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	stringSource: string = "";
 	extension: string = "N/A";
 	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
+	audioExtensions: string[] = ["mp3", "wav", "m4a", "m4b", "ogg", "flac"];
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	convertToPdfExtensions: string[] = [
 		"epub", "doc", "docx", "ppt", "pptx", "xls",
@@ -109,9 +110,14 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		}
 	}
 
+	get isAudioFile(): boolean {
+		return this.file.fileKind === FileKind.FILE && this.audioExtensions.includes(this.extension);
+	}
+
 	get isDisabled(): boolean {
 		return !this.disabledExtensions.includes(this.extension) &&
-			!["EPUB", "COMIC-MANGA", "AUDIOBOOK"].includes(this.file.fileKind.toString())
+			!["EPUB", "COMIC-MANGA", "AUDIOBOOK"].includes(this.file.fileKind.toString()) &&
+			!this.isAudioFile
 			;
 	}
 
@@ -199,7 +205,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		if (modalElement) {
 			if (this.file) {
 				this.booksService.logAction(
-					this.file.fileKind === FileKind.AUDIOBOOK ? "Listen to" : "Read",
+					this.file.fileKind === FileKind.AUDIOBOOK || this.isAudioFile ? "Listen to" : "Read",
 					this.file.name,
 					this.file.id
 				);

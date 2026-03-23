@@ -30,7 +30,7 @@
 					</button>
 					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
 							[disabled]="isDisabled">
-						{{ file.fileKind === 'AUDIOBOOK' ? 'Listen' : 'Read' }}
+						{{ file.fileKind === 'AUDIOBOOK' || isAudioFile ? 'Listen' : 'Read' }}
 					</button>
 				</div>
 			</div>
@@ -153,7 +153,7 @@
 							  [id]="file.coverId"
 							  [fileKind]="file.fileKind">
 				</comic-viewer>
-				<audiobook-viewer *ngIf="['AUDIOBOOK'].includes(file | ext)"
+				<audiobook-viewer *ngIf="(file | ext) === 'AUDIOBOOK' || isAudioFile"
 								  [audiobookSrc]="stringSource">
 				</audiobook-viewer>
 			</div>
