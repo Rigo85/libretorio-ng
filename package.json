@@ -9,7 +9,7 @@
     "test": "ng test"
   },
   "engines": {
-    "node": "22.x",
+    "node": "24.x",
     "npm": "10.x"
   },
   "private": true,
