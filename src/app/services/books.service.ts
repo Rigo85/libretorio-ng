@@ -177,8 +177,8 @@ export class BooksService {
 		this.sendMessage({event: "search_text", data: {searchText, offset, limit}});
 	}
 
-	public decompressFile(filePath: string, id: string, fileKind: FileKind) {
-		this.sendMessage({event: "decompress", data: {filePath, id, fileKind}});
+	public loadComic(id: string) {
+		this.sendMessage({event: "decompress", data: {id}});
 	}
 
 	public convertToPdf(filePath: string, coverId: string) {

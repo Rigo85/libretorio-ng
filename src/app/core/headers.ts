@@ -36,6 +36,7 @@ export interface File {
 	webDetails?: any;
 	customDetails?: boolean;
 	fileKind: FileKind;
+	comicReaderReady?: boolean;
 }
 
 export interface Directory {

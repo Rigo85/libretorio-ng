@@ -28,7 +28,7 @@
 							(click)="onConvertToPdf()">
 						Convert to PDF
 					</button>
-					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
+					<button *ngIf="showReadButton" type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
 							[disabled]="isDisabled">
 						{{ file.fileKind === 'AUDIOBOOK' || isAudioFile ? 'Listen' : 'Read' }}
 					</button>
@@ -148,11 +148,10 @@
 							 [epubSrc]="stringSource"
 							 [fileKind]="file.fileKind">
 				</epub-viewer>
-				<comic-viewer *ngIf="['CBR', 'CBZ', 'CB7', 'COMIC-MANGA'].includes(file | ext)"
-							  [comicSrc]="stringSource"
-							  [id]="file.coverId"
-							  [fileKind]="file.fileKind">
-				</comic-viewer>
+					<comic-viewer *ngIf="['CBR', 'CBZ', 'CB7', 'CBT', 'COMIC-MANGA'].includes(file | ext)"
+								  [comicSrc]="stringSource"
+								  [id]="file.coverId">
+					</comic-viewer>
 				<audiobook-viewer *ngIf="(file | ext) === 'AUDIOBOOK' || isAudioFile"
 								  [audiobookSrc]="stringSource">
 				</audiobook-viewer>

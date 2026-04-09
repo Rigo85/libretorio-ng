@@ -52,7 +52,8 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	titleMessage: string = "Information";
 	stringSource: string = "";
 	extension: string = "N/A";
-	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7"];
+	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7", "cbt"];
+	supportedComicExtensions: string[] = ["cbr", "cbz", "cb7", "cbt"];
 	audioExtensions: string[] = ["mp3", "wav", "m4a", "m4b", "ogg", "flac"];
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	convertToPdfExtensions: string[] = [
@@ -111,10 +112,35 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	get isAudioFile(): boolean {
-		return this.file.fileKind === FileKind.FILE && this.audioExtensions.includes(this.extension);
+		return this.file?.fileKind === FileKind.FILE && this.audioExtensions.includes(this.extension);
+	}
+
+	get isComicReaderCandidate(): boolean {
+		if (!this.file) {
+			return false;
+		}
+
+		return this.file.fileKind === FileKind.COMIC_MANGA
+			|| (this.file.fileKind === FileKind.FILE && this.supportedComicExtensions.includes(this.extension));
+	}
+
+	get showReadButton(): boolean {
+		if (!this.isComicReaderCandidate) {
+			return true;
+		}
+
+		return this.file?.comicReaderReady === true;
 	}
 
 	get isDisabled(): boolean {
+		if (!this.file) {
+			return true;
+		}
+
+		if (this.isComicReaderCandidate) {
+			return false;
+		}
+
 		return !this.disabledExtensions.includes(this.extension) &&
 			!["EPUB", "COMIC-MANGA", "AUDIOBOOK"].includes(this.file.fileKind.toString()) &&
 			!this.isAudioFile
@@ -201,15 +227,17 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	onRead() {
+		if (!this.file) {
+			return;
+		}
+
 		const modalElement = document.getElementById("readModal");
 		if (modalElement) {
-			if (this.file) {
-				this.booksService.logAction(
-					this.file.fileKind === FileKind.AUDIOBOOK || this.isAudioFile ? "Listen to" : "Read",
-					this.file.name,
-					this.file.id
-				);
-			}
+			this.booksService.logAction(
+				this.file.fileKind === FileKind.AUDIOBOOK || this.isAudioFile ? "Listen to" : "Read",
+				this.file.name,
+				this.file.id
+			);
 			const modalInstance = bootstrap.Modal.getInstance(modalElement);
 			if (modalInstance) {
 				modalInstance.show();

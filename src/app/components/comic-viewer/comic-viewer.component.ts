@@ -6,7 +6,6 @@ import { ErrorMessageComponent } from "(src)/app/components/error-message/error-
 import { onClose } from "(src)/app/components/helpers/utils";
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { BooksService } from "(src)/app/services/books.service";
-import { FileKind } from "(src)/app/core/headers";
 
 @Component({
 	selector: "comic-viewer",
@@ -20,7 +19,6 @@ import { FileKind } from "(src)/app/core/headers";
 export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	@Input() comicSrc!: string;
 	@Input() id!: string;
-	@Input() fileKind!: FileKind;
 	pages: string[] = [];
 	onClose = onClose;
 	currentPage: number = 1;
@@ -58,7 +56,7 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 
 	ngOnInit() {
 		this.booksService.decompressIncomingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((message) => {
-			const {success, error, pages} = message.data;
+			const {success, error, pages, code} = message.data;
 			this.spinner.hide();
 
 			if (success === "OK") {
@@ -73,6 +71,11 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 				this.index = pages.index;
 				this.pageIndex = pages.pageIndex;
 			} else {
+				if (code === "COMIC_CACHE_MISSING") {
+					this.handleError("Este archivo solo está disponible para descarga.");
+					return;
+				}
+
 				this.handleError(error);
 			}
 		});
@@ -81,12 +84,12 @@ export class ComicViewerComponent implements OnChanges, OnInit, OnDestroy {
 	}
 
 	private loadComic(url: string): void {
-		if (!url) {
+		if (!url || !this.id) {
 			return;
 		}
 
 		this.spinner.show();
-		this.booksService.decompressFile(this.comicSrc, this.id, this.fileKind);
+		this.booksService.loadComic(this.id);
 	}
 
 	private handleError(message: string) {
