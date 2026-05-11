@@ -64,7 +64,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	private convertToPdfSub?: Subscription;
 
 	private onShownModal = () => {
-		this.stringSource = !this.stringSource ? this.getStringSource(this.file) : this.stringSource;
+		this.stringSource = !this.stringSource ? this.getPublicSource(this.file) : this.stringSource;
 	};
 
 	private onHiddenModal = () => {
@@ -224,6 +224,15 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 
 	getStringSource(file: File): string {
 		return file ? (this.file.parentPath + "/" + this.file.name) : "";
+	}
+
+	private getPublicSource(file: File): string {
+		if (!file) {
+			return "";
+		}
+
+		const parentPath = file.parentPath.split("dist/public")[1] ?? file.parentPath;
+		return `${parentPath}/${file.name}`;
 	}
 
 	onRead() {
