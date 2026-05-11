@@ -26,6 +26,8 @@ export class PdfViewerComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        pdfDefaultOptions.disableAutoFetch = true;
+
         // Simple, dependency-free mobile detection.
         if (typeof window !== "undefined") {
             const ua = navigator.userAgent || "";
