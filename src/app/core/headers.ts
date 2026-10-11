@@ -15,6 +15,7 @@ export enum FileKind {
 export interface AudioChapter {
 	title: string;
 	startTimeInSeconds: number;
+	endTimeInSeconds?: number;
 }
 
 export interface AudioBookMetadata {
@@ -23,6 +24,8 @@ export interface AudioBookMetadata {
 	type: string;
 	length: string;
 	chapters?: AudioChapter[];
+	durationSeconds?: number;
+	metadataStatus?: 'ready' | 'needs_review' | 'pending' | 'processing' | 'stale' | 'failed' | 'unavailable' | 'skipped';
 }
 
 export interface File {
