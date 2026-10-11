@@ -1,6 +1,8 @@
 {
   "name": "libretorio-ng",
+  "description": "Interfaz web de Libretorio: biblioteca autohospedada para libros, documentos, comics, manga y audiolibros.",
   "version": "2.0.0",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "ng": "ng",
     "start": "ng serve  --host 0.0.0.0",
