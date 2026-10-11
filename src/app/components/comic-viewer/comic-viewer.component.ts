@@ -12,7 +12,7 @@ interface ComicFrame {token:number;src:string;page:number;chunk:number;capture:b
 @Component({
   selector:'comic-viewer',imports:[ErrorMessageComponent,NgxSpinnerModule,ReadingStatusComponent],
   templateUrl:'./comic-viewer.component.html',styleUrl:'./comic-viewer.component.scss',
-  changeDetection:ChangeDetectionStrategy.Default
+  changeDetection:ChangeDetectionStrategy.Eager
 })
 export class ComicViewerComponent implements OnChanges, OnDestroy {
   @Input() comicSrc='';

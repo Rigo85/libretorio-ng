@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
 import {ManagedUser, managementError, UserManagementService} from '../../services/user-management.service';
 
-@Component({selector:'app-users',imports:[FormsModule,DatePipe],changeDetection:ChangeDetectionStrategy.Default,templateUrl:'./users.component.html',styleUrl:'./users.component.scss'})
+@Component({selector:'app-users',imports:[FormsModule,DatePipe],changeDetection:ChangeDetectionStrategy.Eager,templateUrl:'./users.component.html',styleUrl:'./users.component.scss'})
 export class UsersComponent implements OnInit {
   private api=inject(UserManagementService);private auth=inject(AuthService);private destroy=inject(DestroyRef);private request=0;
   items:ManagedUser[]=[];next:string|null=null;before?:string;q='';state='';loading=false;saving=false;error='';notice='';

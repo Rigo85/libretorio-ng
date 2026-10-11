@@ -1,7 +1,10 @@
-<main class="d-flex flex-nowrap">
+<main class="d-flex flex-nowrap" [class.activity-layout]="navigation.inHome()">
 	<left-panel></left-panel>
 	<div class="content-container">
 		<header-panel></header-panel>
+		@if (sessionActivity.warning()) {
+			<p class="text-warning px-3 mb-1" role="status">{{ sessionActivity.warning() }}</p>
+		}
 		<router-outlet></router-outlet>
 	</div>
 </main>

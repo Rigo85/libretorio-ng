@@ -1,41 +1,46 @@
 <div class="container-flex">
-	<ng-container *ngIf="checkFileExists(file) | async; else noCover">
-		<img [attr.src]="'/covers/' + getCoverId(file) + '.webp'" alt="{{ file | title }}" width="100%" height="225"
-			 class="bd-placeholder-img card-img-top">
-	</ng-container>
-	<ng-template #noCover>
-		<div class="svg-container">
-			<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
-				 xmlns="http://www.w3.org/2000/svg" role="img"
-				 aria-label="Placeholder: Thumbnail"
-				 preserveAspectRatio="xMidYMid slice" focusable="false">
-				<title>Placeholder</title>
-				<rect width="100%" height="100%" fill="#55595c"/>
-				<text x="50%" y="50%" fill="#eceeef" dy=".3em">
-					{{ file | ext }}
-				</text>
-			</svg>
-		</div>
-	</ng-template>
-	<form [formGroup]="form">
-		<div formArrayName="fields">
-			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
-				<div class="mb-3">
-					<label for="field" class="form-label">{{ toUpperCase(field.get('name')?.value) }}</label>
-					<textarea *ngIf="field.get('name')?.value === 'description'" class="form-control" id="field"
-							  formControlName="value" (input)="onInput()">
-					</textarea>
-					<input *ngIf="field.get('name')?.value !== 'description'" type="text" class="form-control"
-						   id="field" formControlName="value"
-						   (input)="onInput()">
-				</div>
-			</div>
-			<div class="mb-3 form-check">
-				<input type="checkbox" class="form-check-input" id="customDetailsCheckBox"
-					   (change)="onCustomDetailsChange($event)" [checked]="file.customDetails">
-				<label class="form-check-label" for="customDetailsCheckBox">Use custom details</label>
-			</div>
-		</div>
-		<div id="feedback" class="invalid"></div>
-	</form>
+  @if (checkFileExists(file) | async) {
+    <img [attr.src]="'/covers/' + getCoverId(file) + '.webp'" alt="{{ file | title }}" width="100%" height="225"
+      class="bd-placeholder-img card-img-top">
+  } @else {
+    <div class="svg-container">
+      <svg class="bd-placeholder-img card-img-top" width="100%" height="225"
+        xmlns="http://www.w3.org/2000/svg" role="img"
+        aria-label="Placeholder: Thumbnail"
+        preserveAspectRatio="xMidYMid slice" focusable="false">
+        <title>Placeholder</title>
+        <rect width="100%" height="100%" fill="#55595c"/>
+        <text x="50%" y="50%" fill="#eceeef" dy=".3em">
+          {{ file | ext }}
+        </text>
+      </svg>
+    </div>
+  }
+  <form [formGroup]="form">
+    <div formArrayName="fields">
+      @for (field of fields.controls; track field; let i = $index) {
+        <div [formGroupName]="i">
+          <div class="mb-3">
+            <label for="field" class="form-label">{{ toUpperCase($safeNavigationMigration(field.get('name')?.value)) }}</label>
+            @if (field.get('name')?.value === 'description') {
+              <textarea class="form-control" id="field"
+                formControlName="value" (input)="onInput()">
+              </textarea>
+            }
+            @if (field.get('name')?.value !== 'description') {
+              <input type="text" class="form-control"
+                id="field" formControlName="value"
+                (input)="onInput()">
+            }
+          </div>
+        </div>
+      }
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="customDetailsCheckBox"
+          (change)="onCustomDetailsChange($event)" [checked]="file.customDetails">
+        <label class="form-check-label" for="customDetailsCheckBox">Use custom details</label>
+      </div>
+    </div>
+    <div id="feedback" class="invalid"></div>
+  </form>
 </div>

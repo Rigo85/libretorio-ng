@@ -1,23 +1,36 @@
-<header class="p-3 mb-3 border-bottom d-flex align-items-baseline">
-	<button id="sidebarToggle" class="navbar-toggler" type="button" data-bs-toggle="collapse"
-			data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent"
-			aria-expanded="false" aria-label="Toggle navigation" style="margin-right: 17px;"
-			(click)="toggleSidebar()">
-		<span class="navbar-toggler-icon"></span>
-	</button>
-	<div class="d-flex align-items-center" style="width: 100%;">
-		<div class="d-flex flex-grow-1 justify-content-end align-items-center gap-2">
-			<form class="flex-grow-1 flex-lg-grow-0 mb-0 me-2" role="search" style="max-width: 200px;">
-				<input type="search" class="form-control" placeholder="Search..."
-					[(ngModel)]="searchText"
-					(keydown)="onKeyDown($event)"
-					aria-label="Search"
-					[ngModelOptions]="{standalone: true}"
-				>
-			</form>
-			<button class="btn btn-link" type="button" (click)="logout()">
-				<i class="bi bi-box-arrow-right me-1"></i>Logout
-			</button>
-		</div>
-	</div>
+<header class="app-header border-bottom">
+  <button id="sidebarToggle" class="header-icon" type="button" aria-label="Carpetas" title="Carpetas" aria-controls="sidebar" [attr.aria-expanded]="sidebarExpanded" (click)="toggleSidebar()">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+  @if(readingAvailable){
+    <nav class="primary-nav" aria-label="Principal">
+      <a routerLink="/inicio" title="Inicio" aria-label="Inicio" [class.active]="navigation.inHome()" [attr.aria-current]="navigation.inHome()?'page':null">
+        <i class="bi bi-house-door" aria-hidden="true"></i><span>Inicio</span>
+      </a>
+      <a [routerLink]="navigation.returnPath()" title="Biblioteca" aria-label="Biblioteca" [class.active]="!navigation.inHome()&&!inAccount" [attr.aria-current]="!navigation.inHome()&&!inAccount?'page':null">
+        <i class="bi bi-journals" aria-hidden="true"></i><span>Biblioteca</span>
+      </a>
+    </nav>
+  }
+  <form class="catalogue-search" role="search" (submit)="$event.preventDefault()">
+    <input type="search" class="form-control" placeholder="Buscar en biblioteca" [(ngModel)]="searchText"
+      (keydown)="onKeyDown($event)" aria-label="Buscar en biblioteca" [ngModelOptions]="{standalone:true}">
+    <button class="header-icon" type="button" aria-label="Busqueda avanzada" title="Busqueda avanzada" (click)="advancedSearch()"><i class="bi bi-sliders" aria-hidden="true"></i></button>
+  </form>
+  <div class="account-controls" #accountControls (focusout)="onAccountFocusOut($event)">
+    <button #accountToggle class="account-toggle" [class.active]="inAccount" type="button" title="Cuenta" aria-label="Cuenta"
+      aria-controls="account-actions" [attr.aria-expanded]="accountOpen" (click)="toggleAccount()">
+      <i class="bi bi-person-circle" aria-hidden="true"></i><span>Cuenta</span><i class="bi bi-chevron-down account-chevron" aria-hidden="true"></i>
+    </button>
+    <ul id="account-actions" class="account-actions" [hidden]="!accountOpen">
+      @if(managementEnabled){
+        <li><a routerLink="/cuenta" (click)="closeAccount()"><i class="bi bi-key" aria-hidden="true"></i>Cambiar contraseña</a></li>
+      }
+      @if(canManageUsers){
+        <li><a routerLink="/usuarios" (click)="closeAccount()"><i class="bi bi-people" aria-hidden="true"></i>Gestionar usuarios</a></li>
+      }
+      <li [class.account-signout]="managementEnabled||canManageUsers"><button type="button" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Cerrar sesión</button></li>
+    </ul>
+  </div>
 </header>
+@if(sidebarExpanded){<button class="sidebar-backdrop" type="button" aria-label="Cerrar carpetas" (click)="closeSidebar()"></button>}

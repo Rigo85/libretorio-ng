@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { AsyncPipe, NgIf } from "@angular/common";
-import { NgxExtendedPdfViewerModule } from "ngx-extended-pdf-viewer";
+import { AfterViewInit, Component, ElementRef, inject, Input, Output, EventEmitter, ChangeDetectorRef, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from "@angular/core";
+import { AsyncPipe } from "@angular/common";
 import { catchError, from, Observable, of, Subscription, take } from "rxjs";
 import { DownloadService } from "(src)/app/services/download.service";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
@@ -16,38 +15,47 @@ import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 import { EpubViewerComponent } from "(src)/app/components/epub-viewer/epub-viewer.component";
 import { ComicViewerComponent } from "(src)/app/components/comic-viewer/comic-viewer.component";
 import { BooksService } from "(src)/app/services/books.service";
-import { ErrorMessageService } from "(src)/app/services/error-message.service";
 import { ErrorMessageComponent } from "(src)/app/components/error-message/error-message.component";
 import { FullPathPipe } from "(src)/app/pipes/full-path.pipe";
 import { AudiobookViewerComponent } from "(src)/app/components/audiobook-viewer/audiobook-viewer.component";
 import { StopPlayingService } from "(src)/app/services/stop-playing.service";
+import {ReadingService} from '../../services/reading.service';
+import {RoutedModal} from '../helpers/routed-modal';
+import {ActivityView} from '../reading-home/activity-route';
 
 declare var bootstrap: any;
 
 @Component({
 	selector: "book-details-panel",
 	imports: [
-		AuthorPipe,
-		TitlePipe,
-		DescriptionPipe,
-		SubjectPipe,
-		NgIf,
-		AsyncPipe,
-		PdfViewerComponent,
-		NgxExtendedPdfViewerModule,
-		ExtensionPipe,
-		EpubViewerComponent,
-		ComicViewerComponent,
-		NgxSpinnerModule,
-		ErrorMessageComponent,
-		FullPathPipe,
-		AudiobookViewerComponent
-	],
+    AuthorPipe,
+    TitlePipe,
+    DescriptionPipe,
+    SubjectPipe,
+    AsyncPipe,
+    PdfViewerComponent,
+    ExtensionPipe,
+    EpubViewerComponent,
+    ComicViewerComponent,
+    NgxSpinnerModule,
+    ErrorMessageComponent,
+    FullPathPipe,
+    AudiobookViewerComponent
+],
 	templateUrl: "./book-details-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./book-details-panel.component.scss"
 })
 export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
 	@Input() file!: File;
+	@Input() readerOutlet?: HTMLElement;
+	@Output() readerRequested = new EventEmitter<ActivityView>();
+	@Output() readerClosed = new EventEmitter<void>();
+	private managedReader?: RoutedModal;
+	private cdr = inject(ChangeDetectorRef);
+	private host: ElementRef<HTMLElement> = inject(ElementRef);
+	private detailsElement?: HTMLElement;
+	private readerElement?: HTMLElement;
 	downloadMessage: string = "";
 	titleMessage: string = "Information";
 	stringSource: string = "";
@@ -57,20 +65,38 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	audioExtensions: string[] = ["mp3", "wav", "m4a", "m4b", "ogg", "flac"];
 	imagesExtensions: string[] = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
 	convertToPdfExtensions: string[] = [
-		"epub", "doc", "docx", "ppt", "pptx", "xls",
+		"doc", "docx", "ppt", "pptx", "xls",
 		"xlsx", "rtf", "txt", "html", "htm", "lit", "md"
 	];
 	_isUsingPdfConversion: boolean = false;
 	private convertToPdfSub?: Subscription;
+	pdfState: 'checking' | 'ready' | 'pending' | 'failed' | 'unavailable' = 'unavailable';
+	pdfStatusMessage = '';
+	private onDetailsShown = (event: Event) => {
+		if(event.target !== this.detailsElement)return;
+		if(!this.readerOutlet && this.file?.id!==undefined)void this.readingStore.visit(this.file.id).catch(()=>{});
+		if (this.pdfState !== 'checking') this.checkPreparedPdf();
+	};
+	private onDetailsHidden = (event: Event) => {
+		if(event.target !== this.detailsElement)return;
+		this.convertToPdfSub?.unsubscribe();
+		if (this.pdfState === 'checking') {
+			this.pdfState = 'unavailable';
+			this.pdfStatusMessage = 'PDF sin comprobar.';
+		}
+	};
 
-	private onShownModal = () => {
+	private onShownModal = (event: Event) => {
+		if(event.target !== this.readerElement)return;
 		this.stringSource = !this.stringSource ? this.getReaderSource(this.file) : this.stringSource;
 	};
 
-	private onHiddenModal = () => {
+	private onHiddenModal = (event: Event) => {
+		if(event.target !== this.readerElement)return;
 		this.stringSource = "";
 		this._isUsingPdfConversion = false;
 		this.stopPlayingService.stopPlayingAudio();
+		if(this.readerOutlet)this.readerClosed.emit();
 	};
 
 	constructor(
@@ -78,12 +104,16 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		private downloadService: DownloadService,
 		private booksService: BooksService,
 		private spinner: NgxSpinnerService,
-		private errorMessageService: ErrorMessageService,
-		private stopPlayingService: StopPlayingService) {}
+		private stopPlayingService: StopPlayingService,
+		private readingStore:ReadingService) {}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["file"]) {
+			this.convertToPdfSub?.unsubscribe();
+			this.stringSource = '';
+			this._isUsingPdfConversion = false;
 			this.extension = getExtension(this.file);
+			this.checkPreparedPdf();
 		}
 	}
 
@@ -94,17 +124,25 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	ngAfterViewInit(): void {
-		const modalElement = document.getElementById("readModal");
+		const details = this.detailsElement = this.host.nativeElement.closest<HTMLElement>('.modal') ?? undefined;
+		details?.addEventListener('shown.bs.modal', this.onDetailsShown);
+		details?.addEventListener('hidden.bs.modal', this.onDetailsHidden);
+		const modalElement = this.readerElement = this.host.nativeElement.querySelector<HTMLElement>("#readModal") ?? undefined;
 		if (modalElement) {
+			if(this.readerOutlet){this.readerOutlet.append(modalElement);this.managedReader=new RoutedModal(modalElement);}
 			modalElement.addEventListener("shown.bs.modal", this.onShownModal);
 			modalElement.addEventListener("hidden.bs.modal", this.onHiddenModal);
 		}
 	}
 
 	ngOnDestroy() {
+		void this.managedReader?.dispose(true);
+		const details = this.detailsElement;
+		details?.removeEventListener('shown.bs.modal', this.onDetailsShown);
+		details?.removeEventListener('hidden.bs.modal', this.onDetailsHidden);
 		this._isUsingPdfConversion = false;
 		this.convertToPdfSub?.unsubscribe();
-		const modalElement = document.getElementById("readModal");
+		const modalElement = this.readerElement;
 		if (modalElement) {
 			modalElement.removeEventListener("shown.bs.modal", this.onShownModal);
 			modalElement.removeEventListener("hidden.bs.modal", this.onHiddenModal);
@@ -148,7 +186,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	get isConvertToPdf(): boolean {
-		return this.convertToPdfExtensions.includes(this.extension);
+		return this.file?.fileKind === FileKind.FILE && this.convertToPdfExtensions.includes(this.extension);
 	}
 
 	get isUsingPdfConversion(): boolean {
@@ -215,7 +253,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	messageDialog() {
-		const modalElement = document.getElementById("downloadConfirmationModal");
+		const modalElement = this.host.nativeElement.querySelector("#downloadConfirmationModal");
 		if (modalElement) {
 			const modal = new bootstrap.Modal(modalElement);
 			modal.show();
@@ -223,7 +261,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	getStringSource(file: File): string {
-		return file ? (this.file.parentPath + "/" + this.file.name) : "";
+		return file ? (file.parentPath + "/" + file.name) : "";
 	}
 
 	private getPublicSource(file: File): string {
@@ -247,8 +285,9 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		if (!this.file) {
 			return;
 		}
+		if(this.readerOutlet){this.readerRequested.emit('original');return;}
 
-		const modalElement = document.getElementById("readModal");
+		const modalElement = this.host.nativeElement.querySelector("#readModal");
 		if (modalElement) {
 			this.booksService.logAction(
 				this.file.fileKind === FileKind.AUDIOBOOK || this.isAudioFile ? "Listen to" : "Read",
@@ -267,38 +306,58 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	}
 
 	onConvertToPdf() {
-		try {
-			this.spinner.show();
-			this.booksService.convertToPdf(this.getStringSource(this.file), this.file.coverId);
-
-			this.convertToPdfSub?.unsubscribe();
-		this.convertToPdfSub = this.booksService.convertToPdfIncomingMessage$.pipe(take(1)).subscribe({
-				next: (msg) => {
-					this.spinner.hide();
-					const {success, error, pdfPath} = msg.data;
-					this._isUsingPdfConversion = true;
-
-					if (success === "OK") {
-						this.stringSource = pdfPath;
-						this.onRead();
-					} else {
-						console.error("Convert to PDF error:", error);
-						this.handleError(error || "Error converting to PDF.");
-					}
-				},
-				error: (error) => {
-					console.error("Error converting to PDF:", error);
-					this.spinner.hide();
-					this.handleError("Error converting to PDF.");
-				}
-			});
-		} catch (error) {
-			this.spinner.hide();
-			console.error("Error converting to PDF:", error);
-		}
+		if(this.readerOutlet){if(this.pdfState==='ready')this.readerRequested.emit('pdf-preparado');return;}
+		if (this.pdfState === 'ready') this.checkPreparedPdf(true);
 	}
 
-	private handleError(message: string) {
-		this.errorMessageService.open(message);
+	async showManagedReader(view: ActivityView, path?: string): Promise<void> {
+		if(!this.managedReader)throw new Error('READER_NOT_READY');
+		if(view==='pdf-preparado'){
+			if(!this.isConvertToPdf || path!==`/cache/${this.file.coverId}/${this.file.coverId}.pdf`)throw new Error('PDF_NOT_READY');
+			this._isUsingPdfConversion=true;this.stringSource=path;
+		}else if(!this.showReadButton || this.isDisabled)throw new Error('READER_UNAVAILABLE');
+		this.cdr.detectChanges();
+		await this.managedReader.visible(true);
+		this.booksService.logAction(
+			this.file.fileKind === FileKind.AUDIOBOOK || this.isAudioFile ? "Listen to" : "Read",
+			this.file.name,
+			this.file.id
+		);
+	}
+	hideManagedReader(): Promise<void> {return this.managedReader?.visible(false) ?? Promise.resolve();}
+
+	checkPreparedPdf(open = false) {
+		this.convertToPdfSub?.unsubscribe();
+		this.pdfState = 'unavailable';
+		this.pdfStatusMessage = '';
+		if (!this.isConvertToPdf) return;
+		this.pdfState = 'checking';
+		this.pdfStatusMessage = 'Comprobando PDF...';
+		const file = this.file;
+		this.convertToPdfSub = this.booksService.getPreparedPdf(this.getStringSource(file), file.coverId).subscribe({
+			next: response => {
+				const expected = `/cache/${file.coverId}/${file.coverId}.pdf`;
+				if (response.success === 'OK' && response.pdfPath === expected) {
+					this.pdfState = 'ready';
+					this.pdfStatusMessage = '';
+					if (open) {
+						this._isUsingPdfConversion = true;
+						this.stringSource = expected;
+						this.onRead();
+					}
+					return;
+				}
+				this.pdfState = response.code === 'PDF_PENDING' ? 'pending' : response.code === 'PDF_FAILED' ? 'failed' : 'unavailable';
+				this.pdfStatusMessage = this.pdfState === 'pending' ? 'PDF pendiente del escaneo.'
+					: this.pdfState === 'failed' ? 'El scanner no pudo preparar este PDF.'
+					: 'PDF no disponible.';
+			},
+			error: (error: Error) => {
+				this.pdfState = 'unavailable';
+				this.pdfStatusMessage = error.message === 'PDF_BACKEND_UPDATE_REQUIRED'
+					? 'La comprobacion de PDF requiere actualizar el backend.'
+					: 'No se pudo comprobar el PDF. Vuelve a comprobar cuando haya conexion.';
+			}
+		});
 	}
 }

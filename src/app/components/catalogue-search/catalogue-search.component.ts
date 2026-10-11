@@ -16,7 +16,7 @@ import {getTitle} from '../../core/headers';
 import {AuthorPipe} from '../../pipes/author.pipe';
 
 const defaults={q:'',title:'',author:'',isbn:'',description:'',language:'',folder:'',kind:'',sort:'relevance',subfolders:'1'};
-@Component({selector:'catalogue-search',imports:[FormsModule,BookDetailsPanelComponent],changeDetection:ChangeDetectionStrategy.Default,
+@Component({selector:'catalogue-search',imports:[FormsModule,BookDetailsPanelComponent],changeDetection:ChangeDetectionStrategy.Eager,
   templateUrl:'./catalogue-search.component.html',styleUrl:'./catalogue-search.component.scss'})
 export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy {
   private books=inject(BooksService);private left=inject(LeftPanelUpdateService);private collapse=inject(CollapseStateService);

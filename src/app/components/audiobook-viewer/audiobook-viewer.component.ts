@@ -18,7 +18,7 @@ type AudioPreferences = {rate: number; continuous: boolean; repeat: boolean; rem
   selector: "audiobook-viewer", imports: [NgTemplateOutlet,ReadingStatusComponent],
   providers: [PlaybackSessionService],
   templateUrl: "./audiobook-viewer.component.html",
-  changeDetection: ChangeDetectionStrategy.Default, styleUrl: "./audiobook-viewer.component.scss"
+  changeDetection: ChangeDetectionStrategy.Eager, styleUrl: "./audiobook-viewer.component.scss"
 })
 export class AudiobookViewerComponent implements OnChanges, OnInit, OnDestroy {
   @Input() audiobookSrc = "";

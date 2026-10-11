@@ -4,6 +4,15 @@
 }
 
 #sidebar .list-container {
-	padding-bottom: calc(65px + 1rem);
+	flex:1;min-height:0;min-width:0;max-height:none;padding-bottom:16px;
 	-webkit-overflow-scrolling: touch; /* suave en iOS */
+}
+
+:host{display:block;height:100%}
+#sidebar{height:100%;background:var(--bs-body-bg)}
+#sidebar>a{flex:none}
+#sidebar img{max-width:100%;height:auto}
+@media(max-width:767px){
+  #sidebar{position:fixed;inset:var(--app-header-height,112px) auto var(--app-footer-height,65px) 0;height:auto;width:min(280px,calc(100vw - 48px));z-index:1030;border-right:1px solid var(--bs-border-color)}
+  #sidebar>a{display:none!important}
 }

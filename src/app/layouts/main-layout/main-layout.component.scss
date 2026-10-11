@@ -1,0 +1,5 @@
+:host{display:block;--app-footer-height:41px}
+main{height:calc(100dvh - var(--app-footer-height));max-height:calc(100dvh - var(--app-footer-height));overflow:hidden}
+.content-container{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}
+left-panel{flex:none;min-height:0}
+@media(max-width:768px){:host{--app-footer-height:65px}}

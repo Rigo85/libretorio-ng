@@ -1,4 +1,10 @@
 /* 2. Panel izquierdo con imagen y overlay oscuro */
+:host{display:block;height:100dvh;overflow:auto}
+.login-layout{min-height:100%;padding:0}
+.login-row{min-height:100dvh}
+.login-image{position:relative}
+.login-image .image-panel{position:absolute;inset:0}
+.login-form-panel{padding:16px}
 .image-panel {
 	position: relative;
 	background-image: url('/images/library.webp');
@@ -93,6 +99,7 @@
 
 /* 7. Responsive tweaks */
 @media (max-width: 767px) {
+	.login-image{display:none}
 	.image-panel::before {
 		//background-color: rgba(0, 0, 0, 0.8);
 	}
@@ -101,7 +108,7 @@
 	}
 	.login-card {
 		//margin: 2rem;
-		margin: 1rem;
+		margin: 0;
 		width: 100%;
 	}
 }

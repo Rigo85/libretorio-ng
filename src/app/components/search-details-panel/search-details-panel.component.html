@@ -1,61 +1,64 @@
 <div class="modal fade" id="confirmUpdateModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="confirmUpdateModalLabel"
-	 aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="confirmUpdateModalLabel">Confirm Update</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				Are you sure you want to update the file details?
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-				<button type="button" class="btn btn-primary" (click)="confirmUpdate()">Yes, Update</button>
-			</div>
-		</div>
-	</div>
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmUpdateModalLabel">Confirm Update</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to update the file details?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="confirmUpdate()">Yes, Update</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="container-flex">
-	<ng-container *ngIf="checkFileExists(file) | async; else noCover">
-		<img [attr.src]="'/covers/' + file.coverId + '.webp'" alt="{{ file | title }}" width="100%" height="225"
-			 class="bd-placeholder-img card-img-top">
-	</ng-container>
-	<ng-template #noCover>
-		<img ngSrc="/images/150.webp" width="150" height="150" alt="Imagen">
-	</ng-template>
-	<form [formGroup]="form">
-		<div formArrayName="fields">
-			<div *ngFor="let field of fields.controls; let i = index" [formGroupName]="i">
-				<div class="mb-3">
-					<label for="field" class="form-label">{{ toUpperCase(field.get('name')?.value) }}</label>
-					<input type="text" class="form-control" id="field"
-						   [readonly]="['name', 'current title'].includes(field.get('name')?.value)"
-						   formControlName="value"
-					>
-				</div>
-			</div>
-		</div>
-		<div id="feedback" class="invalid">{{ errorMsg }}</div>
-	</form>
+  @if (checkFileExists(file) | async) {
+    <img [attr.src]="'/covers/' + file.coverId + '.webp'" alt="{{ file | title }}" width="100%" height="225"
+      class="bd-placeholder-img card-img-top">
+  } @else {
+    <img ngSrc="/images/150.webp" width="150" height="150" alt="Imagen">
+  }
+  <form [formGroup]="form">
+    <div formArrayName="fields">
+      @for (field of fields.controls; track field; let i = $index) {
+        <div [formGroupName]="i">
+          <div class="mb-3">
+            <label for="field" class="form-label">{{ toUpperCase($safeNavigationMigration(field.get('name')?.value)) }}</label>
+            <input type="text" class="form-control" id="field"
+              [readonly]="['name', 'current title'].includes($safeNavigationMigration(field.get('name')?.value))"
+              formControlName="value"
+              >
+          </div>
+        </div>
+      }
+    </div>
+    <div id="feedback" class="invalid">{{ errorMsg }}</div>
+  </form>
 </div>
 <div class="modal-footer">
-	<button class="btn btn-primary" (click)="onSearch()">Search</button>
-	<button *ngIf="radioForm.get('selectedOpenLibraryBook')?.value" class="btn btn-primary" (click)="openConfirmModal()">Update</button>
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+  <button class="btn btn-primary" (click)="onSearch()">Search</button>
+  @if (radioForm.get('selectedOpenLibraryBook')?.value) {
+    <button class="btn btn-primary" (click)="openConfirmModal()">Update</button>
+  }
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 
 <div class="radio-form-container">
-	<form [formGroup]="radioForm">
-		<ng-container *ngFor="let detail of searchDetails">
-			<div class="form-check">
-				<input class="form-check-input" type="radio" [formControlName]="'selectedOpenLibraryBook'"
-					   [value]="detail">
-				<label class="form-check-label">
-					<book-web-details-panel [openLibraryBook]="detail"></book-web-details-panel>
-				</label>
-			</div>
-		</ng-container>
-	</form>
+  <form [formGroup]="radioForm">
+    @for (detail of searchDetails; track detail) {
+      <div class="form-check">
+        <input class="form-check-input" type="radio" [formControlName]="'selectedOpenLibraryBook'"
+          [value]="detail">
+        <label class="form-check-label">
+          <book-web-details-panel [openLibraryBook]="detail"></book-web-details-panel>
+        </label>
+      </div>
+    }
+  </form>
 </div>

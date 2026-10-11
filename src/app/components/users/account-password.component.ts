@@ -3,7 +3,7 @@ import {FormsModule} from '@angular/forms';
 import {UserManagementService, managementError} from '../../services/user-management.service';
 import {AuthService} from '../../services/auth.service';
 
-@Component({selector:'account-password',imports:[FormsModule],changeDetection:ChangeDetectionStrategy.Default,styleUrl:'./users.component.scss',template:`
+@Component({selector:'account-password',imports:[FormsModule],changeDetection:ChangeDetectionStrategy.Eager,styleUrl:'./users.component.scss',template:`
   <section class="users-page"><header class="users-heading"><h1>Cambiar contraseña</h1></header>
   @if(error){<p role="alert" class="text-warning">{{error}}</p>}
   <form class="user-editor" (ngSubmit)="save()"><fieldset [disabled]="saving">

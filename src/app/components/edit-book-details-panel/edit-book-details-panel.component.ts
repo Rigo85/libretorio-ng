@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { catchError, from, Observable, of } from "rxjs";
 
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -11,17 +11,16 @@ import { ExtensionPipe } from "(src)/app/pipes/extension.pipe";
 @Component({
 	selector: "edit-book-details-panel",
 	imports: [
-		ReactiveFormsModule,
-		NgForOf,
-		AsyncPipe,
-		TitlePipe,
-		NgIf,
-		ExtensionPipe
-	],
+    ReactiveFormsModule,
+    AsyncPipe,
+    TitlePipe,
+    ExtensionPipe
+],
 	templateUrl: "./edit-book-details-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./edit-book-details-panel.component.scss"
 })
-export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
+export class EditBookDetailsPanelComponent implements OnChanges {
 	@Input() file!: File;
 	form!: FormGroup;
 	@Output() updateOptions = new EventEmitter<any>();
@@ -57,13 +56,9 @@ export class EditBookDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
-		if (changes["file"] && !changes["file"].firstChange) {
+		if (changes["file"]) {
 			this.setFieldsFromObject(this.filterWebDetails({...this.stepFields, ...(this.file?.webDetails ?? {})}));
 		}
-	}
-
-	ngAfterViewInit(): void {
-		this.setFieldsFromObject(this.filterWebDetails({...this.stepFields, ...(this.file?.webDetails ?? {})}));
 	}
 
 	get fields() {

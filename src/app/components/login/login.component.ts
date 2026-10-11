@@ -1,5 +1,5 @@
-import { Component, OnDestroy } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { Component, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Subscription } from "rxjs";
 import { AuthService } from "(src)/app/services/auth.service";
@@ -7,8 +7,9 @@ import { Router } from "@angular/router";
 
 @Component({
 	selector: "app-login",
-	imports: [CommonModule, ReactiveFormsModule],
+	imports: [ReactiveFormsModule],
 	templateUrl: "./login.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./login.component.scss"
 })
 export class LoginComponent implements OnDestroy {
@@ -38,7 +39,7 @@ export class LoginComponent implements OnDestroy {
 			next: () => {
 				// console.info("Login successful.");
 
-				this.router.navigate(["/"]);
+				this.router.navigate(["/inicio"]);
 			},
 			error: (err) => {
 				console.error("Login failed.", err);

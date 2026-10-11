@@ -1,7 +1,7 @@
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { catchError, filter, map, Observable, of, shareReplay, startWith, take, tap } from "rxjs";
-import { AsyncPipe, Location, NgForOf, NgIf } from "@angular/common";
+import { AsyncPipe, Location } from "@angular/common";
 import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
 
 import { File, filterObjectFields, getExtension, hash, ScanResult } from "(src)/app/core/headers";
@@ -28,18 +28,17 @@ declare var bootstrap: any;
 @Component({
 	selector: "books-panel",
 	imports: [
-		ExtensionPipe,
-		AuthorPipe,
-		TitlePipe,
-		BookDetailsPanelComponent,
-		EditBookDetailsPanelComponent,
-		AsyncPipe,
-		NgIf,
-		SearchDetailsPanelComponent,
-		NgxSpinnerModule,
-		NgForOf
-	],
+    ExtensionPipe,
+    AuthorPipe,
+    TitlePipe,
+    BookDetailsPanelComponent,
+    EditBookDetailsPanelComponent,
+    AsyncPipe,
+    SearchDetailsPanelComponent,
+    NgxSpinnerModule
+],
 	templateUrl: "./books-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrls: ["./books-panel.component.scss"]
 })
 export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
@@ -85,6 +84,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 		"NONE:": "#55595c"
 	};
 	private destroyRef = inject(DestroyRef);
+	private host: ElementRef<HTMLElement> = inject(ElementRef);
 	loading = false;
 	itemsPerLoad = 50;
 	overlapCount = 5;
@@ -233,10 +233,10 @@ export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(): void {
-		const bookDetailsModalElement = document.getElementById("bookDetailsModal");
-		const editBookDetailsModalElement = document.getElementById("editBookDetailsModal");
-		const searchDetailsModalElement = document.getElementById("searchDetailsModal");
-		const confirmationModalElement = document.getElementById("confirmationModal");
+		const bookDetailsModalElement = this.host.nativeElement.querySelector("#bookDetailsModal");
+		const editBookDetailsModalElement = this.host.nativeElement.querySelector("#editBookDetailsModal");
+		const searchDetailsModalElement = this.host.nativeElement.querySelector("#searchDetailsModal");
+		const confirmationModalElement = this.host.nativeElement.querySelector("#confirmationModal");
 
 		if (bookDetailsModalElement && editBookDetailsModalElement && searchDetailsModalElement && confirmationModalElement) {
 			this.bookDetailsModal = new bootstrap.Modal(bookDetailsModalElement);
@@ -511,7 +511,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		const bookDetailsModalElement = document.getElementById("bookDetailsModal");
+		const bookDetailsModalElement = this.host.nativeElement.querySelector("#bookDetailsModal");
 		if (bookDetailsModalElement && this.onOpenDetailsModalBound) {
 			bookDetailsModalElement.removeEventListener("shown.bs.modal", this.onOpenDetailsModalBound);
 			bookDetailsModalElement.removeEventListener("hidden.bs.modal", this.onCloseDetailsModalBound);
@@ -519,7 +519,7 @@ export class BooksPanelComponent implements AfterViewInit, OnInit, OnDestroy {
 		// Use getInstance() to avoid double-dispose: Bootstrap sets _element=null on first dispose()
 		// and getInstance() returns null for already-disposed modals.
 		for (const id of ["bookDetailsModal", "editBookDetailsModal", "searchDetailsModal", "confirmationModal"]) {
-			const el = document.getElementById(id);
+			const el = this.host.nativeElement.querySelector('#' + id);
 			if (el) bootstrap.Modal.getInstance(el)?.dispose();
 		}
 		this.coverCheckCache.clear();

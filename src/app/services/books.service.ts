@@ -194,10 +194,6 @@ export class BooksService {
 		this.sendMessage({event: "decompress", data: {id}});
 	}
 
-	public convertToPdf(filePath: string, coverId: string) {
-		this.sendMessage({event: "convert_to_pdf", data: {filePath, id: coverId}});
-	}
-
 	public getPreparedPdf(filePath: string, coverId: string): Observable<PreparedPdfResponse> {
 		return new Observable<PreparedPdfResponse>(subscriber => {
 			if (!this.connectionStatus.value) {

@@ -16,7 +16,7 @@ import {RoutedModal} from '../helpers/routed-modal';
 import {ActivityTarget,ActivityView,activityTarget,ActivityPage,activityPage,activityPageQuery,firstActivityPage} from './activity-route';
 
 @Component({selector:'reading-home',imports:[DatePipe,FormsModule,TitlePipe,AuthorPipe,BookDetailsPanelComponent],
-  changeDetection:ChangeDetectionStrategy.Default,
+  changeDetection:ChangeDetectionStrategy.Eager,
   templateUrl:'./reading-home.component.html',styleUrl:'./reading-home.component.scss'})
 export class ReadingHomeComponent implements OnInit,AfterViewInit,OnDestroy {
   private api=inject(ReadingService);

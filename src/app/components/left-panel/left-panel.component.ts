@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { DirectoryTreeComponent } from "(src)/app/components/directory-tree/directory-tree.component";
 import { Directory } from "(src)/app/core/headers";
@@ -12,6 +12,7 @@ import { LeftPanelUpdateService } from "(src)/app/services/left-panel-update.ser
 		NgOptimizedImage
 	],
 	templateUrl: "./left-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./left-panel.component.scss"
 })
 export class LeftPanelComponent implements OnInit {

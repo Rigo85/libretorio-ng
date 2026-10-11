@@ -35,8 +35,13 @@
 							},
 							{
 								"glob": "**/*",
-								"input": "node_modules/ngx-extended-pdf-viewer/assets/",
-								"output": "/assets/"
+								"input": "node_modules/mupdf/dist/",
+								"output": "/assets/mupdf/"
+							},
+							{
+								"glob": "LICENSE",
+								"input": "node_modules/mupdf/",
+								"output": "/assets/mupdf/"
 							},
 							{
 								"glob": "**/*.wasm",
@@ -52,7 +57,6 @@
 							"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 							"node_modules/string-similarity/umd/string-similarity.min.js",
 							"node_modules/jszip/dist/jszip.min.js",
-							"node_modules/epubjs/dist/epub.min.js",
 							"node_modules/hammerjs/hammer.min.js"
 						]
 					},
@@ -124,5 +128,31 @@
   },
   "cli": {
     "analytics": false
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
   }
 }

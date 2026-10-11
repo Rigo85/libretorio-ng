@@ -1,5 +1,12 @@
 /* Base (desktop + general) */
+:host{display:block;flex:1;min-height:0;min-width:0}
+.catalogue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:16px;margin:0}
+.catalogue-grid>.col{min-width:0;width:auto;padding:0;margin:0}
+.catalogue-grid .card{height:100%;min-width:0}
+.catalogue-grid .card-body{overflow-wrap:anywhere}
+.empty-catalogue{grid-column:1/-1;padding:16px}
 .album {
+	max-height:100%;
 	//overflow-y: auto;
 	position: relative;
 	z-index: 1; /* Debajo del footer fijo */
@@ -18,7 +25,7 @@
 	}
 
 	.album {
-		height: calc(100vh - 71px - 65px - 50px) !important;
+		height: calc(100vh - var(--app-header-height, 71px) - 65px - 50px) !important;
 		padding-bottom: calc(70px + env(safe-area-inset-bottom));
 		-webkit-overflow-scrolling: touch;
 	}
@@ -28,7 +35,7 @@
 @supports (height: 100dvh) {
 	@media (max-width: 768px) {
 		.album {
-			height: calc(100dvh - 71px - 65px - 50px) !important;
+			height: calc(100dvh - var(--app-header-height, 71px) - 65px - 50px) !important;
 		}
 	}
 }
@@ -89,12 +96,4 @@
 .clickable-area .card-img-top {
 	max-width: 180px;
 	max-height: 225px;
-}
-
-/* En XL (1200–1399px), baja a 4 columnas para que cada card ≥ 180px */
-@media (min-width: 1200px) and (max-width: 1399.98px) {
-	.row.row-cols-xl-5 > [class*='col'] {
-		flex: 0 0 25%;
-		max-width: 25%;
-	}
 }

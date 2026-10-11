@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { Subscription } from "rxjs";
 
 import { ErrorMessageService } from "(src)/app/services/error-message.service";
@@ -10,6 +10,7 @@ declare var bootstrap: any;
 	selector: "error-message",
 	imports: [],
 	templateUrl: "./error-message.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./error-message.component.scss"
 })
 export class ErrorMessageComponent implements OnInit, OnDestroy {

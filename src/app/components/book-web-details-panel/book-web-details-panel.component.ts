@@ -1,5 +1,5 @@
-import { Component, Input } from "@angular/core";
-import { AsyncPipe, NgIf, NgOptimizedImage } from "@angular/common";
+import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
+import { AsyncPipe, NgOptimizedImage } from "@angular/common";
 
 import { OpenLibraryBook } from "(src)/app/core/headers";
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -8,11 +8,11 @@ import { catchError, from, Observable, of } from "rxjs";
 @Component({
 	selector: "book-web-details-panel",
 	imports: [
-		NgIf,
-		AsyncPipe,
-		NgOptimizedImage
-	],
+    AsyncPipe,
+    NgOptimizedImage
+],
 	templateUrl: "./book-web-details-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./book-web-details-panel.component.scss"
 })
 export class BookWebDetailsPanelComponent {

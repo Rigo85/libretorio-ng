@@ -1,7 +1,7 @@
 import {Component,Input,Output,EventEmitter,ViewChild,ElementRef,OnDestroy,ChangeDetectionStrategy,TemplateRef} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {DocumentHit,DocumentSearch} from '../../core/document-search';
-@Component({selector:'document-search',imports:[FormsModule],changeDetection:ChangeDetectionStrategy.Default,
+@Component({selector:'document-search',imports:[FormsModule],changeDetection:ChangeDetectionStrategy.Eager,
   template:`<button class="tool" type="button" title="Buscar en el documento" aria-label="Buscar en el documento" [disabled]="!search" (click)="open()"><i class="bi bi-search" aria-hidden="true"></i></button>
     <dialog #dialog aria-label="Buscar en el documento" (cancel)="search?.cancel()">
       <header><h2>Buscar en el documento</h2><button class="tool" title="Cerrar busqueda" aria-label="Cerrar busqueda" (click)="close()"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header>

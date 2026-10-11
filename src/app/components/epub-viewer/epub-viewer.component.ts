@@ -40,7 +40,7 @@ import {NgTemplateOutlet} from '@angular/common';
 		NgxSpinnerModule
 	],
 	templateUrl: "./epub-viewer.component.html",
-	changeDetection: ChangeDetectionStrategy.Default,
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./epub-viewer.component.scss"
 })
 export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {

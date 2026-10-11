@@ -1,12 +1,77 @@
-.pdf-container {
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
+:host { display: block; height: 100%; width: 100%; min-height: 0; min-width: 0; color: #e9ecee; background: #242628; font-family: system-ui, sans-serif; letter-spacing: 0; }
+* { box-sizing: border-box; }
+.pdf-reader { position:relative; display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+.pdf-link{position:absolute;min-height:0;padding:0;border:0;border-radius:0;background:transparent;opacity:.25;box-shadow:inset 0 -1px #1677ad;cursor:pointer;z-index:2}.pdf-link:hover{opacity:.5;background:#79bde333}
+.search-highlight{position:absolute;pointer-events:none;background:#efc33966;z-index:1}
+.reader-header recoverable-speech{margin-left:auto}
+.reader-header { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 4px 12px; border-bottom: 1px solid #4b4f52; flex-shrink: 0; }
+a { color: #9ddace; }
+button, select, input { font: inherit; color: inherit; min-height: 44px; border: 1px solid #62696c; border-radius: 4px; background: #303437; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; cursor: pointer; }
+button:hover:not(:disabled) { background: #41494b; }
+button:disabled { opacity: .4; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .paper-stage:focus-visible { outline: 2px solid #edc877; outline-offset: -2px; }
+.icon { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; width: 44px; height: 44px; flex-shrink: 0; padding: 0; font-size: 20px; }
+.reader-header .icon, .reader-navigation .icon { border-color: transparent; background: transparent; }
+select { max-width: 100%; padding: 0 8px; font-size: 14px; }
+.reader-navigation { position: static; background: #242628; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; flex-shrink: 0; padding: 2px 12px max(2px, env(safe-area-inset-bottom)); border-top: 1px solid #4b4f52; }
+.mode-label { font-size: 12px; color: #b9c4c6; }
+.expand-control { justify-self: end; }
+.page-controls, .page-number { display: flex; align-items: center; gap: 6px; }
+.page-number { font-size: 13px; }
+.page-number span { white-space: nowrap; }
+.page-number input { width: 66px; padding: 4px; text-align: center; appearance: textfield; }
+input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.reading-area { width: 100%; position: relative; flex: 1; min-height: 0; overflow: hidden; background: #525456; }
+.paper-stage { height: 100%; overflow-x: auto; overflow-y: scroll; overflow-anchor: none; overscroll-behavior: contain; }
+.virtual-pages { position: relative; min-width: 100%; overflow-anchor: none; }
+.paper { position: absolute; left: 50%; transform: translateX(-50%); background: white; color: #333; overflow-anchor: none; }
+.pdf-text-layer { position: absolute; inset: 0 0 auto; color: transparent; user-select: text; -webkit-user-select: text; cursor: text; text-size-adjust: none; -webkit-text-size-adjust: none; }
+:host ::ng-deep .pdf-text-line { position: absolute; display: block; white-space: pre; font-size: 0; line-height: 0; }
+:host ::ng-deep .pdf-text-word { display: inline-block; vertical-align: top; }
+:host ::ng-deep .pdf-text-word > .pdf-text-run { position: relative; display: inline-block; vertical-align: top; }
+:host ::ng-deep .pdf-text-run { position: absolute; top: 0; left: 0; height: 20px; font: 20px/20px sans-serif; white-space: pre; letter-spacing: 0; transform-origin: 0 0; color: transparent; }
+:host ::ng-deep .pdf-text-run::selection { color: transparent; background: #3399ff66; }
+:host ::ng-deep .pdf-text-line br { user-select: none; }
+.page-label, .page-loading, .page-error, canvas { user-select: none; }
+canvas { display: block; position: absolute; left: 0; background: white; }
+canvas[hidden] { display: none; }
+.dark-paper .paper, .dark-paper canvas { background: black; color: #ddd; }
+.page-label { position: absolute; top: 100%; width: 100%; text-align: center; line-height: 24px; font-size: 11px; color: #e7e7e7; }
+.page-loading { display: block; padding: 24px 12px; font-size: 13px; }
+.page-error { padding: 16px; color: #9d3030; overflow-wrap: anywhere; }
+.loading { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 8px 16px; background: #242628; border-radius: 4px; }
+.reading-settings { position: fixed; inset: 60px 12px auto auto; margin: 0; width: min(380px, calc(100% - 24px)); max-height: calc(100dvh - 80px); padding: 0; color: #e9ecee; background: #242628; border: 1px solid #62696c; border-radius: 8px; overflow: auto; box-shadow: 0 8px 32px #0006; }
+.reading-settings::backdrop { background: #0005; }
+.reading-settings header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #4b4f52; }
+.reading-settings h2 { margin: 0; font-size: 16px; }
+.reading-settings header .icon { border-color: transparent; background: transparent; }
+.panel-body { padding: 12px 16px 16px; }
+.reading-mode { display: flex; margin-bottom: 16px; }
+.reading-mode button { flex: 1; border-radius: 0; font-size: 14px; }
+.reading-mode button:first-child { border-radius: 4px 0 0 4px; }
+.reading-mode button:last-child { border-radius: 0 4px 4px 0; }
+.reading-mode button[aria-pressed=true] { background: #b5e4d8; color: #162925; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; font-size: 14px; margin: 4px 0; }
+.setting-row select { width: 154px; min-width: 0; }
+.font-stepper { display: flex; width: 154px; justify-content: space-between; }
+.font-stepper input { width: 58px; border-radius: 0; text-align: center; }
+.font-stepper button { border-radius: 0; }
+.toggle input { width: 24px; min-height: 24px; height: 24px; accent-color: #b5e4d8; }
+.outline button { display: block; border: 0; border-radius: 0; text-align: left; width: 100%; padding: 10px 8px; overflow-wrap: anywhere; background: transparent; }
+.page-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; color: inherit; }
+.error { margin: 0; padding: 12px 16px; background: #592d30; }
+.diagnostics { margin-top: 16px; border-top: 1px solid #4b4f52; padding-top: 8px; font-size: 12px; }
+.diagnostics summary { min-height: 44px; padding-top: 12px; cursor: pointer; }
+.diagnostics output { display: block; margin: 8px 0; overflow-wrap: anywhere; }
+.diagnostics a { display: block; margin-top: 12px; }
+.expanded .reader-header { display: none; }
+@media(max-width: 600px), (max-height: 500px) {
+  .desktop-width { display: none; }
+  .reader-header { padding: max(2px, env(safe-area-inset-top)) 4px 2px; gap: 4px; }
+  .reader-navigation { padding-left: 4px; padding-right: 4px; grid-template-columns: 1fr auto; }
+  .mode-label { display: none; }
+  .page-controls { justify-self: center; }
+  .reading-settings { inset: auto 0 0; width: 100%; max-width: none; max-height: 85dvh; padding-bottom: env(safe-area-inset-bottom); border-radius: 8px 8px 0 0; }
+  .panel-body { padding: 8px 12px 12px; }
 }
-
-ngx-extended-pdf-viewer {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
-

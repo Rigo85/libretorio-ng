@@ -1,172 +1,176 @@
 <div class="album py-5 bg-body-tertiary" (scroll)="onScroll($event)" #albumContainer>
-	<div class="container-fluid">
-		<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
-			<div *ngFor="let file of files; trackBy: trackById" class="col">
-				<div class="card shadow-sm clickable-area" (click)="onSelectFile(file)">
-					<ng-container *ngIf="checkFileExists(file) | async; else noCover">
-						<div class="img-container">
-							<img [attr.src]="getImageUrl(file)" alt="{{ file | title }}"
-								 style="max-width: 180px; max-height: 225px;"
-								 class="bd-placeholder-img card-img-top">
-						</div>
-					</ng-container>
-					<ng-template #noCover>
-						<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
-							 xmlns="http://www.w3.org/2000/svg" role="img"
-							 aria-label="Placeholder: Thumbnail"
-							 preserveAspectRatio="xMidYMid slice" focusable="false">
-							<title>Placeholder</title>
-							<rect width="100%" height="100%" [attr.fill]="specialDirectoriesColors[file.fileKind.toString()]"/>
-							<text x="50%" y="50%" fill="#eceeef" dy=".3em">
-								{{ file | ext }}
-							</text>
-						</svg>
-					</ng-template>
-					<div class="card-body">
-						<p class="card-text">
-							{{ file | title }}
-						</p>
-						<small class="text-body-secondary">
-							{{ file | author }}
-						</small>
-					</div>
-				</div>
-			</div>
-			<div *ngIf="files.length === 0" class="container" style="height: 50%; width: 50%;">
-				There are no files in the current directory.
-			</div>
-		</div>
-	</div>
+  <div class="container-fluid">
+    <div class="row catalogue-grid">
+      @for (file of files; track trackById($index, file)) {
+        <div class="col">
+          <div class="card shadow-sm clickable-area" (click)="onSelectFile(file)">
+            @if (checkFileExists(file) | async) {
+              <div class="img-container">
+                <img [attr.src]="getImageUrl(file)" alt="{{ file | title }}"
+                  style="max-width: 180px; max-height: 225px;"
+                  class="bd-placeholder-img card-img-top">
+              </div>
+            } @else {
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225"
+                xmlns="http://www.w3.org/2000/svg" role="img"
+                aria-label="Placeholder: Thumbnail"
+                preserveAspectRatio="xMidYMid slice" focusable="false">
+                <title>Placeholder</title>
+                <rect width="100%" height="100%" [attr.fill]="specialDirectoriesColors[file.fileKind.toString()]"/>
+                <text x="50%" y="50%" fill="#eceeef" dy=".3em">
+                  {{ file | ext }}
+                </text>
+              </svg>
+            }
+            <div class="card-body">
+              <p class="card-text">
+                {{ file | title }}
+              </p>
+              <small class="text-body-secondary">
+                {{ file | author }}
+              </small>
+            </div>
+          </div>
+        </div>
+      }
+      @if (files.length === 0) {
+        <div class="empty-catalogue">
+          There are no files in the current directory.
+        </div>
+      }
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="bookDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-	 aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="bookDetailsModalLabel">Book Details</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<div *ngIf="selectedFile; else noBookTemplate">
-					<book-details-panel [file]="selectedFile"></book-details-panel>
-				</div>
-				<ng-template #noBookTemplate>
-					<div class="container" style="height: 50%; width: 50%;">
-						No book selected.
-					</div>
-				</ng-template>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" [disabled]="!(isAdmin$ | async)" (click)="openEditModal()">
-					Edit Metadata
-				</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeBookDetails(selectedFile)">Close</button>
-			</div>
-		</div>
-	</div>
+  aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="bookDetailsModalLabel">Book Details</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @if (selectedFile) {
+          <div>
+            <book-details-panel [file]="selectedFile"></book-details-panel>
+          </div>
+        } @else {
+          <div class="container" style="height: 50%; width: 50%;">
+            No book selected.
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" [disabled]="!(isAdmin$ | async)" (click)="openEditModal()">
+          Edit Metadata
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeBookDetails(selectedFile)">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="editBookDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
-	 aria-labelledby="editBookDetailsModalLabel" tabindex="-1">
-	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="editBookDetailsModalLabel">Edit Book Details</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<div *ngIf="selectedFile; else noBookTemplate">
-					<edit-book-details-panel [file]="selectedFile"
-											 (updateOptions)="onEditBookDetails($event)">
-					</edit-book-details-panel>
-				</div>
-				<ng-template #noBookTemplate>
-					<div class="container" style="height: 50%; width: 50%;">
-						No book selected.
-					</div>
-				</ng-template>
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-info" (click)="openSearchDetails()">Fetch Metadata</button>
-				<button class="btn btn-primary" [disabled]="isEnabledSaveButton" (click)="onSaveMetadata()">
-					Save Metadata
-				</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-			</div>
-		</div>
-	</div>
+  aria-labelledby="editBookDetailsModalLabel" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editBookDetailsModalLabel">Edit Book Details</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @if (selectedFile) {
+          <div>
+            <edit-book-details-panel [file]="selectedFile"
+              (updateOptions)="onEditBookDetails($event)">
+            </edit-book-details-panel>
+          </div>
+        } @else {
+          <div class="container" style="height: 50%; width: 50%;">
+            No book selected.
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-info" (click)="openSearchDetails()">Fetch Metadata</button>
+        <button class="btn btn-primary" [disabled]="isEnabledSaveButton" (click)="onSaveMetadata()">
+          Save Metadata
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="searchDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
-	 aria-labelledby="searchDetailsModalLabel" tabindex="-1">
-	<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="searchDetailsModalLabel">Search Book Details</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<ng-container *ngIf="selectedFile">
-					<search-details-panel
-						[file]="selectedFile"
-						[searchDetails]="(searchDetails$ | async) ?? []"
-						(searchOptions)="onSearchOptions($event)"
-						(updateOptions)="onUpdateOptions($event)"
-					>
-					</search-details-panel>
-				</ng-container>
-				<ng-container *ngIf="!selectedFile">
-					<div class="container" style="height: 50%; width: 50%;">
-						No book selected.
-					</div>
-				</ng-container>
-			</div>
-		</div>
-	</div>
+  aria-labelledby="searchDetailsModalLabel" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="searchDetailsModalLabel">Search Book Details</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @if (selectedFile) {
+          <search-details-panel
+            [file]="selectedFile"
+            [searchDetails]="(searchDetails$ | async) ?? []"
+            (searchOptions)="onSearchOptions($event)"
+            (updateOptions)="onUpdateOptions($event)"
+            >
+          </search-details-panel>
+        }
+        @if (!selectedFile) {
+          <div class="container" style="height: 50%; width: 50%;">
+            No book selected.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="confirmationModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
-	 aria-labelledby="confirmationModalLabel" tabindex="-1">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="confirmationModalLabel">Information</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				{{ updateMessage }}
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" (click)="clearUpdateMessage()" data-bs-dismiss="modal">
-					Close
-				</button>
-			</div>
-		</div>
-	</div>
+  aria-labelledby="confirmationModalLabel" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="confirmationModalLabel">Information</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{ updateMessage }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="clearUpdateMessage()" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="confirmBookEditModal" data-bs-backdrop="static" tabindex="-1"
-	 aria-labelledby="confirmUpdateModalLabel"
-	 aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="confirmUpdateModalLabel">Confirm Update</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				Are you sure you want to update the file details?
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-				<button type="button" class="btn btn-primary" (click)="confirmUpdate()">Yes, Update</button>
-			</div>
-		</div>
-	</div>
+  aria-labelledby="confirmUpdateModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmUpdateModalLabel">Confirm Update</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to update the file details?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="confirmUpdate()">Yes, Update</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
-	<p style="color: white"> Loading... </p>
+  <p style="color: white"> Loading... </p>
 </ngx-spinner>
-

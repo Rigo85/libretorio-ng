@@ -1,167 +1,190 @@
-<div class="container mt-5">
-	<div class="panel-details">
-		<ng-container *ngIf="checkFileExists(file) | async; else noCover">
-			<img [attr.src]="getImageUrl(file)" alt="{{ file | title }}" width="100%" height="225"
-				 class="bd-placeholder-img card-img-top">
-		</ng-container>
-		<ng-template #noCover>
-			<div class="svg-container">
-				<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
-					 xmlns="http://www.w3.org/2000/svg" role="img"
-					 aria-label="Placeholder: Thumbnail"
-					 preserveAspectRatio="xMidYMid slice" focusable="false">
-					<title>Placeholder</title>
-					<rect width="100%" height="100%" fill="#55595c"/>
-					<text x="50%" y="50%" fill="#eceeef" dy=".3em">
-						{{ file | ext }}
-					</text>
-				</svg>
-			</div>
-		</ng-template>
-		<div class="panel-info">
-			<div class="btn-toolbar" role="toolbar" aria-label="">
-				<div class="btn-group button-group text-start" role="group" aria-label="">
-					<button type="button" class="btn btn-outline-secondary w-auto" (click)="onDownload(file)">
-						Download ({{ file.size }})
-					</button>
-					<button *ngIf="isConvertToPdf" type="button" class="btn btn-outline-secondary w-auto"
-							(click)="onConvertToPdf()">
-						Convert to PDF
-					</button>
-					<button *ngIf="showReadButton" type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
-							[disabled]="isDisabled">
-						{{ file.fileKind === 'AUDIOBOOK' || isAudioFile ? 'Listen' : 'Read' }}
-					</button>
-				</div>
-			</div>
-			<div class="info-item">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-					 style="fill: rgba(0, 0, 0, 1);">
-					<style>
-						.dark-bg {
-							fill: white;
-						}
+<div class="container py-3">
+  <div class="panel-details">
+    @if (checkFileExists(file) | async) {
+      <img [attr.src]="getImageUrl(file)" alt="{{ file | title }}" width="100%" height="225"
+        class="bd-placeholder-img card-img-top">
+    } @else {
+      <div class="svg-container">
+        <svg class="bd-placeholder-img card-img-top" width="100%" height="225"
+          xmlns="http://www.w3.org/2000/svg" role="img"
+          aria-label="Placeholder: Thumbnail"
+          preserveAspectRatio="xMidYMid slice" focusable="false">
+          <title>Placeholder</title>
+          <rect width="100%" height="100%" fill="#55595c"/>
+          <text x="50%" y="50%" fill="#eceeef" dy=".3em">
+            {{ file | ext }}
+          </text>
+        </svg>
+      </div>
+    }
+    <div class="panel-info">
+      <div class="btn-toolbar" role="toolbar" aria-label="">
+        <div class="btn-group button-group text-start" role="group" aria-label="">
+          <button type="button" class="btn btn-outline-secondary w-auto" (click)="onDownload(file)">
+            Download ({{ file.size }})
+          </button>
+          @if (isConvertToPdf) {
+            <button type="button" class="btn btn-outline-secondary w-auto"
+              (click)="onConvertToPdf()" [disabled]="pdfState !== 'ready'">
+              Abrir PDF
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="checkPreparedPdf()"
+              [disabled]="pdfState === 'checking'" title="Comprobar PDF" aria-label="Comprobar PDF">
+              <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+            </button>
+          }
+          @if (showReadButton) {
+            <button type="button" class="btn btn-outline-secondary w-auto" (click)="onRead()"
+              [disabled]="isDisabled">
+              {{ file.fileKind === 'AUDIOBOOK' || isAudioFile ? 'Listen' : 'Read' }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (isConvertToPdf && pdfState !== 'ready') {
+        <p class="small text-body-secondary mt-2" role="status">{{ pdfStatusMessage }}</p>
+      }
+      <div class="info-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+          style="fill: rgba(0, 0, 0, 1);">
+          <style>
+            .dark-bg {
+            fill: white;
+          }
 
-						/*.light-bg {*/
-						/*	fill: black;*/
-						/*}*/
-					</style>
-					<path class="dark-bg"
-						  d="M8.707 19.707 18 10.414 13.586 6l-9.293 9.293a1.003 1.003 0 0 0-.263.464L3 21l5.242-1.03c.176-.044.337-.135.465-.263zM21 7.414a2 2 0 0 0 0-2.828L19.414 3a2 2 0 0 0-2.828 0L15 4.586 19.414 9 21 7.414z"></path>
-				</svg>
-				<h2>{{ file | title }}</h2>
-			</div>
-			<div class="info-divider"></div>
-			<div class="info-item">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-					 style="fill: rgba(0, 0, 0, 1);">
-					<style>
-						.dark-bg {
-							fill: white;
-						}
+          /*.light-bg {*/
+          /*	fill: black;*/
+          /*}*/
+        </style>
+        <path class="dark-bg"
+        d="M8.707 19.707 18 10.414 13.586 6l-9.293 9.293a1.003 1.003 0 0 0-.263.464L3 21l5.242-1.03c.176-.044.337-.135.465-.263zM21 7.414a2 2 0 0 0 0-2.828L19.414 3a2 2 0 0 0-2.828 0L15 4.586 19.414 9 21 7.414z"></path>
+      </svg>
+      <h2>{{ file | title }}</h2>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        style="fill: rgba(0, 0, 0, 1);">
+        <style>
+          .dark-bg {
+          fill: white;
+        }
 
-						/*.light-bg {*/
-						/*	fill: black;*/
-						/*}*/
-					</style>
-					<path class="dark-bg"
-						  d="m21.706 5.291-2.999-2.998A.996.996 0 0 0 18 2H6a.996.996 0 0 0-.707.293L2.294 5.291A.994.994 0 0 0 2 5.999V19c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V5.999a.994.994 0 0 0-.294-.708zM6.414 4h11.172l.999.999H5.415L6.414 4zM4 19V6.999h16L20.002 19H4z"></path>
-					<path class="dark-bg" d="M15 12H9v-2H7v4h10v-4h-2z"></path>
-				</svg>
-				<h6>{{ file | fullPath }}</h6>
-			</div>
-			<div class="info-divider"></div>
-			<div class="info-item">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-					 style="fill: rgba(0, 0, 0, 1);">
-					<style>
-						.dark-bg {
-							fill: white;
-						}
+        /*.light-bg {*/
+        /*	fill: black;*/
+        /*}*/
+      </style>
+      <path class="dark-bg"
+      d="m21.706 5.291-2.999-2.998A.996.996 0 0 0 18 2H6a.996.996 0 0 0-.707.293L2.294 5.291A.994.994 0 0 0 2 5.999V19c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V5.999a.994.994 0 0 0-.294-.708zM6.414 4h11.172l.999.999H5.415L6.414 4zM4 19V6.999h16L20.002 19H4z"></path>
+      <path class="dark-bg" d="M15 12H9v-2H7v4h10v-4h-2z"></path>
+    </svg>
+    <h6>{{ file | fullPath }}</h6>
+  </div>
+  <div class="info-divider"></div>
+  <div class="info-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+      style="fill: rgba(0, 0, 0, 1);">
+      <style>
+        .dark-bg {
+        fill: white;
+      }
 
-						/*.light-bg {*/
-						/*	fill: black;*/
-						/*}*/
-					</style>
-					<path class="dark-bg"
-						  d="M6 22h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h1zm6-17.001c1.647 0 3 1.351 3 3C15 9.647 13.647 11 12 11S9 9.647 9 7.999c0-1.649 1.353-3 3-3zM6 17.25c0-2.219 2.705-4.5 6-4.5s6 2.281 6 4.5V18H6v-.75z"></path>
-				</svg>
-				<h6>{{ file | author }}</h6>
-			</div>
-			<div class="info-divider"></div>
-			<div class="info-item">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-					 style="fill: rgba(0, 0, 0, 1);">
-					<style>
-						.dark-bg {
-							fill: white;
-						}
+      /*.light-bg {*/
+      /*	fill: black;*/
+      /*}*/
+    </style>
+    <path class="dark-bg"
+    d="M6 22h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h1zm6-17.001c1.647 0 3 1.351 3 3C15 9.647 13.647 11 12 11S9 9.647 9 7.999c0-1.649 1.353-3 3-3zM6 17.25c0-2.219 2.705-4.5 6-4.5s6 2.281 6 4.5V18H6v-.75z"></path>
+  </svg>
+  <h6>{{ file | author }}</h6>
+</div>
+<div class="info-divider"></div>
+<div class="info-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+    style="fill: rgba(0, 0, 0, 1);">
+    <style>
+      .dark-bg {
+      fill: white;
+    }
 
-						/*.light-bg {*/
-						/*	fill: black;*/
-						/*}*/
-					</style>
-					<path class="dark-bg"
-						  d="M11.707 2.293A.997.997 0 0 0 11 2H6a.997.997 0 0 0-.707.293l-3 3A.996.996 0 0 0 2 6v5c0 .266.105.52.293.707l10 10a.997.997 0 0 0 1.414 0l8-8a.999.999 0 0 0 0-1.414l-10-10zM13 19.586l-9-9V6.414L6.414 4h4.172l9 9L13 19.586z"></path>
-					<circle class="dark-bg" cx="8.353" cy="8.353" r="1.647"></circle>
-				</svg>
-				<h6>{{ file | sub }}</h6>
-			</div>
-			<br>
-			<h2 class="fs-4">Description:</h2>
-			<p class="fw-lighter">{{ file | desc }}</p>
-		</div>
-	</div>
+    /*.light-bg {*/
+    /*	fill: black;*/
+    /*}*/
+  </style>
+  <path class="dark-bg"
+  d="M11.707 2.293A.997.997 0 0 0 11 2H6a.997.997 0 0 0-.707.293l-3 3A.996.996 0 0 0 2 6v5c0 .266.105.52.293.707l10 10a.997.997 0 0 0 1.414 0l8-8a.999.999 0 0 0 0-1.414l-10-10zM13 19.586l-9-9V6.414L6.414 4h4.172l9 9L13 19.586z"></path>
+  <circle class="dark-bg" cx="8.353" cy="8.353" r="1.647"></circle>
+</svg>
+<h6>{{ file | sub }}</h6>
+</div>
+<br>
+  <h2 class="fs-4">Description:</h2>
+  <p class="fw-lighter">{{ file | desc }}</p>
+</div>
+</div>
 </div>
 <div class="modal fade" id="downloadConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false"
-	 aria-hidden="true"
-	 aria-labelledby="downloadConfirmationModalLabel" tabindex="-1">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="downloadConfirmationModalLabel">{{ titleMessage }}</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				{{ downloadMessage }}
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" (click)="clearDownloadMessage()"
-						data-bs-dismiss="modal">
-					Close
-				</button>
-			</div>
-		</div>
-	</div>
+  aria-hidden="true"
+  aria-labelledby="downloadConfirmationModalLabel" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="downloadConfirmationModalLabel">{{ titleMessage }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{ downloadMessage }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="clearDownloadMessage()"
+          data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="modal fade" id="readModal" data-bs-keyboard="false" aria-hidden="true"
-	 aria-labelledby="readModalLabel" tabindex="-1">
-	<div class="modal-dialog modal-fullscreen">
-		<div class="modal-content">
-			<div class="modal-header">
-				<!--				<h1 class="modal-title fs-5 text-truncate" id="readModalLabel">{{ file | title }}</h1>-->
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
-				<pdf-viewer *ngIf="(file | ext) === 'PDF' || isUsingPdfConversion" [pdfSrc]="stringSource"></pdf-viewer>
-				<epub-viewer *ngIf="(file | ext) === 'EPUB' && !isUsingPdfConversion"
-							 [epubSrc]="stringSource"
-							 [fileKind]="file.fileKind">
-				</epub-viewer>
-					<comic-viewer *ngIf="['CBR', 'CBZ', 'CB7', 'CBT', 'COMIC-MANGA'].includes(file | ext)"
-								  [comicSrc]="stringSource"
-								  [id]="file.coverId">
-					</comic-viewer>
-				<audiobook-viewer *ngIf="(file | ext) === 'AUDIOBOOK' || isAudioFile"
-								  [audiobookSrc]="stringSource">
-				</audiobook-viewer>
-			</div>
-		</div>
-	</div>
+  [class.pdf-reader-modal]="(file | ext) === 'PDF' || isUsingPdfConversion"
+  [class.audio-reader-modal]="(file | ext) === 'AUDIOBOOK' || isAudioFile"
+  aria-labelledby="readModalLabel" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title reader-title" id="readModalLabel" [title]="file | title">{{ file | title }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
+        @if ((file | ext) === 'PDF' || isUsingPdfConversion) {
+          <pdf-viewer [pdfSrc]="stringSource" [archiveId]="file.id"></pdf-viewer>
+        }
+        @if ((file | ext) === 'EPUB' && !isUsingPdfConversion) {
+          <epub-viewer
+            [archiveId]="file.id"
+            [epubSrc]="stringSource"
+            [fileKind]="file.fileKind">
+          </epub-viewer>
+        }
+        @if (['CBR', 'CBZ', 'CB7', 'CBT', 'COMIC-MANGA'].includes(file | ext)) {
+          <comic-viewer
+            [comicSrc]="stringSource"
+            [archiveId]="file.id"
+            [id]="file.coverId">
+          </comic-viewer>
+        }
+        @if (stringSource && ((file | ext) === 'AUDIOBOOK' || isAudioFile)) {
+          <audiobook-viewer
+            [archiveId]="file.id"
+            [audiobookSrc]="stringSource">
+          </audiobook-viewer>
+        }
+      </div>
+    </div>
+  </div>
 </div>
 
 <error-message></error-message>
 
 <ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
-	<p style="color: white"> Loading... </p>
+  <p style="color: white"> Loading... </p>
 </ngx-spinner>

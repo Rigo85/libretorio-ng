@@ -1,13 +1,13 @@
 import {
-	AfterViewInit,
-	Component,
-	EventEmitter,
-	Input,
-	OnChanges, Output,
-	SimpleChanges
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges, Output,
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { File, getTitle } from "(src)/app/core/headers";
-import { AsyncPipe, NgForOf, NgIf, NgOptimizedImage } from "@angular/common";
+import { AsyncPipe, NgOptimizedImage } from "@angular/common";
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { TitlePipe } from "(src)/app/pipes/title.pipe";
 import { FileCheckService } from "(src)/app/services/file-check.service";
@@ -21,18 +21,17 @@ declare var bootstrap: any;
 @Component({
 	selector: "search-details-panel",
 	imports: [
-		AsyncPipe,
-		NgForOf,
-		NgIf,
-		ReactiveFormsModule,
-		TitlePipe,
-		BookWebDetailsPanelComponent,
-		NgOptimizedImage
-	],
+    AsyncPipe,
+    ReactiveFormsModule,
+    TitlePipe,
+    BookWebDetailsPanelComponent,
+    NgOptimizedImage
+],
 	templateUrl: "./search-details-panel.component.html",
+	changeDetection: ChangeDetectionStrategy.Eager,
 	styleUrl: "./search-details-panel.component.scss"
 })
-export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
+export class SearchDetailsPanelComponent implements OnChanges {
 	@Input() file!: File;
 	form!: FormGroup;
 	@Output() searchOptions = new EventEmitter<{ title: string; author: string; }>();
@@ -54,7 +53,7 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
-		if (changes["file"] && !changes["file"].currentValue !== changes["file"].previousValue) {
+		if (changes["file"] && changes["file"].currentValue !== changes["file"].previousValue) {
 			const obj = {
 				name: this.file.name,
 				"current title": getTitle(this.file),
@@ -68,16 +67,6 @@ export class SearchDetailsPanelComponent implements AfterViewInit, OnChanges {
 			});
 			this.searchDetails = [];
 		}
-	}
-
-	ngAfterViewInit(): void {
-		const obj = {
-			name: this.file.name,
-			"current title": getTitle(this.file),
-			title: "",
-			"author name": ""
-		};
-		this.setFieldsFromObject(obj);
 	}
 
 	get fields() {
