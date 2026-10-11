@@ -1,0 +1,33 @@
+<section class="search-page">
+  <h1>Buscar en biblioteca</h1>
+  <form (ngSubmit)="submit()" class="search-form" role="search">
+    <div class="query-row"><input class="form-control" name="q" type="search" aria-label="Texto de busqueda" placeholder="Titulo, autor, frase..." maxlength="256" [(ngModel)]="draft.q">
+      <button type="submit" class="btn btn-primary" title="Buscar" aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-outline-secondary" title="Busqueda avanzada" aria-label="Busqueda avanzada" [attr.aria-expanded]="advanced" (click)="advanced=!advanced"><i class="bi bi-sliders" aria-hidden="true"></i></button></div>
+    @if(advanced){<div class="advanced-fields">
+      <label>Titulo<input class="form-control" name="title" maxlength="256" [(ngModel)]="draft.title"></label>
+      <label>Autor<input class="form-control" name="author" maxlength="256" [(ngModel)]="draft.author"></label>
+      <label>ISBN<input class="form-control" name="isbn" maxlength="256" [(ngModel)]="draft.isbn"></label>
+      <label>Descripcion<input class="form-control" name="description" maxlength="256" [(ngModel)]="draft.description"></label>
+      <label>Idioma registrado<input class="form-control" name="language" maxlength="256" [(ngModel)]="draft.language"></label>
+      <label>Tipo registrado<select class="form-select" name="kind" [(ngModel)]="draft.kind"><option value="">Todos</option><option value="FILE">Archivo</option><option value="EPUB">Carpeta EPUB</option><option value="AUDIOBOOK">Carpeta de audio</option><option value="COMIC-MANGA">Carpeta de comics</option><option value="NONE">Sin clasificar</option></select></label>
+      <label class="folder">Ruta de carpeta<input class="form-control" name="folder" maxlength="2048" [(ngModel)]="draft.folder"></label>
+      <label class="check"><input type="checkbox" [checked]="draft.subfolders==='1'" (change)="draft.subfolders=$any($event.target).checked?'1':'0'">Incluir subcarpetas</label>
+    </div>}
+    <label class="order">Orden<select name="sort" class="form-select" [(ngModel)]="draft.sort"><option value="relevance">Relevancia</option><option value="title">Titulo</option><option value="added">Agregado recientemente</option></select></label>
+  </form>
+  <div class="status" role="status">@if(loading){Buscando...}@else if(error){<span class="text-warning">{{error}}</span> <button class="btn btn-outline-secondary" (click)="load()">Reintentar</button>}@else if(items.length){ {{items.length}} resultados en esta pagina }@else if(hasQuery){Sin resultados}</div>
+  @if(openingError){<p role="alert">{{openingError}}</p>}
+  <ul class="results" [attr.aria-busy]="loading">@for(item of items;track item.id){<li>
+    <button class="cover" (click)="open(item.id)" [attr.aria-label]="'Detalles de '+item.title">@if(cover(item);as url){<img [src]="url" alt="" width="60" height="90" loading="lazy" (error)="failedCovers.add(item.id)">}@else{<i class="bi bi-book" aria-hidden="true"></i>}</button>
+    <div><h2><button (click)="open(item.id)">{{item.title}}</button></h2><p>{{item.author}}</p><p class="path">{{item.parentPath}}/{{item.name}}</p></div>
+  </li>}</ul>
+  @if(previous||next||committed['before']||committed['after']){<nav class="pagination" aria-label="Paginas de resultados">
+    <button class="btn btn-outline-secondary" [disabled]="loading||!previous" (click)="turn(true)"><i class="bi bi-chevron-left" aria-hidden="true"></i>Anterior</button>
+    <button class="btn btn-outline-secondary" [disabled]="loading||!next" (click)="turn()">Siguiente<i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+  </nav>}
+</section>
+<div class="modal fade search-details" tabindex="-1" aria-label="Detalles del material" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h2 class="fs-5">Detalles</h2><button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body">@if(selected){<book-details-panel [file]="selected" [readerOutlet]="readerOutlet" (readerRequested)="requestReader($event)" (readerClosed)="readerClosed()"></book-details-panel>}</div>
+</div></div></div><div #readerOutlet></div>
