@@ -3,9 +3,16 @@
 		<span class="page-number">{{ position }}</span>
 	</div>
 	<div class="d-flex justify-content-center align-items-center">
-		<img [src]="pages[relativeCurrentPage - 1]" alt=""/>
+		@for(frame of frames;track frame.token){
+			<img [src]="frame.src" alt="" (load)="imageLoaded(frame)" (error)="imageFailed(frame)"/>
+		}
 	</div>
 </div>
+
+<reading-status [tracker]="progress"></reading-status>
+@if(warning){<p class="small text-warning m-2" role="status">{{warning}}
+  @if(canRetry){<button type="button" class="btn btn-sm btn-outline-secondary" title="Reintentar" aria-label="Reintentar" (click)="retry()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>}
+</p>}
 
 <error-message [onClose]="onClose"></error-message>
 
