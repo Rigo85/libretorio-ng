@@ -1,0 +1,53 @@
+<section class="users-page">
+  <header class="users-heading"><h1>{{editing?(selected?'Editar cuenta':'Nueva cuenta'):'Usuarios'}}</h1>
+    @if(!editing){<button class="btn btn-primary" (click)="edit()" [disabled]="loading"><i class="bi bi-person-plus" aria-hidden="true"></i>Crear usuario</button>}
+    @else{<button class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving"><i class="bi bi-arrow-left" aria-hidden="true"></i>Volver</button>}
+  </header>
+  @if(error){<p role="alert" class="text-warning">{{error}}</p>}
+  @if(notice){<p role="status">{{notice}}</p>}
+  @if(editing){
+    <form class="user-editor" (ngSubmit)="save()">
+      <fieldset [disabled]="saving">
+        @if(selected){
+          <p class="selected-email">{{selected.email}}</p>
+          <label for="user-action">Acción</label>
+          <select id="user-action" class="form-select" name="action" [(ngModel)]="action" (ngModelChange)="changeAction()">
+            <option value="edit">Datos y permisos</option><option value="password">Restablecer contraseña</option><option value="revoke">Cerrar sesión</option>
+          </select>
+        }
+        @if(!selected||action==='edit'){
+          <label for="user-email">Correo</label><input id="user-email" type="email" class="form-control" name="email" [(ngModel)]="email" required maxlength="254" autocomplete="off">
+          <div class="user-flags">
+            <label><input type="checkbox" class="form-check-input" name="isActive" [(ngModel)]="isActive">Cuenta habilitada</label>
+            <label><input type="checkbox" class="form-check-input" name="isAdmin" [(ngModel)]="isAdmin">Administrador</label>
+          </div>
+          @if(selected&&!isActive){<p class="text-warning">La cuenta quedará deshabilitada. Su historial se conservará.</p>}
+        }
+        @if(!selected||action==='password'){
+          <label for="new-password">Nueva contraseña</label><input id="new-password" class="form-control" type="password" name="password" [(ngModel)]="password" required minlength="15" maxlength="256" autocomplete="new-password" aria-describedby="password-policy">
+          <small id="password-policy">Entre 15 y 256 caracteres.</small>
+          <label for="confirm-password">Repetir nueva contraseña</label><input id="confirm-password" class="form-control" type="password" name="confirmation" [(ngModel)]="confirmation" required minlength="15" maxlength="256" autocomplete="new-password">
+        }
+        @if(selected){<p class="session-warning">La sesión vigente de esta cuenta se cerrará al confirmar.</p>}
+        <label for="admin-password">Tu contraseña de administrador</label><input id="admin-password" class="form-control" type="password" name="adminPassword" [(ngModel)]="adminPassword" required maxlength="256" autocomplete="current-password">
+        <div class="editor-actions"><button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i>{{saving?'Guardando...':'Confirmar'}}</button><button class="btn btn-outline-secondary" type="button" (click)="cancel()"><i class="bi bi-x-lg" aria-hidden="true"></i>Cancelar</button></div>
+      </fieldset>
+    </form>
+  }@else{
+    <form class="user-filters" (ngSubmit)="load()">
+      <input class="form-control" type="search" name="q" [(ngModel)]="q" maxlength="254" placeholder="Buscar por correo" aria-label="Buscar por correo">
+      <select class="form-select" name="state" [(ngModel)]="state" (ngModelChange)="load()" aria-label="Estado de la cuenta"><option value="">Todos los estados</option><option value="active">Habilitadas</option><option value="inactive">Deshabilitadas</option></select>
+      <button class="btn btn-outline-secondary icon-button" type="submit" title="Buscar" aria-label="Buscar" [disabled]="loading"><i class="bi bi-search" aria-hidden="true"></i></button>
+      <button class="btn btn-outline-secondary icon-button" type="button" (click)="load(before)" title="Actualizar" aria-label="Actualizar" [disabled]="loading"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+    </form>
+    @if(loading){<p role="status">Cargando usuarios...</p>}
+    <ul class="users-list" [attr.aria-busy]="loading">
+      @for(user of items;track user.id){
+        <li><div class="user-summary"><strong>{{user.email}}</strong><span>{{user.isAdmin?'Administrador':'Usuario'}} · {{user.isActive?'Cuenta habilitada':'Cuenta deshabilitada'}}</span><small>Último inicio de sesión: {{user.lastLogin?(user.lastLogin|date:'dd/MM/yyyy HH:mm'):'Sin inicios registrados'}}</small></div>
+          <button class="btn btn-outline-secondary icon-button" (click)="edit(user)" [disabled]="loading" [attr.aria-label]="'Editar '+user.email" title="Editar cuenta"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+        </li>
+      }@empty{ @if(!loading){<li>No hay usuarios con estos filtros.</li>} }
+    </ul>
+    @if(next||before){<nav class="users-pagination" aria-label="Paginación de usuarios"><button class="btn btn-outline-secondary" [disabled]="loading||!before" (click)="load()"><i class="bi bi-chevron-double-left" aria-hidden="true"></i>Primera página</button><button class="btn btn-outline-secondary" [disabled]="loading||!next" (click)="load(next!)">Siguiente<i class="bi bi-chevron-right" aria-hidden="true"></i></button></nav>}
+  }
+</section>

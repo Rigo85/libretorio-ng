@@ -1,0 +1,11 @@
+:host{display:block;flex:1;width:100%;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
+.users-page{max-width:1050px;margin:auto;padding:24px;letter-spacing:0}
+h1{font-size:24px;margin:0}.users-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px}.icon-button{width:44px;height:44px;padding:0;flex:none;font-size:20px}
+.user-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.user-filters input{flex:1;min-width:180px}.user-filters select{width:210px}.form-control,.form-select{min-height:44px}
+.users-list{padding:0;margin:16px 0;list-style:none}.users-list li{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bs-border-color);padding:16px 0}
+.user-summary{display:flex;flex-direction:column;gap:6px;min-width:0;overflow-wrap:anywhere}.user-summary small{color:var(--bs-secondary-color)}
+.users-pagination,.editor-actions{display:flex;gap:12px;justify-content:space-between;margin-top:24px;flex-wrap:wrap}
+.user-editor{max-width:540px}.user-editor label{display:block;margin:16px 0 6px}.user-flags{display:flex;gap:24px;flex-wrap:wrap}.user-flags label{display:flex;align-items:center;gap:8px}
+.selected-email{overflow-wrap:anywhere;font-weight:600}.session-warning{margin-top:24px}.editor-actions{justify-content:flex-start}.user-editor small{color:var(--bs-secondary-color)}
+@media(max-width:600px){.users-page{padding:16px 12px}.user-filters input{flex-basis:100%;width:100%}.user-filters select{flex:1;min-width:0;width:auto}h1{font-size:22px}}
