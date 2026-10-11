@@ -1,0 +1,67 @@
+<section class="reading-home">
+  <h1 tabindex="-1">Actividad reciente</h1>
+  <div class="filters">
+    <label class="progress-filter"><input type="checkbox" class="form-check-input" [(ngModel)]="onlyProgress" (change)="changeFilters()">Solo con progreso</label>
+    <select class="form-select" aria-label="Tipo registrado en el cat&#225;logo" [(ngModel)]="kind" (change)="changeFilters()">
+      <option value="">Todos los materiales</option><option value="FILE">Archivos</option>
+      <option value="EPUB">Carpetas EPUB</option><option value="AUDIOBOOK">Carpetas de audio</option>
+      <option value="COMIC-MANGA">Carpetas de c&#243;mics</option><option value="NONE">Sin clasificar</option>
+    </select>
+    <button class="btn btn-outline-secondary refresh-button" title="Actualizar" aria-label="Actualizar" [disabled]="loading" (click)="refresh()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+  </div>
+  <div class="list-status">
+    @if(openingError||error){<p role="alert" class="text-warning">{{openingError||error}}</p>}
+    @else if(loading){<p role="status">Cargando actividad...</p>}
+    @else if(opening){<p role="status">Abriendo material...</p>}
+  </div>
+  @if(!loading&&!error&&!items.length){<p class="text-body-secondary">{{paged?'No hay actividad en este tramo.':onlyProgress||kind?'No hay materiales con estos filtros.':'No hay visitas registradas.'}}</p>}
+  <ul class="history-list" [attr.aria-busy]="loading">
+    @for(item of items;track item.id){
+      <li [attr.data-archive-id]="item.archiveId">
+        <button class="cover-button" [disabled]="loading||opening||item.availability!=='available'" [attr.aria-label]="'Detalles de '+(item.snapshot | title)" (click)="open(item)">
+          @if(cover(item);as image){<img [src]="image" alt="" loading="lazy" width="80" height="120" (error)="failedCovers.add(item.id)">}
+          @else{<i class="bi bi-book" aria-hidden="true"></i>}
+        </button>
+        <div class="item-info">
+          <h2><button class="title-button" [disabled]="loading||opening||item.availability!=='available'" (click)="open(item)">{{item.snapshot | title}}</button></h2>
+          @if(item.snapshot | author;as author){@if(author!=='Unknown author'){<p class="author">{{author}}</p>}}
+          <p class="activity-meta">{{material(item)}} <span aria-hidden="true">&middot;</span> <time [attr.datetime]="item.lastVisitedAt">{{item.lastVisitedAt | date:'dd/MM/yyyy HH:mm'}}</time></p>
+          @if(item.availability!=='available'){
+            <p role="status">{{item.availability==='missing'?'Ya no esta en la ruta anterior: se movio, renombro o elimino.':'No se puede comprobar el archivo en este momento.'}}</p>
+            <p class="small path">{{item.snapshot.parentPath}}/{{item.snapshot.name}}</p>
+          }
+          @if(chosen(item);as progress){
+            <p class="position">{{label(progress.representation)}} &middot; {{location(progress)}}
+              @if(track(progress)){<span class="track">{{track(progress)}}</span>}
+            </p>
+            <div class="progress-actions">
+              <button class="btn btn-outline-primary continue-button" [disabled]="loading||opening||item.availability!=='available'" (click)="open(item,progress.representation)">
+                <i class="bi" [class.bi-play-fill]="progress.representation==='audio'" [class.bi-book]="progress.representation!=='audio'" aria-hidden="true"></i>
+                {{progress.representation==='audio'?'Continuar audio':'Continuar lectura'}}
+              </button>
+              @if(item.progress.length>1){
+                <select class="form-select version-select" [ngModel]="progress.representation" (ngModelChange)="versions[item.id]=$event" [attr.aria-label]="'Version de '+(item.snapshot | title)">
+                  @for(version of item.progress;track version.representation){<option [value]="version.representation">{{label(version.representation)}}</option>}
+                </select>
+              }
+            </div>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+  @if(next||previous||paged){
+    <nav class="activity-pagination" aria-label="Paginacion de actividad">
+      <button class="btn btn-outline-secondary" [disabled]="loading||!previous" (click)="turnPage('after')"><i class="bi bi-chevron-left" aria-hidden="true"></i>Anterior</button>
+      <button class="btn btn-outline-secondary latest-button" [disabled]="loading||!paged" (click)="refresh()">M&#225;s recientes</button>
+      <button class="btn btn-outline-secondary" [disabled]="loading||!next" (click)="turnPage('before')">Siguiente<i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+    </nav>
+  }
+</section>
+<div class="modal fade" id="historyBookDetailsModal" tabindex="-1" aria-labelledby="historyDetailsTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h2 id="historyDetailsTitle" class="modal-title fs-5">Detalles</h2><button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+    <div class="modal-body">@if(selected){<book-details-panel [file]="selected" [readerOutlet]="readerOutlet" (readerRequested)="requestReader($event)" (readerClosed)="readerClosed()"></book-details-panel>}</div>
+  </div></div>
+</div>
+<div #readerOutlet></div>
