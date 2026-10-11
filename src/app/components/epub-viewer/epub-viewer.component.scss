@@ -8,6 +8,20 @@
 		flex: 0 0 auto;
 	}
 
+	.reader-toolbar {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: center;
+		gap: 4px;
+		padding-inline: 4px;
+	}
+
+	.reader-toolbar > .navbar-toggler { justify-self: start; }
+	.reader-toolbar .navbar-toggler { width: 44px; height: 44px; padding: 0; flex-shrink: 0; }
+	.reading-progress { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+	.reader-actions { display: flex; align-items: center; justify-self: end; }
+	.reader-locations { display:flex;align-items:center;justify-self:start; }
+
 	.custom-offcanvas {
 		position: fixed;
 		top: 120px; // Ajusta esta posición según la altura de tu navbar

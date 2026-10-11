@@ -1,17 +1,23 @@
 <div class="epub-viewer">
+  <reading-status [tracker]="progress" [warning]="historyWarning || readingStore.preferenceWarning()"></reading-status>
 	<header class="navbar navbar-dark bg-dark">
-		<div class="container-fluid">
-			<button id="toc-toggle" class="navbar-toggler" type="button" aria-label="Toggle navigation"
+		<div class="container-fluid reader-toolbar">
+			<div class="reader-locations"><button id="toc-toggle" class="navbar-toggler" type="button" aria-label="Indice" title="Indice"
 					(click)="toggleToc()">
 				<i class="bi bi-list-ol"></i>
 			</button>
-			<div class="navbar-text"> {{ '' + percentage + '%' }}</div>
-			<button id="options-toggle" class="navbar-toggler" type="button" aria-label="Toggle navigation"
-					(click)="toggleOptions()">
-				<span class="bi bi-gear"></span>
-			</button>
+			<document-search #find [search]="search" (selected)="searchResult($event)" (cleared)="clearSearchHighlight()"></document-search></div>
+			<div class="navbar-text reading-progress" aria-label="Progreso de lectura"> {{ '' + percentage + '%' }}</div>
+			<div class="reader-actions" role="group" aria-label="Opciones de lectura">
+				<epub-speech [context]="speechContext" [selection]="speechSelection"></epub-speech>
+				<button id="options-toggle" class="navbar-toggler" type="button" aria-label="Ajustes de lectura" title="Ajustes de lectura"
+						(click)="toggleOptions()">
+					<span class="bi bi-gear"></span>
+				</button>
+			</div>
 		</div>
 	</header>
+	<ng-container [ngTemplateOutlet]="find.controls"></ng-container>
 	<div id="toc-content" class="custom-offcanvas" [class.show]="!tocHidden">
 		<div class="custom-offcanvas-header">
 			<h5 class="custom-offcanvas-title">Table of Contents</h5>
