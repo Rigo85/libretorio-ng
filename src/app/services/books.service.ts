@@ -1,5 +1,5 @@
 import { DestroyRef, Injectable } from "@angular/core";
-import { BehaviorSubject, catchError, Observable, retry, Subject, throwError } from "rxjs";
+import { BehaviorSubject, catchError, filter, Observable, retry, Subject, take, throwError, timeout } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 import { File, FileKind } from "(src)/app/core/headers";
@@ -7,6 +7,14 @@ import { File, FileKind } from "(src)/app/core/headers";
 interface IncomingMessage {
 	event: string;
 	data: any;
+	requestId?: string;
+	code?: string;
+}
+
+export interface PreparedPdfResponse {
+	success: "OK" | "ERROR";
+	pdfPath?: string;
+	code?: string;
 }
 
 @Injectable({
@@ -79,6 +87,10 @@ export class BooksService {
 		this.connectionStatus.next(false);
 	}
 
+	public ensureConnected(): void {
+		if (!this.webSocket || this.webSocket.closed) this.connect();
+	}
+
 	public connect(): void {
 		if (this.webSocket && !this.webSocket.closed) {
 			this.webSocket.complete();
@@ -86,7 +98,8 @@ export class BooksService {
 		}
 		clearInterval(this.heartbeatTimer);
 
-		const wsUrl = "wss://libretorio.rji-services.org/";
+		this.intentionalDisconnect = false;
+		const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/`;
 		this.webSocket = webSocket<IncomingMessage>({
 			url: wsUrl,
 			deserializer: e => JSON.parse(e.data),
@@ -185,12 +198,54 @@ export class BooksService {
 		this.sendMessage({event: "convert_to_pdf", data: {filePath, id: coverId}});
 	}
 
+	public getPreparedPdf(filePath: string, coverId: string): Observable<PreparedPdfResponse> {
+		return new Observable<PreparedPdfResponse>(subscriber => {
+			if (!this.connectionStatus.value) {
+				subscriber.error(new Error("WebSocket disconnected"));
+				return;
+			}
+			const requestId = crypto.randomUUID();
+			// Subscribe before sending; IDs keep a late reply from opening another book.
+			const subscription = this.convertToPdfIncomingMessage$.pipe(
+				filter(message => message.data?.requestId === requestId || message.data?.requestId === undefined),
+				take(1),
+				timeout(10_000)
+			).subscribe({
+				next: message => {
+					if (message.data?.requestId === undefined) subscriber.error(new Error('PDF_BACKEND_UPDATE_REQUIRED'));
+					else subscriber.next(message.data);
+				},
+				error: error => subscriber.error(error),
+				complete: () => subscriber.complete()
+			});
+			this.sendMessage({event: "convert_to_pdf", data: {filePath, id: coverId, requestId}});
+			return () => subscription.unsubscribe();
+		});
+	}
+
 	public getMorePages(id: string, index: number) {
 		this.sendMessage({event: "get_more_pages", data: {id, index}});
 	}
 
-	public getAudioBook(filePath: string) {
-		this.sendMessage({event: "get_audio_book", data: {filePath}});
+	public getComicPages(archiveId: number, id: string, index: number, sourceRevision?: string): Observable<any> {
+		return new Observable(subscriber => {
+			if (!this.connectionStatus.value) { subscriber.error(new Error('COMIC_DISCONNECTED')); return; }
+			const requestId = crypto.randomUUID();
+			const subscription = this.decompressIncomingMessage$.pipe(
+				filter(message => message.data?.requestId === requestId), take(1), timeout(20000)
+			).subscribe({
+				next: message => {
+					if (message.data.archiveId !== archiveId || message.data.id !== id) subscriber.error(new Error('COMIC_REPLY_MISMATCH'));
+					else subscriber.next(message.data);
+				}, error: error => subscriber.error(error), complete: () => subscriber.complete()
+			});
+			this.sendMessage({event: 'get_more_pages', data: {archiveId, id, index, requestId, sourceRevision}});
+			return () => subscription.unsubscribe();
+		});
+	}
+
+	public getAudioBook(filePath: string, requestId?: string) {
+		this.sendMessage({event: "get_audio_book", data: {filePath, requestId}});
 	}
 
 	public logAction(
