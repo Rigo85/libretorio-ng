@@ -1,0 +1,39 @@
+@if (reader?.session) {
+  <button type="button" class="voice-launcher icon playing" (click)="continueSaved()" [disabled]="reader?.state === 'done'" [attr.aria-label]="speech.running ? 'Pausar voz' : 'Continuar voz'" [title]="speech.running ? 'Pausar voz' : 'Continuar voz'"><i [class]="speech.running ? 'bi bi-pause-fill' : 'bi bi-play-fill'" aria-hidden="true"></i></button>
+}
+<button type="button" class="voice-launcher icon" (pointerdown)="capture()" (click)="open()" title="Lectura en voz alta (TTS)" aria-label="Lectura en voz alta" aria-haspopup="dialog"><span class="material-icons tts-symbol" aria-hidden="true">&#xe91f;</span></button>
+<dialog #panel aria-label="Lectura en voz alta" (cancel)="close()">
+  <header><h2>Lectura en voz alta</h2><button type="button" class="icon" (click)="close()" aria-label="Cerrar opciones de voz" title="Cerrar" autofocus><i class="bi bi-x-lg" aria-hidden="true"></i></button></header>
+  <div class="transport">
+    <button type="button" class="primary icon" (click)="play()" [disabled]="!speech.running && !speech.busy && (!voice || !reader || (!newSelection && (!reader.session || reader.state === 'done')))" [attr.aria-label]="speech.running || speech.busy ? 'Pausar voz' : 'Continuar voz'" [title]="speech.running || speech.busy ? 'Pausar voz' : 'Continuar voz'"><i [class]="speech.running || speech.busy ? 'bi bi-pause-fill' : 'bi bi-play-fill'" aria-hidden="true"></i></button>
+    <button type="button" class="icon" (click)="askRestart()" [disabled]="!reader?.session || speech.busy" title="Volver al principio" aria-label="Volver al principio"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
+    <label class="speed">Velocidad<select [value]="rate" (change)="changeRate($event)" [disabled]="speech.running || speech.busy" aria-label="Velocidad de voz">
+      <option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1">1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+    </select></label>
+    <output role="status">{{status}}</output>
+  </div>
+  <div class="body">
+    @if (confirmation) {
+      <p role="alert">{{confirmation === 'restart' ? 'Se reiniciara la lectura desde el principio.' : 'Se sustituira el marcador por la nueva seleccion.'}}</p>
+      <button type="button" (click)="confirmation = ''">Cancelar</button>
+      <button type="button" (click)="confirm()">Confirmar</button>
+    }
+    @if (newSelection) {<blockquote>{{newSelection.preview}}</blockquote>}
+    @else if (reader?.session?.pending) {<blockquote>{{reader?.session?.pending?.text}}</blockquote>}
+    @else if (!reader?.session) {<p class="muted">No hay texto seleccionado.</p>}
+    @if (reader?.session; as session) {<p class="muted">{{session.cursor}} / {{session.end}} caracteres confirmados</p>}
+    <details class="settings" [open]="!voice">
+      <summary><span>Voz</span><span class="voice-summary">{{voice?.name || 'Seleccionar voz'}}</span></summary>
+      <fieldset [disabled]="speech.running || speech.busy">
+        <label>Buscar idioma o voz<input type="search" aria-label="Buscar idioma o voz" [value]="query" (input)="search($event)" autocomplete="off"></label>
+        <label>Idioma<select aria-label="Idioma de voz" [value]="languageId" (change)="changeLanguage($event)"><option value="">Todos</option>@for(item of languages;track item.id){<option [value]="item.id">{{item.label}}</option>}</select></label>
+        <label>Voz<select aria-label="Voz" [value]="voice ? voiceId : ''" (change)="changeVoice($event)"><option value="" disabled>Seleccionar voz ({{voices.length}})</option>@for(item of voices;track key(item)){<option [value]="key(item)">{{item.name}} ({{item.lang}})</option>}</select></label>
+        <label class="toggle"><input type="checkbox" [checked]="remote" (change)="changeRemote($event)">Permitir voces en linea</label>
+        <button type="button" class="icon" (click)="refreshVoices()" title="Actualizar voces" aria-label="Actualizar voces"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+        @if(remote){<p class="privacy">El proveedor de voz puede recibir el texto seleccionado.</p>}
+        @if(!voices.length){<p role="status">No hay voces disponibles con este filtro.</p>}
+      </fieldset>
+    </details>
+    <details><summary>Diagnostico de voz</summary><button type="button" class="icon" (click)="exportDiagnostic()" aria-label="Descargar diagnostico de voz" title="Descargar diagnostico"><i class="bi bi-download" aria-hidden="true"></i></button></details>
+  </div>
+</dialog>

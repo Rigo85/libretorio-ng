@@ -1,0 +1,53 @@
+@if (active) {
+  <button class="voice-launcher icon playing" type="button" (click)="pauseOrResume()" [attr.aria-label]="reader?.pauseRequested ? 'Reanudar voz' : 'Pausar voz'" [title]="reader?.pauseRequested ? 'Reanudar voz' : 'Pausar voz'"><i [class]="reader?.pauseRequested ? 'bi bi-play-fill' : 'bi bi-pause-fill'" aria-hidden="true"></i></button>
+}
+<button class="voice-launcher icon" type="button" (pointerdown)="capture()" (click)="open()" aria-haspopup="dialog" [attr.aria-label]="active ? 'Opciones de voz' : 'Leer seleccion en voz alta'" title="Lectura en voz alta (TTS)" [class.playing]="active"><span class="material-icons tts-symbol" aria-hidden="true">&#xe91f;</span></button>
+<dialog #panel aria-label="Lectura en voz alta" (cancel)="closePanel()">
+  <header><h2>Lectura en voz alta</h2><button type="button" class="icon" (click)="closePanel()" aria-label="Cerrar opciones de voz" title="Cerrar opciones de voz" autofocus><i class="bi bi-x-lg" aria-hidden="true"></i></button></header>
+  @if (speech.platform) {
+      <div class="transport">
+        @if (!active) {
+          <button type="button" class="primary icon" (click)="start()" [disabled]="!voice || !snapshot || snapshot.length > 60000" aria-label="Leer seleccion" title="Leer seleccion"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
+        } @else {
+          <button type="button" class="primary icon" (click)="pauseOrResume()" [attr.aria-label]="reader?.pauseRequested ? 'Reanudar voz' : 'Pausar voz'" [title]="reader?.pauseRequested ? 'Reanudar voz' : 'Pausar voz'"><i [class]="reader?.pauseRequested ? 'bi bi-play-fill' : 'bi bi-pause-fill'" aria-hidden="true"></i></button>
+        }
+        <button type="button" class="icon" (click)="stop()" [disabled]="!active" aria-label="Detener voz" title="Detener voz"><i class="bi bi-stop-fill" aria-hidden="true"></i></button>
+        <label class="speed">Velocidad<select aria-label="Velocidad de voz" [value]="rate" (change)="changeRate($event)" [disabled]="active">
+          <option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1">1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+        </select></label>
+        @if (error || status) { <output role="status">{{ error || status }}</output> }
+      </div>
+  }
+  <div class="body">
+    @if (!speech.platform) { <p role="status">El navegador no ofrece lectura en voz alta.</p> }
+    @else {
+      @if (!snapshot) { <p role="status">No hay texto seleccionado.</p> }
+      @else {
+        <blockquote>{{ snapshot.slice(0, 140) }}{{ snapshot.length > 140 ? '...' : '' }}</blockquote>
+        <p class="muted">{{ snapshot.length }} caracteres para leer</p>
+      }
+      @if (snapshot.length > 60000) { <p role="alert">La seleccion supera los 60000 caracteres.</p> }
+      <details class="settings" [open]="settingsOpen" (toggle)="toggleSettings($event)">
+        <summary><span>Voz</span><span class="voice-summary">{{ voice?.name || 'Seleccionar voz' }}{{ voice ? ' (' + voice.lang + ')' : '' }}</span></summary>
+        <fieldset [disabled]="active">
+          @if (availableVoices.length) {
+          <label>Idioma<select aria-label="Idioma de voz" [value]="language" (change)="changeLanguage($event)">
+            <option value="" disabled>Seleccionar idioma</option>
+            @for (item of languages; track item.id) { <option [value]="item.id">{{ item.label }}</option> }
+          </select></label>
+          <label>Buscar voz<input type="search" aria-label="Buscar voz" [value]="voiceQuery" (input)="searchVoices($event)" autocomplete="off" spellcheck="false"></label>
+          <label>Voz<select aria-label="Voz" [value]="voice && filteredVoices.includes(voice) ? key(voice) : ''" (change)="changeVoice($event)" [disabled]="!filteredVoices.length">
+            <option value="" disabled>Seleccionar voz ({{ filteredVoices.length }})</option>
+            @for (item of filteredVoices; track key(item)) { <option [value]="key(item)">{{ item.name }} ({{ item.lang }}){{ item.localService ? '' : ' · En linea' }}</option> }
+          </select></label>
+          @if (voiceId && !voice) { <p class="privacy" role="status">La voz guardada no esta disponible. Selecciona otra voz o habilita las voces en linea si corresponde.</p> }
+          @if (language && !filteredVoices.length) { <p class="muted" role="status">{{ voiceQuery ? 'No hay coincidencias.' : 'No hay voces disponibles para este idioma.' }}</p> }
+          } @else { <p class="muted" role="status">{{ remoteAllowed ? 'El navegador no ofrece voces disponibles.' : 'El navegador no ofrece voces locales.' }}</p> }
+          <label class="toggle"><input type="checkbox" [checked]="remoteAllowed" (change)="allowRemote($event)">Permitir voces en linea</label>
+          @if (remoteAllowed) { <p class="privacy">El proveedor de voz puede recibir el texto seleccionado.</p> }
+        </fieldset>
+      </details>
+      <details><summary>Diagnostico de voz</summary><button type="button" class="icon" (click)="exportDiagnostic()" aria-label="Descargar diagnostico de voz" title="Descargar diagnostico de voz"><i class="bi bi-download" aria-hidden="true"></i></button></details>
+    }
+  </div>
+</dialog>
