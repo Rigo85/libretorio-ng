@@ -1,89 +1,186 @@
-<div class="audio-player">
-	<div class="top-panel">
+<section class="audio-player" [class.list-expanded]="listExpanded" aria-label="Reproductor de audiolibros" (keydown)="onPlayerKeydown($event)">
+  <reading-status [tracker]="progress" [warning]="historyWarning || readingStore.preferenceWarning()"></reading-status>
+  <header class="track-heading">
+    <p class="eyebrow">AUDIOLIBRO <span>{{ currentTrackIndex + 1 }} / {{ playlist.length || 1 }}</span></p>
+    <h2>{{ currentTrack ? trackTitle(currentTrack.title) : 'Cargando audiolibro' }}</h2>
+    <div class="chapter-context">
+      <div>
+        @if (currentChapter) {
+          <span class="context-label">Capítulo {{ currentChapterIndex + 1 }} de {{ currentTrack?.chapters?.length }}</span>
+          <p>{{ currentChapter.title }}</p>
+        } @else {
+          <span class="context-label">Pista actual</span>
+          <p>{{ chapterStatus(currentTrack) }}</p>
+        }
+      </div>
+      @if (hasChapters) {
+        <div class="chapter-navigation">
+          <button type="button" class="icon-button" (click)="previousChapter()" [disabled]="!canSeek" aria-label="Capítulo anterior" title="Capítulo anterior"><i class="material-icons" aria-hidden="true">chevron_left</i></button>
+          <button type="button" class="icon-button" (click)="nextChapter()" [disabled]="!canSeek || currentChapterIndex >= (currentTrack?.chapters?.length ?? 0) - 1" aria-label="Capítulo siguiente" title="Capítulo siguiente"><i class="material-icons" aria-hidden="true">chevron_right</i></button>
+        </div>
+      }
+    </div>
+  </header>
 
-		<!-- Título + nombre de capítulo + velocidad -->
-		<div class="track-header">
-			<div class="current-track">
-				<span class="d-inline-block text-truncate">{{ currentTrack?.title }}</span>
-				<span class="chapter-name" *ngIf="currentChapterName">{{ currentChapterName }}</span>
-			</div>
-			<button class="speed-btn" (click)="cycleSpeed()" title="Velocidad de reproducción">{{ currentSpeed }}×</button>
-		</div>
+  <div #mediaHost class="media-host">
+    <ng-container *ngTemplateOutlet="transport"></ng-container>
+  </div>
 
-		<!-- Barra de seguimiento -->
-		<div class="progress-bar">
-			<span class="time current-time">{{ formatTime(currentTime) }}</span>
-			<div class="seek-container">
-				<input type="range" (input)="seek($event)" [value]="currentTime" [max]="duration">
-				<div class="chapter-markers" *ngIf="currentTrack?.chapters?.length">
-					<div class="chapter-mark"
-						*ngFor="let ch of currentTrack?.chapters"
-						[style.left.%]="ch.startTimeInSeconds / duration * 100"
-						(click)="seekToChapter(ch)"
-						(mouseenter)="activeChapterTitle = ch.title"
-						(mouseleave)="activeChapterTitle = null"
-						(touchstart)="activeChapterTitle = ch.title; $event.preventDefault()"
-						(touchend)="seekToChapter(ch); activeChapterTitle = null">
-						<span class="chapter-tooltip" [class.visible]="activeChapterTitle === ch.title">{{ ch.title }}</span>
-					</div>
-				</div>
-			</div>
-			<span class="time total-time">{{ formatTime(duration) }}</span>
-		</div>
+  <ng-template #transport>
+    <div class="timeline">
+      <input type="range" [attr.aria-label]="'Posición: ' + timelineLabel" min="0" step="any" [max]="timeline.duration || 1"
+        [value]="timelineTime" [disabled]="!canSeek" (input)="previewTimelineSeek($event)" (change)="changeTimelineSeek()"
+        (pointerdown)="startTimelinePointer($event)" (pointerup)="finishTimelineSeek()"
+        (pointercancel)="cancelTimelineSeek()" (lostpointercapture)="cancelTimelineSeek()" (blur)="cancelTimelineSeek()"
+        (keydown)="onTimelineKeydown($event)" (keyup)="onTimelineKeyup($event)"
+        [attr.aria-valuetext]="formatTime(timelineTime) + ' de ' + formatTime(timeline.duration) + ', ' + timelineLabel"
+        [style.--progress]="(timeline.duration ? timelineTime / timeline.duration * 100 : 0) + '%'">
+      <div class="time-row">
+        <time>{{ formatTime(timelineTime) }}</time>
+        <span class="timeline-label">{{ timelineLabel }}</span>
+        <button type="button" class="time-toggle" (click)="showRemaining = !showRemaining; savePreferences('remaining')"
+          [attr.aria-label]="(showRemaining ? 'Mostrar duración: ' : 'Mostrar tiempo restante: ') + timelineLabel"
+          [title]="(showRemaining ? 'Mostrar duración: ' : 'Mostrar tiempo restante: ') + timelineLabel">{{ showRemaining ? '-' : '' }}{{ formatTime(showRemaining ? timeline.duration - timelineTime : timeline.duration) }}</button>
+      </div>
+    </div>
+    <div class="transport" role="group" aria-label="Controles de reproducción">
+      <button type="button" class="icon-button" (click)="previous()" [disabled]="currentTrackIndex === 0 || loading" aria-label="Pista anterior" title="Pista anterior"><i class="material-icons" aria-hidden="true">skip_previous</i></button>
+        <button type="button" class="icon-button" (click)="seekBy(-10)" [disabled]="!canSeek" aria-label="Retroceder 10 segundos" title="Retroceder 10 segundos"><i class="material-icons" aria-hidden="true">replay_10</i></button>
+        <button type="button" class="icon-button play-button" (click)="togglePlayPause()" [disabled]="loading || !currentTrack" [attr.aria-label]="isPlaying ? 'Pausar' : 'Reproducir'" [title]="isPlaying ? 'Pausar' : 'Reproducir'"><i class="material-icons" aria-hidden="true">{{ isPlaying ? 'pause' : 'play_arrow' }}</i></button>
+        <button type="button" class="icon-button" (click)="seekBy(10)" [disabled]="!canSeek" aria-label="Avanzar 10 segundos" title="Avanzar 10 segundos"><i class="material-icons" aria-hidden="true">forward_10</i></button>
+      <button type="button" class="icon-button" (click)="next()" [disabled]="loading || (!isRepeating && currentTrackIndex >= playlist.length - 1)" aria-label="Pista siguiente" title="Pista siguiente"><i class="material-icons" aria-hidden="true">skip_next</i></button>
+    </div>
+  </ng-template>
 
-		<!-- Botonera de control -->
-		<div class="controls">
-			<button (click)="toggleRepeat()" title="Repetir">
-				<i *ngIf="isRepeating" class="material-icons">sync</i>
-				<i *ngIf="!isRepeating" class="material-icons">sync_disabled</i>
-			</button>
+  <div #secondaryControls class="secondary-controls" (keydown)="onPanelKeydown($event)" (focusout)="onControlsFocusout($event)">
+    <div class="secondary-toolbar" role="group" aria-label="Ajustes de reproducción">
+      <button type="button" class="icon-button rate-button" (click)="togglePanel('speed', $event)"
+        [attr.aria-expanded]="activePanel === 'speed'" [attr.aria-controls]="activePanel === 'speed' ? 'audio-speed-panel' : null"
+        [attr.aria-label]="'Velocidad de reproducción: ' + preferredRate + '×'" title="Velocidad de reproducción">{{ preferredRate }}×</button>
+      <button type="button" class="icon-button" (click)="togglePanel('volume', $event)"
+        [attr.aria-expanded]="activePanel === 'volume'" [attr.aria-controls]="activePanel === 'volume' ? 'audio-volume-panel' : null"
+        [attr.aria-label]="muted || volume === 0 ? 'Volumen: silenciado' : 'Volumen: ' + volumePercent + '%'" title="Volumen">
+        <i class="material-icons" aria-hidden="true">{{ muted || volume === 0 ? 'volume_off' : 'volume_up' }}</i>
+      </button>
+      <button type="button" class="icon-button" (click)="togglePanel('settings', $event)"
+        [attr.aria-expanded]="activePanel === 'settings'" [attr.aria-controls]="activePanel === 'settings' ? 'audio-settings-panel' : null"
+        aria-label="Opciones de reproducción" title="Opciones de reproducción"><i class="material-icons" aria-hidden="true">tune</i></button>
+    </div>
+    @for (panel of activePanel ? [activePanel] : []; track panel) {
+      <div #controlPanel class="control-panel" [class.panel-below]="panelBelow" [style.max-height.px]="panelMaxHeight" [id]="'audio-' + panel + '-panel'" role="group" [attr.aria-labelledby]="'audio-' + panel + '-heading'">
+        <div class="panel-heading">
+          <h3 [id]="'audio-' + panel + '-heading'">{{ panel === 'speed' ? 'Velocidad' : panel === 'volume' ? 'Volumen' : 'Opciones' }}</h3>
+          <button type="button" class="icon-button" (click)="closePanel()" aria-label="Cerrar ajustes" title="Cerrar ajustes"><i class="material-icons" aria-hidden="true">close</i></button>
+        </div>
+        @if (panel === 'speed') {
+          <div class="speed-options" role="group" aria-label="Velocidad de reproducción">
+            @for (rate of speeds; track rate) {
+              <label [class.selected-rate]="preferredRate === rate"><input type="radio" name="audio-speed" [value]="rate" [checked]="preferredRate === rate" (change)="setRate($event)"><span>{{ rate }}×</span></label>
+            }
+          </div>
+        } @else if (panel === 'volume') {
+          <div class="volume-options">
+            <button type="button" class="icon-button" (click)="toggleMute()" [attr.aria-pressed]="muted" [attr.aria-label]="muted ? 'Activar sonido' : 'Silenciar'" [title]="muted ? 'Activar sonido' : 'Silenciar'"><i class="material-icons" aria-hidden="true">{{ muted || volume === 0 ? 'volume_off' : 'volume_up' }}</i></button>
+            <input type="range" aria-label="Volumen" min="0" max="1" step="0.05" [value]="volume" [attr.aria-valuetext]="volumePercent + '%'" (input)="setVolume($event)">
+            <output>{{ muted ? '0' : volumePercent }}%</output>
+          </div>
+        } @else {
+          <label class="setting-option"><input type="checkbox" [checked]="isContinuous" (change)="isContinuous = !isContinuous; savePreferences('continuous')"> Reproducción continua</label>
+          <label class="setting-option"><input type="checkbox" [checked]="isRepeating" (change)="isRepeating = !isRepeating; savePreferences('repeat')"> Repetir la lista</label>
+          @if (isMobileLayout) {
+            <ng-container *ngTemplateOutlet="audioDiagnostics"></ng-container>
+          }
+        }
+      </div>
+    }
+  </div>
+  <div class="playback-status" [class.idle-status]="!loading && !waiting" role="status">{{ loading ? 'Cargando pistas…' : waiting ? 'Cargando audio…' : '' }}</div>
+  @if (playbackSession.warning()) {
+    <p class="playback-error" role="status">{{ playbackSession.warning() }}</p>
+  }
+  @if (error) {
+    <div class="playback-error" role="alert"><p>{{ error }}</p>
+      <button type="button" (click)="retry()" [disabled]="loading"><i class="material-icons" aria-hidden="true">refresh</i> Reintentar</button>
+    </div>
+  }
 
-			<button (click)="previousChapter()" [disabled]="!hasChapters" title="Capítulo anterior">
-				<i class="material-icons">fast_rewind</i>
-			</button>
+  <section class="track-list" id="audio-track-list" aria-label="Pistas y capítulos">
+    <div class="section-heading">
+      @if (isMobileLayout && listExpanded) {
+        <button #collapseListButton type="button" class="icon-button" (click)="setListExpanded(false)" aria-label="Volver al reproductor" title="Volver al reproductor"><i class="material-icons" aria-hidden="true">arrow_back</i></button>
+      }
+      <h3>Pistas y capítulos</h3><div class="list-tools"><span>{{ playlist.length }} pistas</span>
+      <button type="button" class="icon-button" (click)="locateCurrent()" [disabled]="!currentTrack" aria-label="Localizar pista o capítulo actual" title="Localizar pista o capítulo actual"><i class="material-icons" aria-hidden="true">my_location</i></button>
+      @if (isMobileLayout && !listExpanded) {
+        <button #expandListButton type="button" class="icon-button" (click)="setListExpanded(true)" aria-label="Ampliar pistas y capítulos" title="Ampliar pistas y capítulos" aria-expanded="false" aria-controls="audio-track-list"><i class="material-icons" aria-hidden="true">open_in_full</i></button>
+      }
+    </div></div>
+    <ol #trackList class="tracks" tabindex="0" aria-label="Lista de pistas y capítulos">
+      @for (track of playlist; track track.src; let i = $index) {
+        <li class="track" [class.active-track]="!!currentTrack && i === currentTrackIndex">
+          <div class="track-row">
+            <button type="button" class="track-select" (click)="selectTrack(i)" [attr.aria-current]="currentTrack && i === currentTrackIndex ? 'true' : null" [attr.aria-label]="'Seleccionar pista ' + (i + 1) + ': ' + trackTitle(track.title) + (currentTrack && i === currentTrackIndex ? ', pista actual, ' + currentPlaybackStatus.label : '')">
+              <span class="track-number">{{ i + 1 }}</span>
+              <span class="track-description"><span class="track-title">{{ trackTitle(track.title) }}</span><span class="track-meta">{{ track.durationSeconds ? formatTime(track.durationSeconds) : track.length }}</span>
+                @if (currentTrack && i === currentTrackIndex) {
+                  <span class="current-label"><i class="material-icons" aria-hidden="true">{{ currentPlaybackStatus.icon }}</i> Pista actual · {{ currentPlaybackStatus.label }}</span>
+                }
+              </span>
+            </button>
+            @if (track.chapters?.length) {
+              <button type="button" class="chapter-toggle" (click)="toggleChapters(track.src)"
+                [attr.aria-expanded]="expandedTracks.has(track.src)" [attr.aria-controls]="'chapters-' + i"
+                [attr.aria-label]="(expandedTracks.has(track.src) ? 'Ocultar' : 'Mostrar') + ' capítulos de la pista ' + (i + 1)"
+                [title]="expandedTracks.has(track.src) ? 'Ocultar capítulos' : 'Mostrar capítulos'">
+                <span>{{ track.chapters?.length }}</span><i class="material-icons" aria-hidden="true">{{ expandedTracks.has(track.src) ? 'expand_less' : 'expand_more' }}</i>
+              </button>
+            } @else {
+              <span class="no-chapters">{{ chapterStatus(track) }}</span>
+            }
+          </div>
+          <div [id]="'chapters-' + i" [hidden]="!expandedTracks.has(track.src)">
+            <ol class="chapters" [attr.aria-label]="'Capítulos de la pista ' + (i + 1)">
+              @for (chapter of track.chapters; track $index; let c = $index) {
+                <li>
+                  <button type="button" class="chapter-row" (click)="seekToChapter(i, chapter)"
+                    [class.current-chapter]="i === currentTrackIndex && c === currentChapterIndex"
+                    [attr.aria-current]="i === currentTrackIndex && c === currentChapterIndex ? 'true' : null"
+                    [attr.aria-label]="'Capítulo ' + (c + 1) + ': ' + chapter.title + ', duración: ' + chapterDuration(track, chapter) + (i === currentTrackIndex && c === currentChapterIndex ? ', capítulo actual, ' + currentPlaybackStatus.label : '')">
+                    <span class="chapter-number">{{ c + 1 }}</span>
+                    <span class="chapter-title">{{ chapter.title }}@if (i === currentTrackIndex && c === currentChapterIndex) { <span class="current-label"><i class="material-icons" aria-hidden="true">{{ currentPlaybackStatus.icon }}</i> {{ currentPlaybackStatus.label }}</span> }</span>
+                    <time [title]="'Duración: ' + chapterDuration(track, chapter)">{{ chapterDuration(track, chapter) }}</time>
+                  </button>
+                </li>
+              }
+            </ol>
+          </div>
+        </li>
+      }
+    </ol>
+  </section>
 
-			<button (click)="previous()" title="Pista anterior">
-				<i class="material-icons">skip_previous</i>
-			</button>
+  @if (isMobileLayout && listExpanded) {
+    <div class="mini-player" aria-label="Reproducción con lista ampliada">
+      <button type="button" class="mini-context" (click)="setListExpanded(false)" aria-label="Volver al reproductor" title="Volver al reproductor">
+        <span class="track-title">{{ currentChapter?.title || (currentTrack ? trackTitle(currentTrack.title) : 'Audiolibro') }}</span>
+        <small class="track-meta">{{ timelineLabel }} · {{ formatTime(timelineTime) }} / {{ formatTime(timeline.duration) }}</small>
+      </button>
+      <div class="mini-transport" role="group" aria-label="Controles de reproducción">
+        <button type="button" class="icon-button" (click)="seekBy(-10)" [disabled]="!canSeek" aria-label="Retroceder 10 segundos" title="Retroceder 10 segundos"><i class="material-icons" aria-hidden="true">replay_10</i></button>
+        <button type="button" class="icon-button play-button" (click)="togglePlayPause()" [disabled]="loading || !currentTrack" [attr.aria-label]="isPlaying ? 'Pausar' : 'Reproducir'" [title]="isPlaying ? 'Pausar' : 'Reproducir'"><i class="material-icons" aria-hidden="true">{{ isPlaying ? 'pause' : 'play_arrow' }}</i></button>
+        <button type="button" class="icon-button" (click)="seekBy(10)" [disabled]="!canSeek" aria-label="Avanzar 10 segundos" title="Avanzar 10 segundos"><i class="material-icons" aria-hidden="true">forward_10</i></button>
+      </div>
+      <div class="mini-progress" aria-hidden="true"><span [style.width.%]="timeline.duration ? timelineTime / timeline.duration * 100 : 0"></span></div>
+    </div>
+  }
 
-			<button (click)="togglePlayPause()" title="{{ isPlaying ? 'Pausar' : 'Reproducir' }}">
-				<i *ngIf="isPlaying" class="material-icons">pause</i>
-				<i *ngIf="!isPlaying" class="material-icons">play_arrow</i>
-			</button>
-
-			<button (click)="next()" title="Pista siguiente">
-				<i class="material-icons">skip_next</i>
-			</button>
-
-			<button (click)="nextChapter()" [disabled]="!hasChapters" title="Capítulo siguiente">
-				<i class="material-icons">fast_forward</i>
-			</button>
-
-			<button (click)="toggleContinuousPlay()" title="Reproducción continua">
-				<i *ngIf="isContinuous" class="material-icons">playlist_play</i>
-				<i *ngIf="!isContinuous" class="material-icons">playlist_remove</i>
-			</button>
-		</div>
-
-	</div>
-
-	<!-- Lista de reproducción -->
-	<div class="playlist" #playlistContainer>
-		<ul>
-			<li *ngFor="let track of playlist; let i = index" (click)="selectTrack(i)"
-				[class.selected]="i === currentTrackIndex">
-				<div class="track-info">
-					<span class="track-index">{{ i + 1 }}</span>
-					<span class="track-title">{{ track.title }}</span>
-					<span class="track-duration">{{ track.length }}</span>
-				</div>
-			</li>
-		</ul>
-	</div>
-</div>
-
-
-<ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fffa" type="square-jelly-box" [fullScreen]="true">
-	<p style="color: white"> Loading... </p>
-</ngx-spinner>
-<error-message [onClose]="onClose"></error-message>
+  @if (!isMobileLayout) {
+    <ng-container *ngTemplateOutlet="audioDiagnostics"></ng-container>
+  }
+  <ng-template #audioDiagnostics><details class="lab-options">
+    <summary>Diagnóstico de audio</summary>
+    <label><input type="checkbox" [checked]="diagnostics.enabled" (change)="diagnostics.enabled = !diagnostics.enabled"> Registrar diagnóstico</label>
+    <button type="button" class="icon-button" (click)="diagnostics.download()" aria-label="Exportar diagnóstico de audio" title="Exportar diagnóstico de audio"><i class="material-icons" aria-hidden="true">download</i></button>
+    <output>Estado: {{ mediaState }} · Metadata: {{ metadataMs }} ms</output>
+  </details></ng-template>
+</section>
