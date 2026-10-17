@@ -30,5 +30,5 @@
 </section>
 <div class="modal fade search-details" tabindex="-1" aria-label="Detalles del material" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
   <div class="modal-header"><h2 class="fs-5">Detalles</h2><button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
-  <div class="modal-body">@if(selected){<book-details-panel [file]="selected" [readerOutlet]="readerOutlet" (readerRequested)="requestReader($event)" (readerClosed)="readerClosed()"></book-details-panel>}</div>
+  <div class="modal-body">@if(openingError){<p role="alert">{{openingError}}</p>}@if(selected){<book-details-panel [file]="selected" [readerOutlet]="readerOutlet" (readerRequested)="requestReader($event)" (readerClosed)="readerClosed()"></book-details-panel>}</div>
 </div></div></div><div #readerOutlet></div>

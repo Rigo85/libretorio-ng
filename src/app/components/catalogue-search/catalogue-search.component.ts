@@ -4,7 +4,7 @@ import {ActivatedRoute,Router} from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Subscription,timeout,filter,take} from 'rxjs';
-import {ReadingService} from '../../services/reading.service';
+import {ReadingContext,ReadingService} from '../../services/reading.service';
 import {BookDetailsPanelComponent} from '../book-details-panel/book-details-panel.component';
 import {RoutedModal} from '../helpers/routed-modal';
 import {ActivityTarget,ActivityView,activityTarget} from '../reading-home/activity-route';
@@ -29,7 +29,19 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
   @ViewChild(BookDetailsPanelComponent) details?:BookDetailsPanelComponent;
   draft={...defaults};committed:Record<string,string>={};advanced=false;loading=false;error='';openingError='';
   items:any[]=[];next?:string;previous?:string;selected?:File;elapsed=0;failedCovers=new Set<number>();
-  private hidden=()=>{if(!this.applying&&!this.closed)void this.closeDetails();};
+  private opener?:HTMLElement;
+  private showing=()=>{
+    const active=document.activeElement;
+    if(active instanceof HTMLElement&&active!==document.body&&!active.closest('.modal'))this.opener=active;
+  };
+  private hiding=()=>{
+    const active=document.activeElement;
+    if(active instanceof HTMLElement&&this.modalElement?.contains(active))active.blur();
+  };
+  private hidden=()=>{if(!this.applying&&!this.closed){
+    const target=this.opener?.isConnected&&this.opener.getClientRects().length?this.opener:this.host.nativeElement.querySelector<HTMLElement>('[name=q]');
+    target?.focus({preventScroll:true});void this.closeDetails();
+  }};
   get hasQuery(){return Object.keys(defaults).some(key=>!['sort','subfolders'].includes(key)&&!!this.committed[key]);}
   ngOnInit(){
     this.books.incomingMessage$.pipe(filter(message=>message.event==='list'&&!!message.data?.directories),take(1),takeUntilDestroyed(this.destroy)).subscribe(message=>{
@@ -41,6 +53,7 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
   ngAfterViewInit(){
     const modalElement=this.host.nativeElement.querySelector<HTMLElement>('.search-details')!;
     this.modalElement=modalElement;this.modal=new RoutedModal(modalElement);modalElement.addEventListener('hidden.bs.modal',this.hidden);
+    modalElement.addEventListener('show.bs.modal',this.showing);modalElement.addEventListener('hide.bs.modal',this.hiding);
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroy)).subscribe(params=>{void Promise.resolve().then(()=>{
       if(this.closed)return;
       const query:Record<string,string>={};for(const name of [...Object.keys(defaults),'before','after']){
@@ -86,20 +99,46 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
     this.modalWork=this.modalWork.catch(()=>{}).then(async()=>{
       if(!current())return;this.applying=true;this.openingError='';
       try{
-        if(this.selected?.id!==id||this.activeView!==view){await this.details?.hideManagedReader();this.activeView=undefined;}
-        if(this.selected?.id!==id||!id){await this.modal?.visible(false);this.selected=undefined;this.cdr.detectChanges();}
+        if(this.selected?.id!==id||this.activeView!==view){await this.details?.hideManagedReader();if(!current())return;this.activeView=undefined;}
+        if(this.selected?.id!==id||!id){await this.modal?.visible(false);if(!current())return;this.selected=undefined;this.cdr.detectChanges();}
         if(!id||!current())return;
         const file=this.selected??await this.reading.request<File>('GET',`/items/${id}`);
         if(!current())return;this.selected=file;this.cdr.detectChanges();
-        if(view){await this.modal?.visible(false);if(current()){await this.details?.showManagedReader(view);this.activeView=view;}}
+        if(view){
+          let sourcePath:string|undefined;
+          if(view==='pdf-preparado'){
+            const context=await this.reading.request<ReadingContext>('GET',`/items/${id}/progress/converted-pdf?fresh=1`);
+            if(!current())return;
+            sourcePath=context.sourcePath;
+            if(sourcePath!==`/cache/${file.coverId}/${file.coverId}.pdf`)throw new Error('PDF_NOT_READY');
+          }
+          await this.modal?.visible(false);if(!current())return;
+          await this.details?.showManagedReader(view,sourcePath);if(!current())return;this.activeView=view;
+        }
         else await this.modal?.visible(true);
         if(current())void this.reading.visit(id).catch(()=>{});
-      }catch{if(current())this.openingError='No se pudo abrir el material. Comprueba su disponibilidad.';}
+      }catch(error:any){if(current()){
+        const code=error?.error?.code??error?.message;
+        this.openingError=error?.status===401?'La sesion vencio. Inicia sesion de nuevo.':
+          error?.status===403?'No tienes permiso para abrir este material.':
+          code==='PDF_NOT_READY'?'El PDF no esta disponible o cambio desde la ultima comprobacion. Actualiza su estado y vuelve a intentar.':
+          code==='SOURCE_UNAVAILABLE'||code==='MATERIAL_MISSING'||error?.status===404?'El material o su PDF ya no esta disponible en la ruta registrada.':
+          error?.status===0||error?.name==='TimeoutError'?'No se pudo comprobar el material. Revisa la conexion y vuelve a intentar.':
+          'No se pudo abrir el material. Comprueba su disponibilidad y vuelve a intentar.';
+        if(view&&this.selected?.id===id){
+          await this.details?.hideManagedReader();if(!current())return;
+          this.activeView=undefined;await this.modal?.visible(true);if(!current())return;
+          // Details already represent this route; do not clear the error on its own navigation.
+          this.targetKey=JSON.stringify({id});
+          await this.router.navigate([],{relativeTo:this.route,queryParams:{vista:null},queryParamsHandling:'merge',replaceUrl:true});
+        }
+      }}
       finally{this.applying=false;this.cdr.markForCheck();}
     });await this.modalWork;
   }
   cover(item:any){return item.cover&&!this.failedCovers.has(item.id)?`/covers/${encodeURIComponent(item.cover)}.webp`:'';}
   ngOnDestroy(){this.closed=true;++this.generation;++this.openingGeneration;this.subscription?.unsubscribe();
-    this.modalElement?.removeEventListener('hidden.bs.modal',this.hidden);const modal=this.modal;
+    this.modalElement?.removeEventListener('hidden.bs.modal',this.hidden);
+    this.modalElement?.removeEventListener('show.bs.modal',this.showing);this.modalElement?.removeEventListener('hide.bs.modal',this.hiding);const modal=this.modal;
     void this.modalWork.finally(()=>this.details?.hideManagedReader()).finally(()=>modal?.dispose(true));}
 }

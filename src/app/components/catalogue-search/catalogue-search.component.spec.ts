@@ -61,4 +61,83 @@ describe('CatalogueSearchComponent material filters',()=>{
     component.turn();expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{material:'audio',before:null,after:'next-page'}});
     component.turn(true);expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{material:'audio',before:'previous-page',after:null}});
   });
+
+  function opening(){
+    const state=component as any,file=bookFixture(),path=`/cache/${file.coverId}/${file.coverId}.pdf`;
+    const request=jasmine.createSpy('request').and.resolveTo({sourcePath:path}),visit=jasmine.createSpy('visit').and.resolveTo();
+    Object.assign(TestBed.inject(ReadingService),{request,visit});
+    const show=jasmine.createSpy('showManagedReader').and.resolveTo(),hide=jasmine.createSpy('hideManagedReader').and.resolveTo();
+    state.details={showManagedReader:show,hideManagedReader:hide};
+    const visible=jasmine.createSpy('visible').and.resolveTo();state.modal={visible,dispose:async()=>{}};
+    spyOn(state.cdr,'detectChanges');component.selected=file;
+    const navigate=spyOn(TestBed.inject(Router),'navigate').and.resolveTo(true);
+    const apply=(view='pdf-preparado')=>state.applyTarget(file.id,view,++state.openingGeneration);
+    return {state,file,path,request,visit,show,hide,visible,navigate,apply};
+  }
+  it('validates a prepared PDF before hiding details and passes the checked source path',async()=>{
+    const t=opening();let resolve!:(value:any)=>void;
+    t.request.and.returnValue(new Promise(done=>resolve=done));
+    const done=t.apply();await Promise.resolve();await Promise.resolve();await Promise.resolve();
+    expect(t.visible).not.toHaveBeenCalledWith(false);expect(t.show).not.toHaveBeenCalled();
+    resolve({sourcePath:t.path});await done;
+    expect(t.request).toHaveBeenCalledOnceWith('GET',`/items/${t.file.id}/progress/converted-pdf?fresh=1`);
+    expect(t.show).toHaveBeenCalledOnceWith('pdf-preparado',t.path);expect(t.state.activeView).toBe('pdf-preparado');
+    expect(t.visit).toHaveBeenCalledOnceWith(t.file.id);
+  });
+  it('loads the item and prepared source for a direct reader link',async()=>{
+    const t=opening();component.selected=undefined;
+    t.request.and.callFake(async(_method:string,path:string)=>path.endsWith('?fresh=1')?{sourcePath:t.path}:t.file);
+    await t.apply();expect(t.request).toHaveBeenCalledWith('GET',`/items/${t.file.id}`);
+    expect(t.show).toHaveBeenCalledOnceWith('pdf-preparado',t.path);
+  });
+  for(const failure of [
+    {error:{status:409,error:{code:'PDF_NOT_READY'}},text:'El PDF no esta disponible'},
+    {error:{status:409,error:{code:'SOURCE_UNAVAILABLE'}},text:'ruta registrada'},
+    {error:{status:404},text:'ruta registrada'},
+    {error:{status:401},text:'La sesion vencio'},
+    {error:{status:403},text:'No tienes permiso'},
+    {error:{status:0},text:'Revisa la conexion'},
+    {error:{name:'TimeoutError'},text:'Revisa la conexion'},
+    {error:{status:500},text:'vuelve a intentar'}
+  ])it(`keeps details and permits retry after ${JSON.stringify(failure.error)}`,async()=>{
+    const t=opening();t.request.and.rejectWith(failure.error);await t.apply();
+    expect(t.show).not.toHaveBeenCalled();expect(t.visible).not.toHaveBeenCalledWith(false);
+    expect(t.visible).toHaveBeenCalledWith(true);expect(component.openingError).toContain(failure.text);
+    expect(t.visit).not.toHaveBeenCalled();
+    expect(t.navigate).toHaveBeenCalledWith([],jasmine.objectContaining({queryParams:{vista:null},queryParamsHandling:'merge',replaceUrl:true}));
+    expect(t.state.targetKey).toBe(JSON.stringify({id:t.file.id}));
+    t.request.and.resolveTo({sourcePath:t.path});await t.apply();
+    expect(t.show).toHaveBeenCalledOnceWith('pdf-preparado',t.path);expect(component.openingError).toBe('');
+  });
+  it('does not accept an absent or unexpected prepared path',async()=>{
+    const t=opening();
+    for(const sourcePath of [undefined,'/books/other.pdf','/cache/other/other.pdf']){
+      t.request.and.resolveTo({sourcePath});await t.apply();
+      expect(t.show).not.toHaveBeenCalled();expect(component.openingError).toContain('El PDF no esta disponible');
+    }
+  });
+  it('restores details if the reader itself cannot open',async()=>{
+    const t=opening();t.show.and.rejectWith(new Error('READER_NOT_READY'));await t.apply();
+    expect(t.visible.calls.allArgs()).toEqual([[false],[true]]);
+    expect(t.state.activeView).toBeUndefined();expect(t.navigate).toHaveBeenCalled();
+  });
+  it('leaves original readers on their existing path without querying conversions',async()=>{
+    const t=opening();await t.apply('original');
+    expect(t.request).not.toHaveBeenCalled();expect(t.show).toHaveBeenCalledOnceWith('original',undefined);
+  });
+  for(const reject of [false,true])it(`ignores a stale prepared lookup (reject=${reject})`,async()=>{
+    const t=opening();let finish!:(value:any)=>void;
+    t.request.and.returnValue(new Promise((resolve,rejectPromise)=>finish=reject?rejectPromise:resolve));
+    const done=t.apply();await Promise.resolve();await Promise.resolve();await Promise.resolve();
+    ++t.state.openingGeneration;finish(reject?{status:409,error:{code:'PDF_NOT_READY'}}:{sourcePath:t.path});await done;
+    expect(t.show).not.toHaveBeenCalled();expect(t.visible).not.toHaveBeenCalled();expect(t.navigate).not.toHaveBeenCalled();expect(component.openingError).toBe('');
+  });
+  it('releases focused details controls before aria-hidden and restores the initiating button',()=>{
+    const t=opening(),element:HTMLElement=fixture.nativeElement.querySelector('.search-details');
+    t.state.modalElement=element;
+    const opener=document.createElement('button');document.body.append(opener);opener.focus();t.state.showing();
+    const button:HTMLButtonElement=element.querySelector('button')!;element.style.display='block';button.focus();
+    expect(element.contains(document.activeElement)).toBeTrue();t.state.hiding();expect(element.contains(document.activeElement)).toBeFalse();
+    t.state.hidden();expect(document.activeElement).toBe(opener);opener.remove();
+  });
 });
