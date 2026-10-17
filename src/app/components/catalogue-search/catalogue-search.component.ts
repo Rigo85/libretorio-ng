@@ -14,9 +14,10 @@ import {LeftPanelUpdateService} from '../../services/left-panel-update.service';
 import {CollapseStateService} from '../../services/collapse-state.service';
 import {getTitle} from '../../core/headers';
 import {AuthorPipe} from '../../pipes/author.pipe';
+import {FullPathPipe} from '../../pipes/full-path.pipe';
 
-const defaults={q:'',title:'',author:'',isbn:'',description:'',language:'',folder:'',kind:'',sort:'relevance',subfolders:'1'};
-@Component({selector:'catalogue-search',imports:[FormsModule,BookDetailsPanelComponent],changeDetection:ChangeDetectionStrategy.Eager,
+const defaults={q:'',title:'',author:'',isbn:'',description:'',language:'',folder:'',kind:'',sort:'relevance',subfolders:'1',material:''};
+@Component({selector:'catalogue-search',imports:[FormsModule,BookDetailsPanelComponent,FullPathPipe],changeDetection:ChangeDetectionStrategy.Eager,
   templateUrl:'./catalogue-search.component.html',styleUrl:'./catalogue-search.component.scss'})
 export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy {
   private books=inject(BooksService);private left=inject(LeftPanelUpdateService);private collapse=inject(CollapseStateService);
@@ -59,6 +60,7 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
     const query=Object.fromEntries(Object.entries(this.draft).filter(([key,value])=>Object.hasOwn(defaults,key)&&value.trim()).map(([key,value])=>[key,value.trim()]));
     void this.router.navigate(['/buscar'],{queryParams:query});
   }
+  selectMaterial(material:string){this.draft.material=material;this.draft.kind='';}
   turn(previous=false){const cursor=previous?this.previous:this.next;if(!cursor||this.loading)return;
     void this.router.navigate(['/buscar'],{queryParams:{...this.committed,before:previous?cursor:null,after:previous?null:cursor}});
   }
