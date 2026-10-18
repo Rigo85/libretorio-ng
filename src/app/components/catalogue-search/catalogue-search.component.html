@@ -12,12 +12,12 @@
       <label>Idioma registrado<input class="form-control" name="language" maxlength="256" [(ngModel)]="draft.language"></label>
       <label>Material<select class="form-select" name="material" aria-label="Material" [ngModel]="draft.material" (ngModelChange)="selectMaterial($event)"><option value="">Todos</option><option value="pdf">PDF</option><option value="epub">EPUB</option><option value="audio">Audiolibros</option><option value="comic">Comics/manga</option></select></label>
       @if(draft.kind){<label>Tipo registrado (filtro anterior)<select class="form-select" name="kind" [(ngModel)]="draft.kind"><option value="">Todos</option><option value="FILE">Archivo</option><option value="EPUB">Carpeta EPUB</option><option value="AUDIOBOOK">Carpeta de audio</option><option value="COMIC-MANGA">Carpeta de comics</option><option value="NONE">Sin clasificar</option></select></label>}
-      <label class="folder">Ruta de carpeta<input class="form-control" name="folder" maxlength="2048" [(ngModel)]="draft.folder"></label>
+      <label class="folder">Carpeta o fragmento de ruta<input class="form-control" name="folder" maxlength="2048" [(ngModel)]="draft.folder"></label>
       <label class="check"><input type="checkbox" [checked]="draft.subfolders==='1'" (change)="draft.subfolders=$any($event.target).checked?'1':'0'">Incluir subcarpetas</label>
     </div>}
     <label class="order">Orden<select name="sort" class="form-select" [(ngModel)]="draft.sort"><option value="relevance">Relevancia</option><option value="title">Titulo</option><option value="added">Agregado recientemente</option></select></label>
   </form>
-  <div class="status" role="status">@if(loading){Buscando...}@else if(error){<span class="text-warning">{{error}}</span> <button class="btn btn-outline-secondary" (click)="load()">Reintentar</button>}@else if(items.length){ {{items.length}} resultados en esta pagina }@else if(hasQuery){Sin resultados}</div>
+  <div class="status" role="status">@if(loading){Buscando...}@else if(error){<span class="text-warning">{{error}}</span>@if(retryable){<button class="btn btn-outline-secondary" (click)="load()">Reintentar</button>}@if(invalidCursor){<button class="btn btn-outline-secondary" (click)="firstPage()">Primera pagina</button>}}@else if(items.length){ {{items.length}} resultados en esta pagina }@else if(hasQuery){Sin resultados}</div>
   @if(openingError){<p role="alert">{{openingError}}</p>}
   <ul class="results" [attr.aria-busy]="loading">@for(item of items;track item.id){<li>
     <button class="cover" (click)="open(item.id)" [attr.aria-label]="'Detalles de '+item.title">@if(cover(item);as url){<img [src]="url" alt="" width="60" height="90" loading="lazy" (error)="failedCovers.add(item.id)">}@else{<i class="bi bi-book" aria-hidden="true"></i>}</button>

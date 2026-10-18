@@ -62,6 +62,27 @@ describe('CatalogueSearchComponent material filters',()=>{
     component.turn(true);expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{material:'audio',before:'previous-page',after:null}});
   });
 
+  for(const [status,code,text,retry] of [
+    [400,'INVALID_FOLDER','segmentos',false],[400,'UNFINISHED_PHRASE','comilla',false],
+    [400,'INVALID_ISBN','ISBN',false],[503,'SEARCH_TIMEOUT','Acota',false],
+    [503,'SEARCH_UNAVAILABLE','Vuelve a intentar',true],[429,'SEARCH_BUSY','Espera',true],
+    [401,'UNAUTHENTICATED','sesion',false]
+  ] as const)it(`shows a specific ${code} message and only retries temporary failures`,()=>{
+    component.committed={folder:'Biblioteca Ebooks Español 2026 (epub)',author:'Barbara Hambly'};component.load();
+    const request=http.expectOne(req=>req.url==='/api/catalogue/search');
+    expect(request.request.params.get('folder')).toBe(component.committed['folder']);
+    request.flush({code},{status,statusText:'Test failure'});fixture.detectChanges();
+    expect(component.error).toContain(text);expect(component.retryable).toBe(retry);
+    expect(fixture.nativeElement.querySelector('.status button')?.textContent?.trim()).toBe(retry?'Reintentar':undefined);
+  });
+  it('offers a first page for an obsolete cursor without clearing filters or reader parameters',()=>{
+    component.committed={folder:'Biblioteca',author:'Barbara',after:'old'};component.load();
+    http.expectOne(req=>req.url==='/api/catalogue/search').flush({code:'INVALID_CURSOR'},{status:400,statusText:'Bad Request'});
+    fixture.detectChanges();expect(component.invalidCursor).toBeTrue();expect(component.retryable).toBeFalse();
+    const navigate=spyOn(TestBed.inject(Router),'navigate').and.resolveTo(true);
+    fixture.nativeElement.querySelector('.status button').click();
+    expect(navigate).toHaveBeenCalledWith([],jasmine.objectContaining({queryParams:{before:null,after:null},queryParamsHandling:'merge',replaceUrl:true}));
+  });
   function opening(){
     const state=component as any,file=bookFixture(),path=`/cache/${file.coverId}/${file.coverId}.pdf`;
     const request=jasmine.createSpy('request').and.resolveTo({sourcePath:path}),visit=jasmine.createSpy('visit').and.resolveTo();

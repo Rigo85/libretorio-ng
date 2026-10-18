@@ -27,7 +27,7 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
   private closed=false;private modal?:RoutedModal;private modalElement?:HTMLElement;private modalWork=Promise.resolve();
   private openingGeneration=0;private targetKey='';private applying=false;private activeView?:ActivityView;
   @ViewChild(BookDetailsPanelComponent) details?:BookDetailsPanelComponent;
-  draft={...defaults};committed:Record<string,string>={};advanced=false;loading=false;error='';openingError='';
+  draft={...defaults};committed:Record<string,string>={};advanced=false;loading=false;error='';retryable=false;invalidCursor=false;openingError='';
   items:any[]=[];next?:string;previous?:string;selected?:File;elapsed=0;failedCovers=new Set<number>();
   private opener?:HTMLElement;
   private showing=()=>{
@@ -77,8 +77,9 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
   turn(previous=false){const cursor=previous?this.previous:this.next;if(!cursor||this.loading)return;
     void this.router.navigate(['/buscar'],{queryParams:{...this.committed,before:previous?cursor:null,after:previous?null:cursor}});
   }
+  firstPage(){void this.router.navigate([],{relativeTo:this.route,queryParams:{before:null,after:null},queryParamsHandling:'merge',replaceUrl:true});}
   load(){
-    this.subscription?.unsubscribe();const generation=++this.generation;this.items=[];this.failedCovers.clear();this.next=this.previous=undefined;this.error='';
+    this.subscription?.unsubscribe();const generation=++this.generation;this.items=[];this.failedCovers.clear();this.next=this.previous=undefined;this.error='';this.retryable=false;this.invalidCursor=false;
     if(!this.hasQuery){this.loading=false;return;}
     this.loading=true;
     this.subscription=this.http.get<any>('/api/catalogue/search',{params:this.committed,withCredentials:true}).pipe(timeout(12000)).subscribe({
@@ -86,8 +87,17 @@ export class CatalogueSearchComponent implements OnInit,AfterViewInit,OnDestroy 
         if(data?.version!==1||!Array.isArray(data.items)){this.error='Este backend aun no dispone de la nueva busqueda.';this.loading=false;return;}
         this.items=data.items.slice(0,50).map((item:File)=>({...item,title:getTitle(item),author:new AuthorPipe().transform(item)}));this.next=data.next;this.previous=data.previous;this.elapsed=data.elapsedMs;this.loading=false;this.cdr.markForCheck();},
       error:error=>{if(generation!==this.generation)return;this.loading=false;
-        this.error=error.status===400?'Revisa los filtros y las comillas de la consulta.':error.status===429?'Hay una busqueda en curso. Espera un momento y vuelve a intentar.':
-          error.error?.code==='SEARCH_TIMEOUT'?'La consulta excedio el tiempo permitido. Acota los filtros.':'No se pudo consultar el catalogo. Vuelve a intentar.';this.cdr.markForCheck();}
+        const code=error.error?.code;
+        const messages:Record<string,string>={INVALID_FOLDER:'Revisa la carpeta o fragmento de ruta. No se admiten los segmentos "." y "..".',
+          INVALID_ISBN:'Revisa el ISBN: usa numeros, X, espacios o guiones.',UNFINISHED_PHRASE:'Falta cerrar una comilla en la consulta.',
+          TOO_MANY_TERMS:'Hay demasiados terminos. Reduce la consulta a un maximo de 12 por campo.',EMPTY_SEARCH:'Introduce al menos un criterio de busqueda.',
+          INVALID_CURSOR:'Esta pagina de resultados ya no es valida. Vuelve a la primera pagina.',
+          SEARCH_TIMEOUT:'La consulta excedio el tiempo permitido. Acota los filtros.'};
+        this.invalidCursor=code==='INVALID_CURSOR'&&!!(this.committed['before']||this.committed['after']);
+        this.retryable=code!=='SEARCH_TIMEOUT'&&(error.status===0||error.name==='TimeoutError'||error.status===429||error.status>=500);
+        this.error=messages[code]??(error.status===400?'Revisa los filtros de la consulta.':error.status===401?'La sesion vencio. Inicia sesion de nuevo.':
+          error.status===403?'No tienes permiso para consultar el catalogo.':error.status===429?'Hay una busqueda en curso. Espera un momento y vuelve a intentar.':
+          'No se pudo consultar el catalogo. Vuelve a intentar.');this.cdr.markForCheck();}
     });
   }
   open(id:number,view?:ActivityView){return this.router.navigate([],{relativeTo:this.route,queryParams:{archivo:id,vista:view??null},queryParamsHandling:'merge'});}
