@@ -7,6 +7,7 @@ import {AuthService} from './auth.service';
 import {BooksService} from './books.service';
 import {StopPlayingService} from './stop-playing.service';
 import {CollapseStateService} from './collapse-state.service';
+import {SearchTextService} from './search-text.service';
 
 describe('Authentication during playback', () => {
   let auth: AuthService;
@@ -23,9 +24,27 @@ describe('Authentication during playback', () => {
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => {auth.ngOnDestroy(); http.verify();});
+  it('clears the search on expiration and logout without requesting a catalogue reset', () => {
+    auth=TestBed.inject(AuthService);
+    const search=TestBed.inject(SearchTextService),resets:boolean[]=[];
+    const subscription=search.reset$.subscribe(value=>resets.push(value));
+    search.setSearchText('previous account');auth.expireSession();expect(search.searchText).toBe('');
+    search.setSearchText('another search');auth.logout();expect(search.searchText).toBe('');
+    expect(resets).toEqual([false]);subscription.unsubscribe();
+  });
+  it('clears the search only after login succeeds', () => {
+    auth=TestBed.inject(AuthService);
+    const search=TestBed.inject(SearchTextService);search.setSearchText('old search');
+    auth.login('test@example.test','password').subscribe();
+    http.expectOne('/api/csrf-token').flush({csrfToken:'test'});
+    expect(search.searchText).toBe('old search');
+    http.expectOne('/api/login').flush('');expect(search.searchText).toBe('');
+  });
   it('does not log out on a transient server failure', fakeAsync(() => {
     auth = TestBed.inject(AuthService);
+    TestBed.inject(SearchTextService).setSearchText('preserved');
     tick(300_000); http.expectOne('/api/me?passive=1').flush({}, {status:503,statusText:'Unavailable'});
+    expect(TestBed.inject(SearchTextService).searchText).toBe('preserved');
     expect(stop).not.toHaveBeenCalled(); expect(navigate).not.toHaveBeenCalled(); auth.ngOnDestroy();
   }));
   it('stops audio on a confirmed expired HTTP session', fakeAsync(() => {

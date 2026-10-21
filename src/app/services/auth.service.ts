@@ -7,6 +7,7 @@ import { CollapseStateService } from "(src)/app/services/collapse-state.service"
 import { StopPlayingService } from "./stop-playing.service";
 import { SessionActivityService } from "./session-activity.service";
 import { ReadingService } from './reading.service';
+import { SearchTextService } from './search-text.service';
 
 declare var bootstrap: any;
 
@@ -24,7 +25,8 @@ export class AuthService implements OnDestroy {
 		private collapseStateService: CollapseStateService,
 		private stopPlayingService: StopPlayingService,
 		private sessionActivity: SessionActivityService,
-		private reading: ReadingService
+		private reading: ReadingService,
+		private searchText: SearchTextService
 	) {
 		this.listenForSessionExpired();
 		this.startSessionMonitor();
@@ -89,6 +91,7 @@ export class AuthService implements OnDestroy {
 					}
 				).pipe(
 					map(response => {
+						this.searchText.setSearchText('', false);
 						this.reading.stop();
 						this.expired = false;
 						this.sessionActivity.reset();
@@ -121,6 +124,7 @@ export class AuthService implements OnDestroy {
 	}
 
 	private cleanupSession(): void {
+		this.searchText.setSearchText('', false);
 		this.reading.stop();
 		this.sessionActivity.stop();
 		this.stopPlayingService.stopPlayingAudio();
