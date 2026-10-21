@@ -59,6 +59,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 	downloadMessage: string = "";
 	titleMessage: string = "Information";
 	stringSource: string = "";
+	comicPosition?: {current:number;total:number};
 	extension: string = "N/A";
 	disabledExtensions: string[] = ["pdf", "epub", "cbr", "cbz", "cb7", "cbt"];
 	supportedComicExtensions: string[] = ["cbr", "cbz", "cb7", "cbt"];
@@ -86,6 +87,9 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		}
 	};
 
+	private onReaderShow = (event: Event) => {
+		if(event.target === this.readerElement)this.comicPosition=undefined;
+	};
 	private onShownModal = (event: Event) => {
 		if(event.target !== this.readerElement)return;
 		this.stringSource = !this.stringSource ? this.getReaderSource(this.file) : this.stringSource;
@@ -93,6 +97,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 
 	private onHiddenModal = (event: Event) => {
 		if(event.target !== this.readerElement)return;
+		this.comicPosition=undefined;
 		this.stringSource = "";
 		this._isUsingPdfConversion = false;
 		this.stopPlayingService.stopPlayingAudio();
@@ -109,6 +114,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes["file"]) {
+			this.comicPosition=undefined;
 			this.convertToPdfSub?.unsubscribe();
 			this.stringSource = '';
 			this._isUsingPdfConversion = false;
@@ -131,6 +137,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		if (modalElement) {
 			if(this.readerOutlet){this.readerOutlet.append(modalElement);this.managedReader=new RoutedModal(modalElement);}
 			modalElement.addEventListener("shown.bs.modal", this.onShownModal);
+			modalElement.addEventListener("show.bs.modal", this.onReaderShow);
 			modalElement.addEventListener("hidden.bs.modal", this.onHiddenModal);
 		}
 	}
@@ -145,6 +152,7 @@ export class BookDetailsPanelComponent implements OnInit, OnChanges, AfterViewIn
 		const modalElement = this.readerElement;
 		if (modalElement) {
 			modalElement.removeEventListener("shown.bs.modal", this.onShownModal);
+			modalElement.removeEventListener("show.bs.modal", this.onReaderShow);
 			modalElement.removeEventListener("hidden.bs.modal", this.onHiddenModal);
 		}
 	}

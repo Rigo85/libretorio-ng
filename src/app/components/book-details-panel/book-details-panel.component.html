@@ -152,6 +152,9 @@
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title reader-title" id="readModalLabel" [title]="file | title">{{ file | title }}</h1>
+        @if (comicPosition && ['CBR', 'CBZ', 'CB7', 'CBT', 'COMIC-MANGA'].includes(file | ext)) {
+          <span class="comic-position" aria-label="Pagina actual y total">{{ comicPosition.current }} / {{ comicPosition.total }}</span>
+        }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div id="body-scroll" class="modal-body" style="padding: 0; background-color: #202020;">
@@ -167,6 +170,7 @@
         }
         @if (['CBR', 'CBZ', 'CB7', 'CBT', 'COMIC-MANGA'].includes(file | ext)) {
           <comic-viewer
+            (pageChanged)="comicPosition=$event"
             [comicSrc]="stringSource"
             [archiveId]="file.id"
             [id]="file.coverId">

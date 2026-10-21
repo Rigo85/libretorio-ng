@@ -119,6 +119,26 @@ describe('BookDetailsPanelComponent', () => {
     select('book.docx'); component._isUsingPdfConversion = true; fixture.detectChanges();
     expect(modal().classList.contains('pdf-reader-modal')).toBeTrue();
   });
+  it('reserves non-overlapping header space for the comic counter and resets it on close or change', () => {
+    select('comic.cbz');component.file={...component.file,localDetails:{title:'Titulo largo '.repeat(40)}};
+    component.comicPosition={current:9999,total:12345};fixture.detectChanges();
+    const modal=fixture.nativeElement.querySelector('#readModal') as HTMLElement;
+    modal.style.display='block';
+    for(const width of [320,390,1440]){
+      modal.style.width=width+'px';
+      (modal.querySelector('.modal-dialog') as HTMLElement).style.width=width+'px';
+      const title=modal.querySelector('.reader-title')!.getBoundingClientRect();
+      const counter=modal.querySelector('.comic-position')!.getBoundingClientRect();
+      const close=modal.querySelector('.btn-close')!.getBoundingClientRect();
+      expect(title.width).toBeGreaterThan(0);expect(title.right).toBeLessThanOrEqual(counter.left);
+      expect(counter.right).toBeLessThanOrEqual(close.left);expect(close.right).toBeLessThanOrEqual(modal.getBoundingClientRect().right);
+    }
+    modal.dispatchEvent(new Event('show.bs.modal'));expect(component.comicPosition).toBeUndefined();
+    component.comicPosition={current:2,total:20};modal.dispatchEvent(new Event('shown.bs.modal'));
+    expect(component.comicPosition).toEqual({current:2,total:20});
+    modal.dispatchEvent(new Event('hidden.bs.modal'));expect(component.comicPosition).toBeUndefined();
+    component.comicPosition={current:3,total:20};select('book.epub');expect(component.comicPosition).toBeUndefined();
+  });
   it('never asks for PDF conversion for EPUB files, EPUB directories or native PDF', () => {
     const get = lookup();
     for (const [name, kind] of [['book.EPUB', FileKind.FILE], ['expanded.doc', FileKind.EPUB], ['book.pdf', FileKind.FILE]] as const) {

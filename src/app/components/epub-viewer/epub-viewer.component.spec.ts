@@ -91,6 +91,7 @@ describe('EpubViewerComponent', () => {
     const content = jasmine.createSpy(), unloaded = jasmine.createSpy(), detach = jasmine.createSpy();
     const observe = spyOn(TestBed.inject(SessionActivityService), 'observe').and.returnValue(detach);
     const rendition = {
+      manager:{layout:{name:'reflowable'}},
       hooks:{content:{register:content},unloaded:{register:unloaded}}, on:jasmine.createSpy(),
       themes:{register:jasmine.createSpy(),select:jasmine.createSpy(),fontSize:jasmine.createSpy()},
       display:jasmine.createSpy().and.resolveTo()
@@ -103,6 +104,7 @@ describe('EpubViewerComponent', () => {
     const contents={document:doc,cfiFromRange:(range:Range)=>new EpubCFI(range,'/6/2[chapter]').toString()};
     component.speechContext={archiveId:1,path:'/books/test.epub',book:{getRange:async()=>range,spine:{get:()=>({href:'chapter.xhtml'})}}};
     content.calls.mostRecent().args[0](contents);
+    expect(doc.head.querySelector('#libretorio-mobile-margins')).not.toBeNull();
     expect(observe).toHaveBeenCalledOnceWith(doc);
     const stringify=jasmine.createSpy('no full selection string');
     const selection = spyOn(doc,'getSelection').and.returnValue({isCollapsed:false,rangeCount:1,getRangeAt:()=>range,toString:stringify} as unknown as Selection);

@@ -26,6 +26,17 @@ describe('Comic reading progress',()=>{
     pages:{index,pageIndex:first,currentPagesLength:length,totalPages:total,pages:Array(length).fill(image)}});}
   function loaded(){component.imageLoaded(component.frames[0]);}
   function move(n:number){(component as any).move(n);}
+  it('reports the header position only for the current loaded image, never failed or stale images',async()=>{
+    const changed=spyOn(component.pageChanged,'emit');
+    await open();block(0,1,2);expect(changed).not.toHaveBeenCalled();
+    loaded();expect(changed).toHaveBeenCalledOnceWith({current:1,total:6});
+    move(1);const failed=component.frames[0];component.imageFailed(failed);
+    expect(changed).toHaveBeenCalledTimes(1);
+    component.retry();component.imageLoaded(failed);expect(changed).toHaveBeenCalledTimes(1);
+    loaded();expect(changed).toHaveBeenCalledWith({current:2,total:6});
+    const previous=component.frames[0];component.comicSrc='';component.ngOnChanges();component.imageLoaded(previous);
+    expect(changed).toHaveBeenCalledTimes(2);
+  });
   it('does not record progress for opening alone, and commits only loaded user navigation',async()=>{
     await open();block(0,1,2);loaded();expect(tracker.capture).not.toHaveBeenCalled();
     move(1);expect(component.currentPage).toBe(1);expect(tracker.capture).not.toHaveBeenCalled();

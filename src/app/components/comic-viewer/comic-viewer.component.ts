@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
+import {Component, ElementRef, EventEmitter, HostListener, Input, Output, OnChanges, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {NgxSpinnerModule, NgxSpinnerService} from 'ngx-spinner';
 import {ErrorMessageComponent} from '../error-message/error-message.component';
@@ -18,6 +18,7 @@ export class ComicViewerComponent implements OnChanges, OnDestroy {
   @Input() comicSrc='';
   @Input() id='';
   @Input() archiveId?:number|string;
+  @Output() pageChanged=new EventEmitter<{current:number;total:number}>();
   pages:string[]=[];
   frames:ComicFrame[]=[];
   currentPage=1;
@@ -92,6 +93,7 @@ export class ComicViewerComponent implements OnChanges, OnDestroy {
   imageLoaded(frame:ComicFrame){
     if(!this.active||this.frames[0]!==frame)return;
     this.currentPage=frame.page;this.busy=false;this.spinner.hide();this.retryWork=undefined;
+    this.pageChanged.emit({current:this.currentPage,total:this.totalPages});
     if(this.progress){
       this.progress.ready=true;
       if(frame.capture){

@@ -28,6 +28,7 @@ import {DocumentSearch,DocumentHit} from '../../core/document-search';
 import {EpubDocumentSearch} from '../../core/epub-document-search';
 import {DocumentSearchComponent} from '../document-search/document-search.component';
 import {NgTemplateOutlet} from '@angular/common';
+import {applyMobileEpubMargins} from '../../core/epub-mobile-margins';
 
 @Component({
 	selector: "epub-viewer",
@@ -152,6 +153,7 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 			const rendition = this.rendition;
 			rendition.hooks.content.register((contents: {document: Document; cfiFromRange(range: Range): string}) => {
 				if (this.rendition !== rendition || this.activityListeners.has(contents.document)) return;
+				applyMobileEpubMargins(contents.document, rendition.manager?.layout?.name);
 				for (const [doc, detach] of this.activityListeners) {
 					if (!doc.defaultView?.frameElement?.isConnected) { detach(); this.activityListeners.delete(doc); }
 				}

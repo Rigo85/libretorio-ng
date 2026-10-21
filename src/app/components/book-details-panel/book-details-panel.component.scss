@@ -90,6 +90,13 @@
 }
 
 #readModal .btn-close { flex-shrink: 0; }
+#readModal .comic-position {
+	flex: 0 0 auto;
+	margin-inline-end: 12px;
+	white-space: nowrap;
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+}
 
 .audio-reader-modal {
 	.modal-dialog { height: 100dvh; }
