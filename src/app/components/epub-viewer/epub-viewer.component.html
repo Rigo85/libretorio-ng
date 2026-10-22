@@ -55,6 +55,14 @@
 				<input type="range" class="form-range" min="100" max="200" step="5" [value]="fontSize"
 					   id="fontSizeFormGroupInput" (change)="onFontSizeChange($event)">
 			</div>
+			<div class="mb-3">
+				<label for="epub-alignment" class="form-label">Alineación</label>
+				<select id="epub-alignment" class="form-select" [value]="alignment" (change)="onAlignmentChange($event)">
+					<option value="original">Original</option>
+					<option value="left">Izquierda</option>
+					<option value="justify">Justificado</option>
+				</select>
+			</div>
 		</div>
 	</div>
 	<div id="viewer" class="spreads" [class.full-width]="tocHidden"></div>

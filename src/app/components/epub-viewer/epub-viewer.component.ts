@@ -29,6 +29,7 @@ import {EpubDocumentSearch} from '../../core/epub-document-search';
 import {DocumentSearchComponent} from '../document-search/document-search.component';
 import {NgTemplateOutlet} from '@angular/common';
 import {applyMobileEpubMargins} from '../../core/epub-mobile-margins';
+import {applyEpubAlignment, epubAlignment, EpubAlignment} from '../../core/epub-alignment';
 
 @Component({
 	selector: "epub-viewer",
@@ -58,6 +59,8 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 	optionsHidden = true;
 	theme = "dark-theme";
 	fontSize = 120;
+	alignment: EpubAlignment = 'original';
+	private alignmentKey?: string;
 	percentage = 0;
 	speechContext?: EpubSpeechContext;
 	speechSelection?: EpubSelection;
@@ -126,6 +129,14 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 			if(generation!==this.readingGeneration){progress?.dispose(false);return;}
 			this.progress=progress;
 			if(progress){const prefs=await this.readingStore.settings('epub').catch(()=>undefined);if(generation!==this.readingGeneration)return;this.fontSize=prefs?.fontSize??120;}
+			this.alignment = 'original';
+			this.alignmentKey = undefined;
+			const identity = await this.readingStore.identity().catch(()=>undefined);
+			if(generation!==this.readingGeneration)return;
+			if(identity){
+				this.alignmentKey = `libretorio:epub:alignment:${identity.userId}`;
+				try { this.alignment = epubAlignment(localStorage.getItem(this.alignmentKey)); } catch {}
+			}
 
 			await this.createAndDisplayRendition(viewerElement);
 			await this.book.ready;
@@ -154,6 +165,7 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 			rendition.hooks.content.register((contents: {document: Document; cfiFromRange(range: Range): string}) => {
 				if (this.rendition !== rendition || this.activityListeners.has(contents.document)) return;
 				applyMobileEpubMargins(contents.document, rendition.manager?.layout?.name);
+				applyEpubAlignment(contents.document, rendition.manager?.layout?.name, this.alignment, this.book?.packaging?.metadata?.language);
 				for (const [doc, detach] of this.activityListeners) {
 					if (!doc.defaultView?.frameElement?.isConnected) { detach(); this.activityListeners.delete(doc); }
 				}
@@ -333,6 +345,18 @@ export class EpubViewerComponent implements OnChanges, OnInit, OnDestroy {
 		if (this.rendition) {
 			this.rendition.themes.fontSize(`${inputElement.value}%`);
 		}
+	}
+
+	async onAlignmentChange(event: Event) {
+		this.alignment = epubAlignment((event.target as HTMLSelectElement).value);
+		if(this.alignmentKey){try { localStorage.setItem(this.alignmentKey, this.alignment); } catch {}}
+		const rendition = this.rendition;
+		if(!rendition)return;
+		const cfi = rendition.currentLocation()?.start?.cfi;
+		for(const contents of rendition.getContents()){
+			applyEpubAlignment(contents.document, rendition.manager?.layout?.name, this.alignment, this.book?.packaging?.metadata?.language);
+		}
+		if(cfi){try { await rendition.display(cfi); } catch { this.handleError('No se pudo mantener la ubicacion al cambiar la alineacion.'); }}
 	}
 
 	async searchResult(hit:DocumentHit){
