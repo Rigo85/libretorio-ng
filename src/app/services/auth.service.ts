@@ -1,6 +1,6 @@
-import { Injectable, OnDestroy } from "@angular/core";
+import { Injectable, OnDestroy, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { catchError, finalize, map, Observable, of, Subject, switchMap, takeUntil, timeout } from "rxjs";
+import { catchError, defer, finalize, map, Observable, of, ReplaySubject, share, Subject, switchMap, takeUntil, tap, throwError, timeout } from "rxjs";
 import { Router } from "@angular/router";
 import { BooksService } from "(src)/app/services/books.service";
 import { CollapseStateService } from "(src)/app/services/collapse-state.service";
@@ -10,6 +10,8 @@ import { ReadingService } from './reading.service';
 import { SearchTextService } from './search-text.service';
 
 declare var bootstrap: any;
+const logoutStorageKey = 'libretorio:logout-unconfirmed';
+const logoutUnconfirmed = 'No se pudo confirmar el cierre de sesión. La sesión podría seguir activa en el servidor.';
 
 @Injectable({providedIn: "root"})
 export class AuthService implements OnDestroy {
@@ -17,6 +19,10 @@ export class AuthService implements OnDestroy {
 	private sessionMonitorInterval?: ReturnType<typeof setInterval>;
 	private checkingSession = false;
 	private expired = false;
+	private sessionGeneration = 0;
+	readonly logoutPending = signal(false);
+	readonly logoutWarning = signal('');
+	private logoutRequest?: Observable<void>;
 
 	constructor(
 		private http: HttpClient,
@@ -28,6 +34,7 @@ export class AuthService implements OnDestroy {
 		private reading: ReadingService,
 		private searchText: SearchTextService
 	) {
+		try { if(sessionStorage.getItem(logoutStorageKey))this.logoutWarning.set(logoutUnconfirmed); } catch {}
 		this.listenForSessionExpired();
 		this.startSessionMonitor();
 	}
@@ -36,7 +43,7 @@ export class AuthService implements OnDestroy {
 		const sessionCheckInterval = 5 * 60 * 1000;
 
 		this.sessionMonitorInterval = setInterval(() => {
-			if (this.checkingSession || this.expired || this.router.url?.startsWith('/auth')) return;
+			if (this.checkingSession || this.expired || this.logoutPending() || this.logoutWarning() || this.router.url?.startsWith('/auth')) return;
 			this.checkingSession = true;
 			this.http.get<{authenticated: boolean}>("/api/me?passive=1", {withCredentials: true}).pipe(
 				timeout(10_000), takeUntil(this.destroy$), finalize(() => this.checkingSession = false)
@@ -78,7 +85,8 @@ export class AuthService implements OnDestroy {
 	}
 
 	login(email: string, password: string): Observable<void> {
-		return this.getCsrfToken().pipe(
+		return defer(() => this.logoutPending()
+			? throwError(() => new Error('Logout is still pending')) : this.getCsrfToken()).pipe(
 			switchMap(token =>
 				this.http.post<void>(
 					"/api/login",
@@ -94,6 +102,8 @@ export class AuthService implements OnDestroy {
 						this.searchText.setSearchText('', false);
 						this.reading.stop();
 						this.expired = false;
+						++this.sessionGeneration;
+						this.setLogoutUnconfirmed(false);
 						this.sessionActivity.reset();
 						// console.info("Login successful", response);
 						return;
@@ -136,29 +146,68 @@ export class AuthService implements OnDestroy {
 	expireSession(): void {
 		if (this.expired) return;
 		this.expired = true;
+		++this.sessionGeneration;
 		this.cleanupSession();
 		this.router.navigate(["/auth/login"], {replaceUrl: true});
 	}
 
 	logout(): Observable<void> {
-		this.cleanupSession();
-
-		return this.getCsrfToken().pipe(
-			switchMap(token =>
-				this.http.post<void>(
-					"/api/logout",
-					{},
-					{headers: {"X-CSRF-Token": token}, withCredentials: true}
-				)
-			)
+		if(this.logoutRequest)return this.logoutRequest;
+		const request = defer(() => {
+			++this.sessionGeneration;
+			this.logoutPending.set(true);
+			this.expired = true;
+			this.setLogoutUnconfirmed(true);
+			this.cleanupSession();
+			return this.getCsrfToken().pipe(switchMap(token => this.http.post<void>(
+				'/api/logout', {}, {headers: {'X-CSRF-Token': token}, withCredentials: true}
+			)));
+		}).pipe(
+			// One deadline covers both CSRF bootstrap and the logout response.
+			timeout(10_000),
+			takeUntil(this.destroy$),
+			catchError(error => {
+				if(error.status === 401 && ['SESSION_EXPIRED','SESSION_INVALIDATED'].includes(error.error?.code))return of(undefined);
+				return throwError(() => error);
+			}),
+			tap({
+				next: () => this.finishLogout(true),
+				error: () => this.finishLogout(false)
+			}),
+			finalize(() => {
+				this.logoutPending.set(false);
+				if(this.logoutRequest === request)this.logoutRequest = undefined;
+			}),
+			// Navigation can destroy the caller; a bounded logout must still finish.
+			share({connector: () => new ReplaySubject<void>(1), resetOnComplete: false, resetOnError: false, resetOnRefCountZero: false})
 		);
+		this.logoutRequest = request;
+		return request;
+	}
+
+	private setLogoutUnconfirmed(value: boolean): void {
+		this.logoutWarning.set(value ? logoutUnconfirmed : '');
+		try {
+			if(value)sessionStorage.setItem(logoutStorageKey, '1');
+			else sessionStorage.removeItem(logoutStorageKey);
+		} catch {}
+	}
+
+	private finishLogout(confirmed: boolean): void {
+		this.setLogoutUnconfirmed(!confirmed);
+		void Promise.resolve(this.router.navigate(['/auth/login'], {replaceUrl: true})).catch(() => {
+			this.logoutWarning.set(confirmed ? 'Sesión cerrada. Recarga la página para entrar.' : logoutUnconfirmed);
+		});
 	}
 
 	isLoggedIn(): Observable<boolean> {
+		if(this.logoutPending() || this.logoutWarning())return of(false);
+		const generation = this.sessionGeneration;
 		return this.http
 			.get<{ authenticated: boolean }>("/api/me?passive=1", {withCredentials: true})
 			.pipe(
 				map(response => {
+					if(generation !== this.sessionGeneration || this.logoutPending() || this.logoutWarning())return false;
 					if (response.authenticated) this.expired = false;
 					return response.authenticated;
 				}),

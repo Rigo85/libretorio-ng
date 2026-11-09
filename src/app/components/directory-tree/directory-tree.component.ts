@@ -45,8 +45,7 @@ export class DirectoryTreeComponent {
 	}
 
 	isCollapsed(hash: string | undefined): boolean {
-		if (!hash) return false;
-		return this.collapseStateService.collapseStates[hash];
+		return !hash || this.collapseStateService.collapseStates[hash] !== false;
 	}
 
 	trackByHash(index: number, subDir: Directory): string {

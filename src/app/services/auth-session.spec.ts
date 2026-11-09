@@ -16,6 +16,7 @@ describe('Authentication during playback', () => {
   let navigate: jasmine.Spy;
   let expired: Subject<any>;
   beforeEach(() => {
+    sessionStorage.removeItem('libretorio:logout-unconfirmed');
     stop = jasmine.createSpy('stop'); navigate = jasmine.createSpy('navigate'); expired = new Subject();
     TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting(),
       {provide:Router,useValue:{navigate}}, {provide:StopPlayingService,useValue:{stopPlayingAudio:stop}},
@@ -23,13 +24,14 @@ describe('Authentication during playback', () => {
       {provide:CollapseStateService,useValue:{clearStates:jasmine.createSpy('clearStates')}}]});
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => {auth.ngOnDestroy(); http.verify();});
+  afterEach(() => {auth.ngOnDestroy(); http.verify();sessionStorage.removeItem('libretorio:logout-unconfirmed');});
   it('clears the search on expiration and logout without requesting a catalogue reset', () => {
     auth=TestBed.inject(AuthService);
     const search=TestBed.inject(SearchTextService),resets:boolean[]=[];
     const subscription=search.reset$.subscribe(value=>resets.push(value));
     search.setSearchText('previous account');auth.expireSession();expect(search.searchText).toBe('');
-    search.setSearchText('another search');auth.logout();expect(search.searchText).toBe('');
+    search.setSearchText('another search');auth.logout().subscribe();expect(search.searchText).toBe('');
+    http.expectOne('/api/csrf-token').flush({csrfToken:'test'});http.expectOne('/api/logout').flush({success:true});
     expect(resets).toEqual([false]);subscription.unsubscribe();
   });
   it('clears the search only after login succeeds', () => {
@@ -59,7 +61,8 @@ describe('Authentication during playback', () => {
   }));
   it('logout stops audio even before the logout request is sent', () => {
     auth = TestBed.inject(AuthService);
-    auth.logout(); expect(stop).toHaveBeenCalledTimes(1);
+    auth.logout().subscribe(); expect(stop).toHaveBeenCalledTimes(1);
+    http.expectOne('/api/csrf-token').flush({csrfToken:'test'});http.expectOne('/api/logout').flush({success:true});
   });
   it('handles simultaneous expiration reports once without a logout HTTP request', fakeAsync(() => {
     auth = TestBed.inject(AuthService);

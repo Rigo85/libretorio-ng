@@ -29,7 +29,7 @@
       @if(canManageUsers){
         <li><a routerLink="/usuarios" (click)="closeAccount()"><i class="bi bi-people" aria-hidden="true"></i>Gestionar usuarios</a></li>
       }
-      <li [class.account-signout]="managementEnabled||canManageUsers"><button type="button" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Cerrar sesión</button></li>
+      <li [class.account-signout]="managementEnabled||canManageUsers"><button type="button" [disabled]="loggingOut" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Cerrar sesión</button></li>
     </ul>
   </div>
 </header>

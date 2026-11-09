@@ -11,6 +11,7 @@ import { AuthService } from "(src)/app/services/auth.service";
 import {ReadingService} from '../../services/reading.service';
 import {LibraryNavigationService} from '../../services/library-navigation.service';
 import {UserManagementService} from '../../services/user-management.service';
+import {defer, finalize} from 'rxjs';
 
 @Component({
 	selector: "header-panel",
@@ -34,6 +35,7 @@ export class HeaderPanelComponent implements OnInit, AfterViewInit {
 		canManageUsers=false;
 		get inAccount(){return /^\/(usuarios|cuenta)(?:[/?#]|$)/.test(this.router.url);}
 		accountOpen=false;
+		loggingOut=false;
 		@ViewChild('accountControls') private accountControls?: ElementRef<HTMLElement>;
 		@ViewChild('accountToggle') private accountToggle?: ElementRef<HTMLButtonElement>;
 		sidebarExpanded=false;
@@ -100,18 +102,16 @@ export class HeaderPanelComponent implements OnInit, AfterViewInit {
 	}
 
 	logout(): void {
+		if(this.loggingOut)return;
 		this.closeAccount();
+		this.loggingOut=true;
 		this.spinner.show();
-		this.authService.logout().subscribe({
-			next: () => {
-				// console.info("Logout successful");
-				this.router.navigate(["/auth/login"]);
-				this.spinner.hide();
-				this.booksService.logAction("Logout");
-			},
+		defer(() => this.authService.logout()).pipe(
+			takeUntilDestroyed(this.destroyRef),
+			finalize(() => {this.loggingOut=false;this.spinner.hide();})
+		).subscribe({
 			error: (err: any) => {
 				console.error("Logout failed", err);
-				this.spinner.hide();
 			}
 		});
 	}

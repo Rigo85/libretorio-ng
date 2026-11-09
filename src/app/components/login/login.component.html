@@ -12,6 +12,16 @@
           <i class="bi bi-journal-bookmark-fill fs-1 text-primary"></i>
           <h2 class="mt-2">E-LIBRARY</h2>
         </div>
+        @if (authService.logoutPending()) {
+          <div class="alert alert-secondary" role="status">Cerrando sesión...</div>
+        } @else if (authService.logoutWarning()) {
+          <div class="alert alert-warning" role="alert">
+            <p>{{ authService.logoutWarning() }}</p>
+            <button type="button" class="btn btn-outline-secondary" [disabled]="loggingIn" (click)="retryLogout()">
+              <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Reintentar cierre
+            </button>
+          </div>
+        }
         <form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -37,7 +47,7 @@
               required
               />
           </div>
-          <button type="submit" class="btn btn-primary">Login</button>
+          <button type="submit" class="btn btn-primary" [disabled]="loggingIn || authService.logoutPending()">Login</button>
           @if (error) {
             <div class="text-danger mt-3">{{ error }}</div>
           }

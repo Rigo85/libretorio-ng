@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {provideRouter,Router} from '@angular/router';
-import {EMPTY} from 'rxjs';
+import {EMPTY,Subject,throwError} from 'rxjs';
 import { HeaderPanelComponent } from './header-panel.component';
 import {BooksService} from '../../services/books.service';
 import {AuthService} from '../../services/auth.service';
@@ -124,5 +124,26 @@ describe('HeaderPanelComponent', () => {
   it('closes on route navigation',async()=>{
     checked();accountButton().click();checked();
     await TestBed.inject(Router).navigateByUrl('/cuenta');checked();expect(actions().hidden).toBeTrue();
+  });
+  it('ignores duplicate logout clicks and releases the spinner on completion',()=>{
+    const pending=new Subject<void>(),auth=spyOn(TestBed.inject(AuthService),'logout').and.returnValue(pending);
+    const spinner=TestBed.inject(NgxSpinnerService),hide=spyOn(spinner,'hide'),show=spyOn(spinner,'show');
+    component.logout();component.logout();
+    expect(auth).toHaveBeenCalledTimes(1);expect(show).toHaveBeenCalledTimes(1);expect(component.loggingOut).toBeTrue();
+    pending.next();pending.complete();
+    expect(hide).toHaveBeenCalledTimes(1);expect(component.loggingOut).toBeFalse();
+    expect(books.logAction).not.toHaveBeenCalled();
+  });
+  it('always releases the spinner on a synchronous cleanup error',()=>{
+    spyOn(console,'error');spyOn(TestBed.inject(AuthService),'logout').and.throwError('cleanup failed');
+    const hide=spyOn(TestBed.inject(NgxSpinnerService),'hide');
+    component.logout();expect(hide).toHaveBeenCalledTimes(1);expect(component.loggingOut).toBeFalse();
+  });
+  it('releases the spinner on HTTP failure or when the header is destroyed',()=>{
+    spyOn(console,'error');const logout=spyOn(TestBed.inject(AuthService),'logout').and.returnValue(throwError(()=>new Error('offline')));
+    const hide=spyOn(TestBed.inject(NgxSpinnerService),'hide');
+    component.logout();expect(hide).toHaveBeenCalledTimes(1);
+    logout.and.returnValue(new Subject<void>());component.logout();fixture.destroy();
+    expect(hide).toHaveBeenCalledTimes(2);expect(component.loggingOut).toBeFalse();
   });
 });

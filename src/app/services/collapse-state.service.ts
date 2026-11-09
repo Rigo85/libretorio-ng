@@ -46,6 +46,7 @@ export class CollapseStateService {
 
 	clearStates(): void {
 		this._collapseStates = {};
+		this.lastDirectory = undefined;
 		this._initialized = false;
 		this._lastHash = undefined;
 		this._pendingHash = undefined;
